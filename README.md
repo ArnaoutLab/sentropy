@@ -118,38 +118,20 @@ Dataset 1a is mostly apples; in dataset 1b, all fruits are represented at almost
 | grape     |          1 |          5 |
 | total     |         35 |         35 | 
 
-A frequency-sensitive metacommunity can be created in Python by passing a `counts` DataFrame to a `Metacommunity` object:
+A frequency-sensitive metacommunity can be created in Python by passing a `counts` DataFrame to the `get_sentropies` method:
 
 ```python
 import pandas as pd
 import numpy as np
-from sentropy import Metacommunity
+from sentropy.metacommunity import get_sentropies
 
 counts_1a = pd.DataFrame({"Dataset 1a": [30, 1, 1, 1, 1, 1]}, 
    index=["apple", "orange", "banana", "pear", "blueberry", "grape"])
 
-metacommunity_1a = Metacommunity(counts_1a)
+get_sentropies(counts_1a, viewpoint=[0,1,np.inf])
 ```
 
-Once a metacommunity has been created, diversity measures can be calculated. For example, to calculate $D_1$, we type:
-
-```python
-metacommunity_1a.subcommunity_diversity(viewpoint=1, measure='alpha')
-```
-
-The output shows that $D_1=1.90$. To calculate the corresponding metacommunity diversity index:
-
-```python
-metacommunity_1a.metacommunity_diversity(viewpoint=1, measure='alpha')
-```
-
-In this example, the metacommunity indices are the same as the subcommunity ones, since there is only one subcommunity. To calculated multiple diversity measures at once and store them in a DataFrame, we type:
-
-```python 
-metacommunity_1a.to_dataframe(viewpoint=[0, 1, np.inf])
-```
-
-which produces the following output:
+Here we requested to get diversity indices for 3 different viewpoint parameters. The following output is produced (in the form of a Pandas DataFrame):
 
 |      | community     | viewpoint | alpha |  rho | beta | gamma | normalized_alpha | normalized_rho | normalized_beta | rho_hat | beta_hat |
 | ---: | :------------ | --------: | ----: | ---: | ---: | ----: | ---------------: | -------------: | --------------: | ------: | -------: |
@@ -160,29 +142,18 @@ which produces the following output:
 |    4 | metacommunity |       inf |  1.17 | 1.00 | 1.00 |  1.17 |             1.17 |           1.00 |            1.00 |    1.00 |     1.00 |
 |    5 | Dataset 1a    |       inf |  1.17 | 1.00 | 1.00 |  1.17 |             1.17 |           1.00 |            1.00 |    1.00 |     1.00 |
 
+Looking at the alpha column, we see that the value of $D_1$ for this metacommunity is $D_1=1.90$. In this example, the metacommunity indices are the same as the subcommunity ones, since there is only one subcommunity. 
 
-Next, let us repeat for Dataset 1b. Again, we make the `counts` dataframe and a `Metacommunity` object:
+Next, let us repeat for Dataset 1b. Again, we make the `counts` dataframe and pass it to the `get_sentropies` method:
 
 ```python
 counts_1b = pd.DataFrame({"Community 1b": [6, 6, 6, 6, 6, 5]},
     index=["apple", "orange", "banana", "pear", "blueberry", "grape"])
 
-metacommunity_1b = Metacommunity(counts_1b)
+get_sentropies(counts_1b, viewpoint=[0,1,np.inf])
 ```
 
-To obtain $D_1$, we run:
-
-```python
-metacommunity_1b.subcommunity_diversity(viewpoint=1, measure='alpha')
-```
-
-We find that $D_1 \approx 5.99$ for Dataset 1b. The larger value of $D_1$ for Dataset 1b aligns with the intuitive sense that more balance in the frequencies of unique elements means a more diverse dataset. To output multiple diversity measures at once, we run:
-
-```python
-metacommunity_1b.to_dataframe(viewpoint=[0, 1, np.inf])
-```
-
-which produces the output:
+and we obtain this DataFrame as output:
 
 |      | community     | viewpoint | alpha |  rho | beta | gamma | normalized_alpha | normalized_rho | normalized_beta | rho_hat | beta_hat |
 | ---: | :------------ | --------: | ----: | ---: | ---: | ----: | ---------------: | -------------: | --------------: | ------: | -------: |
@@ -192,6 +163,8 @@ which produces the output:
 |    3 | Dataset 1b    |      1.00 |  5.99 | 1.00 | 1.00 |  5.99 |             5.99 |           1.00 |            1.00 |    1.00 |     1.00 |
 |    4 | metacommunity |       inf |  5.83 | 1.00 | 1.00 |  5.83 |             5.83 |           1.00 |            1.00 |    1.00 |     1.00 |
 |    5 | Dataset 1b    |       inf |  5.83 | 1.00 | 1.00 |  5.83 |             5.83 |           1.00 |            1.00 |    1.00 |     1.00 |
+
+By inspecting the alpha column, we see that $D_1 \approx 5.99$ for Dataset 1b. The larger value of $D_1$ for Dataset 1b aligns with the intuitive sense that more balance in the frequencies of unique elements means a more diverse dataset. 
 
 The `sentropy` package can also calculate similarity-sensitive diversity measures for any user-supplied definition of similarity. To illustrate, we now consider a second example in which the dataset elements are all unique. Uniqueness means element frequencies are identical, so similarity is the only factor that influences diversity calculations.
 
