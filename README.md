@@ -294,16 +294,13 @@ index=labels_2b
 We can obtain the representativeness $\bar{\rho}$ (“rho-bar”) of each subcommunity, here at $q=0$, as follows:
 
 ```python
-metacommunity_2b_1 = Metacommunity(counts_2b_1, similarity=S_2b)
-metacommunity_2b_1.subcommunity_diversity(viewpoint=0, 
-measure='rho_hat')
+get_sentropies(counts_2b_1, similarity=S_2b, viewpoint=0, measures=['normalized_rho'])
 ```
 
-with the output $[0.41, 0.21]$. Recall $\hat{\rho}$ indicates how well a subcommunity represents the metacommunity. We find that $\hat{\rho}$ of the two subcommunities are rather low— $0.41$ and $0.21$ for the invertebrates and the vertebrates, respectively—reflecting the low similarity between these groups. 
-Note the invertebrates are more diverse than the vertebrates, which we can see by calculating $q=0$ $\alpha$ diversity of these subcommunities:
+with the output $[0.63, 0.67]$. Recall $\bar{\rho}$ indicates how well a subcommunity represents the metacommunity. Note the invertebrates are more diverse than the vertebrates, which we can see by calculating $q=0$ $\alpha$ diversity of these subcommunities:
 
 ```python
-metacommunity_2b_1.subcommunity_diversity(viewpoint=0, measure='alpha')
+get_sentropies(counts_2b_1, similarity=S_2b, viewpoint=0, measures=['alpha'])
 ```
 
 which outputs $[3.54, 2.30]$. In contrast, suppose we split Dataset 2b into two subsets at random, without regard to phylum:
@@ -321,11 +318,10 @@ index=labels_2b
 Proceeding again as above,
 
 ```python
-metacommunity_2b_2 = Metacommunity(counts_2b_2, similarity=S_2b)
-metacommunity_2b_2.subcommunity_diversity(viewpoint=0, measure='rho_hat')
+get_sentropies(counts_2b_2, similarity=S_2b, viewpoint=0, measures=['normalized_rho'])
 ```
 
-yielding $[0.68, 1.07]$. We find that the $\hat{\rho}$ of the two subsets are now, respectively, $0.68$ and $1.07$. These high values reflect the fact that the vertebrates and the invertebrates are roughly equally represented.
+yielding $[0.93, 0.92]$. We find that the $\bar{\rho}$ of the two subsets are now substantially higher than with counts_2b_1. These high values reflect the fact that the vertebrates and the invertebrates are roughly equally represented, so each subcommunity is more representative of the entire metacommunity than with counts_2b_1.
 
 # Advanced usage
 
