@@ -20,6 +20,18 @@ SimilarityFromSymmetricFunction, SimilarityFromFile
 from sentropy.components import Components
 from sentropy.powermean import power_mean
 
+MEASURES = (
+    "alpha",
+    "rho",
+    "beta",
+    "gamma",
+    "normalized_alpha",
+    "normalized_rho",
+    "normalized_beta",
+    "rho_hat",
+    "beta_hat",
+)
+
 
 class Metacommunity:
     similarity: Similarity
@@ -31,18 +43,16 @@ class Metacommunity:
     appearances of each species in each of the subcommunities that the
     species appears in.
     """
-
     MEASURES = (
-        "alpha",
-        "rho",
-        "beta",
-        "gamma",
-        "normalized_alpha",
-        "normalized_rho",
-        "normalized_beta",
-        "rho_hat",
-        "beta_hat",
-    )
+    "alpha",
+    "rho",
+    "beta",
+    "gamma",
+    "normalized_alpha",
+    "normalized_rho",
+    "normalized_beta",
+    "rho_hat",
+    "beta_hat")
 
     def __init__(
         self,
@@ -253,3 +263,22 @@ class Metacommunity:
                 self.subcommunities_to_dataframe(viewpoint=q, measures=measures)
             )
         return concat(dataframes).reset_index(drop=True)
+
+def get_sentropies(counts: Union[DataFrame, ndarray],
+    similarity: Optional[Union[ndarray, DataFrame, str, Callable]] = None,
+    viewpoint: Union[float, Iterable[float]] = 1,
+    measures: Iterable[str] = MEASURES,
+    symmetric: Optional[bool] = False,
+    X: Optional[Union[ndarray, DataFrame]] = None,
+    chunk_size: Optional[int] = 10,
+    ):
+
+    mc = Metacommunity(counts, similarity, symmetric, X, chunk_size)
+    sentropies = mc.to_dataframe(viewpoint, measures)
+    return sentropies
+
+
+
+
+
+
