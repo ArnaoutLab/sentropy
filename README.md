@@ -224,10 +224,10 @@ In this example we pass the similarity matrix in the form of either a numpy arra
 metacommunity_2a = Metacommunity(counts_2a, similarity=S_2a)
 ```
 
-We can find $D_0^Z$ similarly to the above:
+Let's now find $D_0^Z$. We pass the similarity matrix to the `similarity' argument of `get_sentropies':
 
 ```python
-metacommunity_2a.subcommunity_diversity(viewpoint=0, measure='alpha')
+get_sentropies(counts_2a, similarity=S_2a, viewpoint=0)
 ```
 
 The output tells us that $D_0^Z=1.11$. The fact that this number is close to 1 reflects the fact that all individuals in this community are very similar to each other (all birds).
@@ -268,15 +268,15 @@ which corresponds to the following table:
 
 The values of the similarity matrix indicate high similarity among the vertebrates, high similarity among the invertebrates and low similarity between vertebrates and invertebrates.
 
-To calculate the alpha diversity (with $q=0$ as above), we proceed as before, defining counts, creating a Metacommunity object, and calling its `subcommunity_diversity` method with the desired settings:
+To calculate the alpha diversity (with $q=0$ as above), we again define counts, pass it together with the similarity matrix to the `get_sentropies' method. In addition, we will specialize to viewpoint 0 and alpha diversity:
 
 ```python
 counts_2b = pd.DataFrame({"Community 2b": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=labels_2b)
 metacommunity_2b = Metacommunity(counts_2b, similarity=S_2b)
-metacommunity_2b.subcommunity_diversity(viewpoint=0, measure='alpha')
+get_sentropies(counts_2b, similarity=S_2b, viewpoint=0, measures=['alpha'])
 ```
 
-which outputs $D_0^Z=2.16$. That this number is close to 2 reflects the fact that members in this community belong to two broad classes of animals: vertebrates and invertebrates. The remaining $0.16$ above $2$ is interpreted as reflecting the diversity within each phylum.
+Inspecting the resulting dataframe, we find $D_0^Z=2.16$. That this number is close to 2 reflects the fact that members in this community belong to two broad classes of animals: vertebrates and invertebrates. The remaining $0.16$ above $2$ is interpreted as reflecting the diversity within each phylum.
 
 ## Beta diversities
 Recall beta diversity is between-group diversity. To illustrate, we will re-imagine Dataset 2b as a metacommunity made up of 2 subcommunities—the invertebrates and the vertebrates—defined as follows:
