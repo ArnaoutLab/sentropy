@@ -337,16 +337,14 @@ To illustrate passing a csv file, we re-use the counts_2b_1 and S_2b from above 
 ```python
 S_2b_df.to_csv("S_2b.csv", index=False)
 ```
-then we can build a metacommunity by passing the path (as a string) to the ``similarity'' argument:
+then we can pass a path (as a string) to the ``similarity'' argument of `get_sentropies':
 
 ```python
-metacommunity_2b_1 = Metacommunity(counts_2b_1, similarity='S_2b.csv', chunk_size=5)
+get_sentropies(counts_2b_1, similarity='S_2b.csv', chunk_size=5, viewpoint=0, measures=['alpha'])
 ```
-The optional `chunk_size` argument to `SimilarityFromFile`'s constructor specifies how many rows of the similarity matrix are read from the file at a time.
+The optional `chunk_size` argument specifies how many rows of the similarity matrix are read from the file at a time.
 
-Alternatively, to avoid a large footprint on either RAM or disk, the similarity matrix can be constructed and processed on the fly. 
-A `SimilarityFromFunction` object generates a similarity matrix from a similarity function, and an array or `DataFrame` of features to `X`. Each row of X represents the feature values of a species. 
-For example, given numeric features all of the same type:
+Alternatively, to avoid a large footprint on either RAM or disk, the similarity matrix can be constructed and processed on the fly. In this case, we pass an array or `DataFrame` of features to the `X` argument of `get_sentropies'. Each row of X represents the feature values of a species. For example, given numeric features all of the same type:
 
 ```python
 X = np.array([
@@ -358,7 +356,7 @@ X = np.array([
 def similarity_function(species_i, species_j):
   return 1 / (1 + np.linalg.norm(species_i - species_j))
 
-metacommunity = Metacommunity(np.array([[1, 1], [1, 0], [0, 1]]), similarity=similarity_function,
+get_sentropies(np.array([[1, 1], [1, 0], [0, 1]]), similarity=similarity_function,
                                                                X=X, chunk_size=10)
 ```
 
@@ -404,7 +402,7 @@ def feature_similarity(animal_i, animal_j):
         result *= 0.5
     return result
 
-metacommunity = Metacommunity(np.array([[1, 1], [1, 0], [0, 1]]), similarity=feature_similarity, X=X)
+get_sentropies(np.array([[1, 1], [1, 0], [0, 1]]), similarity=feature_similarity, X=X)
 ```
 
 A two-fold speed-up is possible when the following (typical) conditions hold:
@@ -417,8 +415,7 @@ In this case, we don't really need to call the simularity function twice for eac
 Pass ``symmetric=True'':
 
 ```python
-metacommunity = Metacommunity(np.array([[1, 1], [1, 0], [0, 1]]),
-                              similarity=feature_similarity, X=X, symmetric=True)
+get_sentropies(np.array([[1, 1], [1, 0], [0, 1]]), similarity=feature_similarity, X=X, symmetric=True)
 ```
 
 The similarity function will only be called for pairs of rows `species[i], species[j]` where i < j, and the similarity of $species_i$ to $species_j$ will be re-used for the similarity of $species_j$ to $species_i$. Thus, a nearly 2-fold speed-up is possible, if the similarity function is computationally expensive. (For a discussion of _nonsymmetric_ similarity, see [Leinster and Cobbold](https://doi.org/10.1890/10-2402.1).)
