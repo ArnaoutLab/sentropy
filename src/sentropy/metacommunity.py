@@ -15,7 +15,8 @@ identity as np_identity
 from sentropy.exceptions import InvalidArgumentError
 
 from sentropy.abundance import make_abundance
-from sentropy.similarity import Similarity, SimilarityFromArray, SimilarityIdentity, SimilarityFromFunction
+from sentropy.similarity import Similarity, SimilarityFromArray, SimilarityIdentity, SimilarityFromFunction, \
+SimilarityFromSymmetricFunction
 from sentropy.components import Components
 from sentropy.powermean import power_mean
 
@@ -46,7 +47,10 @@ class Metacommunity:
     def __init__(
         self,
         counts: Union[DataFrame, ndarray],
-        similarity: Union[ndarray, Similarity, None] = None,
+        similarity: Optional[Union[ndarray, DataFrame, Callable]] = None,
+        symmetric: Optional[bool] = True,
+        X: Optional[Union[ndarray, DataFrame]] = None,
+        chunk_size: Optional[int] = 10,
     ) -> None:
         """
         Parameters
@@ -56,13 +60,18 @@ class Metacommunity:
             species, containing the count of each species in the
             corresponding subcommunities.
         similarity:
-            For small datasets this can be the similarity matrix as
-            an n-by-n numpy.ndarray.
-            For larger datasets, various subclasses of Similarity
-            provide the similarity matrix in various memory- and compute-
-            efficient way.
-            If None is given here, the diversity measures calculated will
-            be frequency-sensitive only, not similarity-sensitive.
+            Optional. Can be:
+            - None → use identity (frequency-only)
+            - NumPy ndarray → similarity matrix
+            - pandas DataFrame → converted to NumPy array
+            - Callable[[int, int], float] → similarity function
+        symmetric:
+            Only relevant if similarity is callable. Indicates whether
+            similarity(i,j) == similarity(j,i). Default True.
+        X:
+            Array of features. Only relevant if similarity is callable.
+        chunk_size:
+            How many rows in the similarity matrix to generate at once. Only relevant if similarity is callable.
         """
         self.counts = counts
         self.abundance = make_abundance(counts=counts)
@@ -70,8 +79,18 @@ class Metacommunity:
             self.similarity = SimilarityIdentity()
         elif isinstance(similarity, ndarray):
             self.similarity = SimilarityFromArray(similarity=similarity)
-        else:
+        elif isinstance(similarity, DataFrame):
+            self.similarity = SimilarityFromArray(similarity=similarity.values)
+        elif callable(similarity) and symmetric==True:
+            self.similarity = SimilarityFromSymmetricFunction(func=similarity,X=X, chunk_size=chunk_size)
+        elif callable(similarity) and symmetric==False:
+            self.similarity = SimilarityFromFunction(func=similarity, X=X, chunk_size=chunk_size)
+        elif isinstance(similarity, Similarity):
+            # allow passing an already-constructed Similarity object
             self.similarity = similarity
+        else:
+            raise InvalidArgumentError(f"Invalid similarity argument: expected None, ndarray, \
+                DataFrame, Callable, or Similarity object.")
         self.components = Components(
             abundance=self.abundance, similarity=self.similarity
         )
