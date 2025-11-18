@@ -16,7 +16,7 @@ from sentropy.exceptions import InvalidArgumentError
 
 from sentropy.abundance import make_abundance
 from sentropy.similarity import Similarity, SimilarityFromArray, SimilarityIdentity, SimilarityFromFunction, \
-SimilarityFromSymmetricFunction
+SimilarityFromSymmetricFunction, SimilarityFromFile
 from sentropy.components import Components
 from sentropy.powermean import power_mean
 
@@ -47,8 +47,8 @@ class Metacommunity:
     def __init__(
         self,
         counts: Union[DataFrame, ndarray],
-        similarity: Optional[Union[ndarray, DataFrame, Callable]] = None,
-        symmetric: Optional[bool] = True,
+        similarity: Optional[Union[ndarray, DataFrame, str, Callable]] = None,
+        symmetric: Optional[bool] = False,
         X: Optional[Union[ndarray, DataFrame]] = None,
         chunk_size: Optional[int] = 10,
     ) -> None:
@@ -71,7 +71,8 @@ class Metacommunity:
         X:
             Array of features. Only relevant if similarity is callable.
         chunk_size:
-            How many rows in the similarity matrix to generate at once. Only relevant if similarity is callable.
+            How many rows in the similarity matrix to generate at once. 
+            Only relevant if similarity is callable or from file.
         """
         self.counts = counts
         self.abundance = make_abundance(counts=counts)
@@ -81,6 +82,8 @@ class Metacommunity:
             self.similarity = SimilarityFromArray(similarity=similarity)
         elif isinstance(similarity, DataFrame):
             self.similarity = SimilarityFromArray(similarity=similarity.values)
+        elif isinstance(similarity, str):
+            self.similarity = SimilarityFromFile(similarity, chunk_size=chunk_size)
         elif callable(similarity) and symmetric==True:
             self.similarity = SimilarityFromSymmetricFunction(func=similarity,X=X, chunk_size=chunk_size)
         elif callable(similarity) and symmetric==False:
