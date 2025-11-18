@@ -217,19 +217,13 @@ We make a DataFrame of counts in the same way as in the previous example:
 counts_2a = pd.DataFrame({"Community 2a": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=labels_2a)
 ```
 
-To compute the similarity-sensitive diversity indices, we now pass the similarity matrix to the similarity argument of the metacommunity object.
-In this example we pass the similarity matrix in the form of either a numpy array of a pandas dataframe:
-
-```python
-metacommunity_2a = Metacommunity(counts_2a, similarity=S_2a)
-```
-
-Let's now find $D_0^Z$. We pass the similarity matrix to the `similarity' argument of `get_sentropies':
+To compute the similarity-sensitive diversity indices, we now pass the similarity matrix to the similarity argument of the metacommunity object. Let's now find $D_0^Z$. We pass the similarity matrix to the `similarity' argument of `get_sentropies':
 
 ```python
 get_sentropies(counts_2a, similarity=S_2a, viewpoint=0)
 ```
 
+We can pass either a numpy array or a pandas DataFrame for the similarity matrix. Here we specified the viewpoint to be 0. If we did not specify the viewpoint, it defaults to 1. We can also specify a list of viewpoints of interest. 
 The output tells us that $D_0^Z=1.11$. The fact that this number is close to 1 reflects the fact that all individuals in this community are very similar to each other (all birds).
 
 In contrast, Dataset 2b consists of members from two different phyla: vertebrates and invertebrates. As above, we define a similarity matrix:
