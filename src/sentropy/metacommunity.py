@@ -91,9 +91,6 @@ class Metacommunity:
         elif isinstance(similarity, Similarity):
             # allow passing an already-constructed Similarity object
             self.similarity = similarity
-        else:
-            raise InvalidArgumentError(f"Invalid similarity argument: expected None, ndarray, \
-                DataFrame, Callable, or Similarity object.")
         self.components = Components(
             abundance=self.abundance, similarity=self.similarity
         )

@@ -447,6 +447,21 @@ def test_effective_counts():
                 >= df.loc[(community, viewpoints[i])]["normalized_alpha"]
             )
 
+def test_symmetric_similarity_function():
+    X = array([[1, 2], [3, 4], [5, 6]])
+
+    def similarity_function(species_i, species_j):
+        return 1 / (1 + norm(species_i - species_j))
+
+    metacommunity1 = Metacommunity(array([[1, 1], [1, 0], [0, 1]]), \
+        similarity=similarity_function, X=X, chunk_size=10)
+
+    metacommunity2 = Metacommunity(array([[1, 1], [1, 0], [0, 1]]), \
+        similarity=similarity_function, X=X, chunk_size=10, symmetric=True)
+
+    assert metacommunity1.to_dataframe(viewpoint=[0,1,inf]).equals(\
+        metacommunity2.to_dataframe(viewpoint=[0,1,inf]))
+
 
 def test_property1():
     """
@@ -485,12 +500,8 @@ def test_property1():
     ]
 
     def get_result():
-        metacommunity = Metacommunity(
-            communities,
-            similarity=SimilarityFromSymmetricFunction(
-                similarity_function, X=X.to_numpy()
-            ),
-        )
+        metacommunity = Metacommunity(communities,
+            similarity=similarity_function, X=X.to_numpy(), symmetric=True)
         return metacommunity.to_dataframe(
             viewpoint=viewpoints, measures=measures
         ).set_index(["community", "viewpoint"])
@@ -505,7 +516,8 @@ def test_property1():
 def test_property2():
     """
     Test elementary property 2 from L&C:
-    Absent species. Diversity is unchanged by adding a new species of abundance 0
+    Absent species. Diversity is unchanged by adding a new species of abundance 0.
+    This test also tests passing a pandas dataframe or a path to a file for the similarity matrix.
     """
     labels_2b = (
         "ladybug",
@@ -533,15 +545,19 @@ def test_property2():
     # fmt: on
 
     S_2b = maximum(S_2b, S_2b.transpose())
+    S_2b_df = DataFrame({labels_2b[i]: S_2b[i] for i in range(no_species_2b)}, index=labels_2b)
+
     counts = DataFrame({"Community 2b": [1, 1, 1, 1, 1, 1, 1, 1, 0]}, index=labels_2b)
     viewpoints = [0, 1, 2, 3, 4, 5, inf]
-    metacommunity = Metacommunity(counts, similarity=S_2b)
+    metacommunity = Metacommunity(counts, similarity=S_2b_df)
     df1 = metacommunity.to_dataframe(viewpoint=viewpoints).set_index(
         ["community", "viewpoint"]
     )
     counts = counts[counts["Community 2b"] > 0]
     S_2b = S_2b[:-1, :-1]
-    metacommunity = Metacommunity(counts, similarity=S_2b)
+    S_2b_df = DataFrame({labels_2b[i]: S_2b[i] for i in range(no_species_2b-1)}, index=labels_2b[:-1])
+    S_2b_df.to_csv('S_2b_df_after_removing_zero_abundance_species.csv', index=False)
+    metacommunity = Metacommunity(counts, similarity='S_2b_df_after_removing_zero_abundance_species.csv')
     df2 = metacommunity.to_dataframe(viewpoint=viewpoints).set_index(
         ["community", "viewpoint"]
     )
