@@ -245,20 +245,11 @@ counts_2a = pd.DataFrame({"Community 2a": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=la
 ```
 
 To compute the similarity-sensitive diversity indices, we now pass the similarity matrix to the similarity argument of the metacommunity object.
-In this example we pass the similarity matrix in the form of a numpy array:
+In this example we pass the similarity matrix in the form of either a numpy array of a pandas dataframe:
 
 ```python
 metacommunity_2a = Metacommunity(counts_2a, similarity=S_2a)
 ```
-
-(If we wanted to use the similarity matrix in DataFrame format, we use a custom Similarity subclass.
-
-```python
-from sentropy.similarity import SimilarityFromDataFrame
-metacommunity_2a = Metacommunity(counts_2a, similarity=SimilarityFromDataFrame(S_2a_df))
-```
-
-Note that even though the code looks a little different, the calculation will be exactly the same.)
 
 We can find $D_0^Z$ similarly to the above:
 
@@ -377,11 +368,11 @@ To illustrate passing a csv file, we re-use the counts_2b_1 and S_2b from above 
 ```python
 S_2b_df.to_csv("S_2b.csv", index=False)
 ```
-then we can build a metacommunity as follows
+then we can build a metacommunity by passing the path (as a string) to the ``similarity'' argument:
+
 ```python
 from sentropy.similarity import SimilarityFromFile
-metacommunity_2b_1 = Metacommunity(counts_2b_1,
-                                   similarity=SimilarityFromFile('S_2b.csv', chunk_size=5))
+metacommunity_2b_1 = Metacommunity(counts_2b_1, similarity='S_2b.csv', chunk_size=5)
 ```
 The optional `chunk_size` argument to `SimilarityFromFile`'s constructor specifies how many rows of the similarity matrix are read from the file at a time.
 
@@ -401,9 +392,8 @@ X = np.array([
 def similarity_function(species_i, species_j):
   return 1 / (1 + np.linalg.norm(species_i - species_j))
 
-metacommunity = Metacommunity(np.array([[1, 1], [1, 0], [0, 1]]),
-                              similarity=SimilarityFromFunction(similarity_function,
-                                                               X=X, chunk_size=10))
+metacommunity = Metacommunity(np.array([[1, 1], [1, 0], [0, 1]]), similarity=similarity_function,
+                                                               X=X, chunk_size=10)
 ```
 
 (The optional `chunk_size` parameter specifies how many rows of the similarity matrix to generate at once; larger values should be faster, as long as the chunks are not too large
@@ -448,8 +438,7 @@ def feature_similarity(animal_i, animal_j):
         result *= 0.5
     return result
 
-metacommunity = Metacommunity(np.array([[1, 1], [1, 0], [0, 1]]),
-                              similarity=SimilarityFromFunction(feature_similarity, X=X))
+metacommunity = Metacommunity(np.array([[1, 1], [1, 0], [0, 1]]), similarity=feature_similarity, X=X)
 ```
 
 A two-fold speed-up is possible when the following (typical) conditions hold:
@@ -459,13 +448,11 @@ A two-fold speed-up is possible when the following (typical) conditions hold:
 * The number of subcommunities is much smaller than the number of species.
 
 In this case, we don't really need to call the simularity function twice for each pair to calcuate both  similarity[i, j] and similarity[j, i]. 
-Use the `SimilarityFromSymmetricFunction` class to get the same results in half the time:
+Pass ``symmetric=True'':
 
 ```python
-from sentropy.similarity import SimilarityFromSymmetricFunction
-
 metacommunity = Metacommunity(np.array([[1, 1], [1, 0], [0, 1]]),
-                              similarity=SimilarityFromSymmetricFunction(feature_similarity, X=X))
+                              similarity=feature_similarity, X=X, symmetric=True)
 ```
 
 The similarity function will only be called for pairs of rows `species[i], species[j]` where i < j, and the similarity of $species_i$ to $species_j$ will be re-used for the similarity of $species_j$ to $species_i$. Thus, a nearly 2-fold speed-up is possible, if the similarity function is computationally expensive. (For a discussion of _nonsymmetric_ similarity, see [Leinster and Cobbold](https://doi.org/10.1890/10-2402.1).)
