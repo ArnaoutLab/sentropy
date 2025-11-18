@@ -1,4 +1,4 @@
-"""Tests for greylock.parameters."""
+"""Tests for sentropy.parameters."""
 
 from pytest import mark, warns
 
