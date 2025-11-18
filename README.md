@@ -1,6 +1,6 @@
 ![alt text](images/diversity_logo.png)
 
-# <h1> <i>greylock</i>: A Python package for measuring the composition of complex datasets</h1>
+# <h1> <i>sentropy</i>: A Python package for measuring the composition of complex datasets</h1>
 
 [![Python version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue)](https://www.python.org/downloads/release/python-380/)
 [![Tests](https://github.com/ArnaoutLab/diversity/actions/workflows/tests.yml/badge.svg)](https://github.com/ArnaoutLab/diversity/actions/workflows/tests.yml)
@@ -23,27 +23,27 @@
 
 # About
 
-`greylock` calculates effective numbers in an extended version of the Hill framework, with extensions due to Leinster and Cobbold and Reeve et al. (the "LCR framework"). “Extending” a hill makes a mountain. 
+`sentropy` calculates effective numbers in an extended version of the Hill framework, with extensions due to Leinster and Cobbold and Reeve et al. (the "LCR framework"). “Extending” a hill makes a mountain. 
 At 1,063 meters, Mount Greylock is Massachusetts’ tallest mountain. 
 It is named for Gray Lock (c. 1670–1750),  a historical figure of the Abnaki, an indigenous people of the New England region of eastern North America.
 
 ## Availability and installation
-`greylock` is available on GitHub at https://github.com/ArnaoutLab/diversity. It can be installed by running
+`sentropy` is available on GitHub at https://github.com/ArnaoutLab/diversity. It can be installed by running
 
-`pip install greylock`
+`pip install sentropy`
 
 from the command-line interface. The test suite runs successfully on Macintosh, Windows, and Unix systems. The unit tests (including a coverage report) can be run after installation by
 
 ```
-pip install 'greylock[tests]'
-pytest --pyargs greylock --cov greylock
+pip install 'sentropy[tests]'
+pytest --pyargs sentropy --cov sentropy
 ```
 
 ## How to cite this work
 
 If you use this package, please cite it as:
 
-Nguyen et al., <i>greylock</i>. <https://github.com/ArnaoutLab/diversity>
+Nguyen et al., <i>sentropy</i>. <https://github.com/ArnaoutLab/diversity>
 
 ## Definitions
 
@@ -71,7 +71,7 @@ In addition to the diversity measures introduced by [Reeve et al.](https://arxiv
 
 ## One package to rule them all
 
-The `greylock` package is able to calculate all of the similarity- and frequency-sensitive subcommunity and metacommunity diversity measures described in [Reeve et al.](https://arxiv.org/abs/1404.6520). See the paper for more in-depth information on their derivation and interpretation.
+The `sentropy` package is able to calculate all of the similarity- and frequency-sensitive subcommunity and metacommunity diversity measures described in [Reeve et al.](https://arxiv.org/abs/1404.6520). See the paper for more in-depth information on their derivation and interpretation.
 
 
 **Supported subcommunity diversity measures**:
@@ -102,7 +102,7 @@ The `greylock` package is able to calculate all of the similarity- and frequency
 # Basic usage
 ## Alpha diversities 
 
-We illustrate the basic usage of `greylock` on simple, field-of-study-agnostic datasets of fruits and animals. First, consider two datasets of size $n=35$ that each contains counts of six types of fruit: apples, oranges, bananas, pears, blueberries, and grapes.
+We illustrate the basic usage of `sentropy` on simple, field-of-study-agnostic datasets of fruits and animals. First, consider two datasets of size $n=35$ that each contains counts of six types of fruit: apples, oranges, bananas, pears, blueberries, and grapes.
 
 <img src='images/fruits-1.png' width='350'>
 
@@ -123,7 +123,7 @@ A frequency-sensitive metacommunity can be created in Python by passing a `count
 ```python
 import pandas as pd
 import numpy as np
-from greylock import Metacommunity
+from sentropy import Metacommunity
 
 counts_1a = pd.DataFrame({"Dataset 1a": [30, 1, 1, 1, 1, 1]}, 
    index=["apple", "orange", "banana", "pear", "blueberry", "grape"])
@@ -193,7 +193,7 @@ which produces the output:
 |    4 | metacommunity |       inf |  5.83 | 1.00 | 1.00 |  5.83 |             5.83 |           1.00 |            1.00 |    1.00 |     1.00 |
 |    5 | Dataset 1b    |       inf |  5.83 | 1.00 | 1.00 |  5.83 |             5.83 |           1.00 |            1.00 |    1.00 |     1.00 |
 
-The `greylock` package can also calculate similarity-sensitive diversity measures for any user-supplied definition of similarity. To illustrate, we now consider a second example in which the dataset elements are all unique. Uniqueness means element frequencies are identical, so similarity is the only factor that influences diversity calculations.
+The `sentropy` package can also calculate similarity-sensitive diversity measures for any user-supplied definition of similarity. To illustrate, we now consider a second example in which the dataset elements are all unique. Uniqueness means element frequencies are identical, so similarity is the only factor that influences diversity calculations.
 
 <img src='images/fig2_thumbnail.png' width='350'>
 
@@ -254,7 +254,7 @@ metacommunity_2a = Metacommunity(counts_2a, similarity=S_2a)
 (If we wanted to use the similarity matrix in DataFrame format, we use a custom Similarity subclass.
 
 ```python
-from greylock.similarity import SimilarityFromDataFrame
+from sentropy.similarity import SimilarityFromDataFrame
 metacommunity_2a = Metacommunity(counts_2a, similarity=SimilarityFromDataFrame(S_2a_df))
 ```
 
@@ -365,7 +365,7 @@ yielding $[0.68, 1.07]$. We find that the $\hat{\rho}$ of the two subsets are no
 
 # Advanced usage
 
-In the examples above, the entire similarity matrix has been created in RAM (as a `numpy.ndarray` or `pandas.DataFrame`) before being passed to the `Metacommunity` constructor. However, this may not be the best tactic for large datasets. The `greylock` package offers better options in these cases. Given that the
+In the examples above, the entire similarity matrix has been created in RAM (as a `numpy.ndarray` or `pandas.DataFrame`) before being passed to the `Metacommunity` constructor. However, this may not be the best tactic for large datasets. The `sentropy` package offers better options in these cases. Given that the
 simillarity matrix is of complexity $O(n^2)$ (where $n$ is the number of species), the creation, storage, and use of the similarity matrix are the most computationally resource-intense aspects of calculating diversity. Careful consideration of how to handle the similarity matrix can extend the range of problems that are tractable by many orders of magnitude.
 
 Any large similarity matrix that is created in Python as a `numpy.ndarray` benefits from being memory-mapped, as NumPy can then use the data without requiring it all to be in memory. See the NumPy [memmap documentation](https://numpy.org/doc/stable/reference/generated/numpy.memmap.html) for guidance. Because `memmap` is a subclass of `ndarray`, using this type of file storage for the similarity matrix requires no modification to your use of the Metacommunity API. This conversion, and the resulting storage of the data on disk, has the advantage that if you revise the downstream analysis, or perform additional analyses, re-calculation of the similarity matrix may be skipped.
@@ -379,7 +379,7 @@ S_2b_df.to_csv("S_2b.csv", index=False)
 ```
 then we can build a metacommunity as follows
 ```python
-from greylock.similarity import SimilarityFromFile
+from sentropy.similarity import SimilarityFromFile
 metacommunity_2b_1 = Metacommunity(counts_2b_1,
                                    similarity=SimilarityFromFile('S_2b.csv', chunk_size=5))
 ```
@@ -390,7 +390,7 @@ A `SimilarityFromFunction` object generates a similarity matrix from a similarit
 For example, given numeric features all of the same type:
 
 ```python
-from greylock.similarity import SimilarityFromFunction
+from sentropy.similarity import SimilarityFromFunction
 
 X = np.array([
   [1, 2], 
@@ -462,7 +462,7 @@ In this case, we don't really need to call the simularity function twice for eac
 Use the `SimilarityFromSymmetricFunction` class to get the same results in half the time:
 
 ```python
-from greylock.similarity import SimilarityFromSymmetricFunction
+from sentropy.similarity import SimilarityFromSymmetricFunction
 
 metacommunity = Metacommunity(np.array([[1, 1], [1, 0], [0, 1]]),
                               similarity=SimilarityFromSymmetricFunction(feature_similarity, X=X))
@@ -473,12 +473,12 @@ The similarity function will only be called for pairs of rows `species[i], speci
 ## Parallelization using the ray package
 
 For very large datasets, the computation of the similarity matrix can be completed in a fraction of the time by parallelizing over many cores or even over a Kubernetes cluster.
-Support for parallelizing this computation using the [`ray` package](https://pypi.org/project/ray/) is built into `greylock`. However, this is an optional dependency, 
+Support for parallelizing this computation using the [`ray` package](https://pypi.org/project/ray/) is built into `sentropy`. However, this is an optional dependency, 
 as it is not required for small datasets, and 
 the installation of `ray` into your environment may entail some conflicting dependency issues. Thus, before trying to use `ray`, be sure to install the extra:
 
 ```
-pip install 'greylock[ray]'
+pip install 'sentropy[ray]'
 ```
 
 To actually use Ray, replace the use of `SimilarityFromFunction` and `SimilarityFromSymmetricFunction` with `SimilarityFromRayFunction` and `SimilarityFromSymmetricRayFunction` respectively.
@@ -491,7 +491,7 @@ In LCR, diversity is essentially a power mean of the “ordinariness” of each 
 
 There are situations in which one is interested in the ordinariness of a species _j_ that is *not* in the community: i.e. how similar the species in the community are to this outside member, weighted by their relative abundances and their similarity to _j_. (See [Braun et al. 2023](https://www.biorxiv.org/content/10.1101/2023.09.08.556703v1) for an example, in which the investigators start with an antibody _j_ and wish to calculate its ordinariness in "communities" of antibodies termed repertoires. In this context, the ordinariness is the repertoire's "binding capacity" for the molecules that antibody _j_ is best at binding.)
 
-`greylock` can calculate ordinariness, whether the species of interest is present in the community (_i_ above) or not (_j_).
+`sentropy` can calculate ordinariness, whether the species of interest is present in the community (_i_ above) or not (_j_).
 
 For example, let's suppose we want to probe a community of bees, butterflies, and lobsters for the prevalance of _species similar to_ ladybugs and fish. We can re-use
 some of the same similarity values as above in a matrix with rows being the query species and columns being the community species:
@@ -522,13 +522,13 @@ fish     0.248
 ```
 In a more realistic case, with several subcommunities (for example, samples from several patients) and tens of thousands of different species 
 (for example, immune repertoire sequences), it may be too computationally intensive to load the entire similarity matrix into memory at once.
-`greylock` allows on-the-fly generation and application of the similarity matrix from a similarity function and feature vectors, which may be 
+`sentropy` allows on-the-fly generation and application of the similarity matrix from a similarity function and feature vectors, which may be 
 paralellized using Ray. For diversity calculations, we did this using the `SimilarityFromRayFunction` class; for the query vs. community calcuations,
 we need to use the `IntersetSimilarityFromRayFunction` class instead, like so:
 
 ```
-from greylock.abundance import make_abundance
-from greylock.ray import IntersetSimilarityFromRayFunction
+from sentropy.abundance import make_abundance
+from sentropy.ray import IntersetSimilarityFromRayFunction
 abundance = make_abundance(df)
 similarity = IntersetSimilarityFromRayFunction(
   similarity_function,
@@ -539,24 +539,24 @@ relative_abundances = similarity @ abundance
 
 
 # Command-line usage
-The `greylock` package can also be used from the command line as a module (via `python -m`). To illustrate using `greylock` this way, we re-use again the example with counts_2b_1 and S_2b, now with counts_2b_1 also saved as a csv file (note again `index=False`):
+The `sentropy` package can also be used from the command line as a module (via `python -m`). To illustrate using `sentropy` this way, we re-use again the example with counts_2b_1 and S_2b, now with counts_2b_1 also saved as a csv file (note again `index=False`):
 ```python
 counts_2b_1.to_csv("counts_2b_1.csv", index=False)
 ```
 
 Then from the command line: 
 
-`python -m greylock -i counts_2b_1.csv -s S_2b.csv -v 0 1 inf`
+`python -m sentropy -i counts_2b_1.csv -s S_2b.csv -v 0 1 inf`
 
 The output is a table with all the diversity indices for q=0, 1, and ∞. Note that while .csv or .tsv are acceptable as input, the output is always tab-delimited. The input filepath (`-i`) and the similarity matrix filepath (`-s`) can be URLs to data files hosted on the web. Also note that values of $q>100$ are all calculated as $q=\infty$.
 
 For further options, consult the help:
 
-`python -m greylock -h`
+`python -m sentropy -h`
 
 # Applications
 
-For applications of the `greylock` package to various fields (immunomics, metagenomics, medical imaging and pathology), we refer to the Jupyter notebooks below:
+For applications of the `sentropy` package to various fields (immunomics, metagenomics, medical imaging and pathology), we refer to the Jupyter notebooks below:
 
 - [Immunomics](https://github.com/ArnaoutLab/diversity_notebooks_and_data/blob/main/immunomics/immunomics_fig3.ipynb)
 - [Metagenomics](https://github.com/ArnaoutLab/diversity_notebooks_and_data/blob/main/metagenomics/metagenomics_figs4-5.ipynb)
