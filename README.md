@@ -371,7 +371,6 @@ S_2b_df.to_csv("S_2b.csv", index=False)
 then we can build a metacommunity by passing the path (as a string) to the ``similarity'' argument:
 
 ```python
-from sentropy.similarity import SimilarityFromFile
 metacommunity_2b_1 = Metacommunity(counts_2b_1, similarity='S_2b.csv', chunk_size=5)
 ```
 The optional `chunk_size` argument to `SimilarityFromFile`'s constructor specifies how many rows of the similarity matrix are read from the file at a time.
@@ -381,8 +380,6 @@ A `SimilarityFromFunction` object generates a similarity matrix from a similarit
 For example, given numeric features all of the same type:
 
 ```python
-from sentropy.similarity import SimilarityFromFunction
-
 X = np.array([
   [1, 2], 
   [3, 4], 
