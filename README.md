@@ -123,7 +123,7 @@ A frequency-sensitive metacommunity can be created in Python by passing a `count
 ```python
 import pandas as pd
 import numpy as np
-from sentropy.metacommunity import get_sentropies
+from sentropy import get_sentropies
 
 counts_1a = pd.DataFrame({"Dataset 1a": [30, 1, 1, 1, 1, 1]}, 
    index=["apple", "orange", "banana", "pear", "blueberry", "grape"])
@@ -425,9 +425,7 @@ the installation of `ray` into your environment may entail some conflicting depe
 pip install 'sentropy[ray]'
 ```
 
-To actually use Ray, replace the use of `SimilarityFromFunction` and `SimilarityFromSymmetricFunction` with `SimilarityFromRayFunction` and `SimilarityFromSymmetricRayFunction` respectively.
-Each `chunk_size` rows of the similarity matrix are processed as a separate job. Thanks to this parallelization, up to an N-fold speedup is possible 
-(where N is the number of cores or nodes).
+To actually use Ray, we pass `parallelize=True` to `get_sentropies`. Furthermore, we can optionally pass an integer to the `max_inflight_tasks` argument, to specify at most how many parallel tasks should be submitted to Ray at a time (to avoid overwhelming Ray). Each `chunk_size` rows of the similarity matrix are processed as a separate job. Thanks to this parallelization, up to an N-fold speedup is possible (where N is the number of cores or nodes).
 
 ## Calculating ordinariness
 
