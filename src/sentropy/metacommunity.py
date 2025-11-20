@@ -17,6 +17,7 @@ from sentropy.exceptions import InvalidArgumentError
 from sentropy.abundance import make_abundance
 from sentropy.similarity import Similarity, SimilarityFromArray, SimilarityIdentity, SimilarityFromFunction, \
 SimilarityFromSymmetricFunction, SimilarityFromFile
+from sentropy.ray import SimilarityFromRayFunction, SimilarityFromSymmetricRayFunction
 from sentropy.components import Components
 from sentropy.powermean import power_mean
 
@@ -61,6 +62,8 @@ class Metacommunity:
         symmetric: Optional[bool] = False,
         X: Optional[Union[ndarray, DataFrame]] = None,
         chunk_size: Optional[int] = 10,
+        parallelize: Optional[bool] = False,
+        max_inflight_tasks: Optional[int] = 64,
     ) -> None:
         """
         Parameters
@@ -83,6 +86,12 @@ class Metacommunity:
         chunk_size:
             How many rows in the similarity matrix to generate at once. 
             Only relevant if similarity is callable or from file.
+        parallelize:
+            Whether or not to parallelize with ray.
+            Only relevant when similarity is callable.
+        max_inflight_tasks:
+            How many inflight tasks to submit to ray at a time.
+            Only relevant when similarity is callable and parallelize is True.
         """
         self.counts = counts
         self.abundance = make_abundance(counts=counts)
@@ -94,10 +103,17 @@ class Metacommunity:
             self.similarity = SimilarityFromArray(similarity=similarity.values)
         elif isinstance(similarity, str):
             self.similarity = SimilarityFromFile(similarity, chunk_size=chunk_size)
-        elif callable(similarity) and symmetric==True:
-            self.similarity = SimilarityFromSymmetricFunction(func=similarity,X=X, chunk_size=chunk_size)
-        elif callable(similarity) and symmetric==False:
-            self.similarity = SimilarityFromFunction(func=similarity, X=X, chunk_size=chunk_size)
+        elif callable(similarity):
+            if symmetric:
+                if parallelize:
+                    self.similarity = SimilarityFromSymmetricRayFunction(func=similarity,X=X, chunk_size=chunk_size, max_inflight_tasks=max_inflight_tasks)
+                else:
+                    self.similarity = SimilarityFromSymmetricFunction(func=similarity,X=X, chunk_size=chunk_size)
+            else:
+                if parallelize:
+                    self.similarity = SimilarityFromRayFunction(func=similarity, X=X, chunk_size=chunk_size, max_inflight_tasks=max_inflight_tasks)
+                else:
+                    self.similarity = SimilarityFromFunction(func=similarity, X=X, chunk_size=chunk_size)
         elif isinstance(similarity, Similarity):
             # allow passing an already-constructed Similarity object
             self.similarity = similarity
@@ -271,9 +287,11 @@ def get_sentropies(counts: Union[DataFrame, ndarray],
     symmetric: Optional[bool] = False,
     X: Optional[Union[ndarray, DataFrame]] = None,
     chunk_size: Optional[int] = 10,
+    parallelize: Optional[bool] = False,
+    max_inflight_tasks: Optional[int] = 64,
     ):
 
-    mc = Metacommunity(counts, similarity, symmetric, X, chunk_size)
+    mc = Metacommunity(counts, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
     sentropies = mc.to_dataframe(viewpoint, measures)
     return sentropies
 

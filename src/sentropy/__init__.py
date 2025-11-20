@@ -7,3 +7,4 @@ See sentropy.metacommunity.Metacommunity
 """
 
 from sentropy.metacommunity import Metacommunity
+from sentropy.metacommunity import get_sentropies
