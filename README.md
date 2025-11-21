@@ -484,7 +484,7 @@ relative_abundances = similarity @ abundance
 ## Computing relative entropies
 In addition to computing entropies, ``sentropy'' also computes the relative entropies between metacommunities, both with and without inter-species similarity. To do so, we use the method `exp_relative_entropy', to obtain the exponentiated (i.e. the effective number version of the) relative entropies. As an example usage, we come back to the example of vertebrates versus invertebrates. By running:
 ```
-from sentropy.divergences import exp_relative_entropy
+from sentropy import exp_relative_entropy
 exp_relative_entropy(counts_2b_1, counts_2b_2, similarity=S_2b, viewpoint=1)
 ```
 we get a tuple of 2 elements, the first of which is a float representing the metacommunity Renyi divergence at viewpoint 1 (in this case, 1), and the second of which is a DataFrame containing Renyi divergences between pairs of subcommunities, in this case: 
