@@ -1,7 +1,8 @@
 from sentropy.powermean import power_mean
 from numpy import prod, power, ndarray, minimum, identity as np_identity, zeros as np_zeros
 from pandas import DataFrame
-from sentropy.similarity import SimilarityFromArray, SimilarityIdentity
+from sentropy.similarity import SimilarityFromArray, SimilarityIdentity, SimilarityFromFile, SimilarityFromSymmetricRayFunction, SimilarityFromSymmetricFunction, \
+SimilarityFromRayFunction, SimilarityFromFunction
 
 def make_normalized_subcommunity_abundance(abundance):
     if type(abundance) == DataFrame:
