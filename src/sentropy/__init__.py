@@ -8,4 +8,4 @@ See sentropy.metacommunity.Metacommunity
 
 from sentropy.metacommunity import Metacommunity
 from sentropy.metacommunity import get_sentropies
-from sentropy.divergences import exp_relative_entropy
+from sentropy.divergences import get_exp_relative_entropy
