@@ -480,8 +480,8 @@ relative_abundances = similarity @ abundance
 ## Computing relative entropies
 In addition to computing entropies, ``sentropy'' also computes the relative entropies between metacommunities, both with and without inter-species similarity. To do so, we use the method `exp_relative_entropy', to obtain the exponentiated (i.e. the effective number version of the) relative entropies. As an example usage, we come back to the example of vertebrates versus invertebrates. By running:
 ```
-from sentropy import exp_relative_entropy
-exp_relative_entropy(counts_2b_1, counts_2b_2, similarity=S_2b, viewpoint=1)
+from sentropy import get_exp_relative_entropy
+get_exp_relative_entropy(counts_2b_1, counts_2b_2, similarity=S_2b, viewpoint=1)
 ```
 we get a tuple of 2 elements, the first of which is a float representing the metacommunity Renyi divergence at viewpoint 1 (in this case, 1), and the second of which is a DataFrame containing Renyi divergences between pairs of subcommunities, in this case: 
 
@@ -490,7 +490,7 @@ we get a tuple of 2 elements, the first of which is a float representing the met
 | Subcommunity_2b_1   |               1.66 |              1.55 |
 | Subcommunity_2b_2   |               1.43 |              1.56 |
 
-If we do not pass anything to the `similarity' argument, then the function will compute the usual (i.e. similarity-insensitive) exponentiated Renyi divergence.
+If we do not pass anything to the `similarity' argument, then the function will compute the usual (i.e. similarity-insensitive) exponentiated Renyi divergence. We may also optionally pass a similarity function or a string representing a path to a csv file to `similarity'. In those cases, we may optionally pass values to the arguments `symmetric', `X', `chunk_size', `parallelize' and `max_inflight_tasks'. These latter arguments have the same meaning as in the function `get_sentropies'.
 
 # Command-line usage
 The `sentropy` package can also be used from the command line as a module (via `python -m`). To illustrate using `sentropy` this way, we re-use again the example with counts_2b_1 and S_2b, now with counts_2b_1 also saved as a csv file (note again `index=False`):
