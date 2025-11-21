@@ -23,12 +23,10 @@
 
 # About
 
-`sentropy` calculates effective numbers in an extended version of the Hill framework, with extensions due to Leinster and Cobbold and Reeve et al. (the "LCR framework"). “Extending” a hill makes a mountain. 
-At 1,063 meters, Mount Greylock is Massachusetts’ tallest mountain. 
-It is named for Gray Lock (c. 1670–1750),  a historical figure of the Abnaki, an indigenous people of the New England region of eastern North America.
+`sentropy`, short for similarity-sensitive entropy, calculates effective numbers in an extended version of the Hill framework, with extensions due to Leinster and Cobbold and Reeve et al. (the "LCR framework"). 
 
 ## Availability and installation
-`sentropy` is available on GitHub at https://github.com/ArnaoutLab/diversity. It can be installed by running
+`sentropy` is available on GitHub at https://github.com/ArnaoutLab/sentropy. It can be installed by running
 
 `pip install sentropy`
 
