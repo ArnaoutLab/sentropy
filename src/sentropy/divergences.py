@@ -39,24 +39,24 @@ def get_exp_relative_entropy(P_abundance, Q_abundance, similarity=None, viewpoin
     Q_norm_subcom_ab = make_normalized_subcommunity_abundance(Q_abundance)
 
     if similarity is None:
-        self.similarity = SimilarityIdentity()
+        similarity = SimilarityIdentity()
     elif isinstance(similarity, ndarray):
-        self.similarity = SimilarityFromArray(similarity=similarity)
+        similarity = SimilarityFromArray(similarity=similarity)
     elif isinstance(similarity, DataFrame):
-        self.similarity = SimilarityFromArray(similarity=similarity.values)
+        similarity = SimilarityFromArray(similarity=similarity.values)
     elif isinstance(similarity, str):
-        self.similarity = SimilarityFromFile(similarity, chunk_size=chunk_size)
+        similarity = SimilarityFromFile(similarity, chunk_size=chunk_size)
     elif callable(similarity):
         if symmetric:
             if parallelize:
-                self.similarity = SimilarityFromSymmetricRayFunction(func=similarity,X=X, chunk_size=chunk_size, max_inflight_tasks=max_inflight_tasks)
+                similarity = SimilarityFromSymmetricRayFunction(func=similarity,X=X, chunk_size=chunk_size, max_inflight_tasks=max_inflight_tasks)
             else:
-                self.similarity = SimilarityFromSymmetricFunction(func=similarity,X=X, chunk_size=chunk_size)
+                similarity = SimilarityFromSymmetricFunction(func=similarity,X=X, chunk_size=chunk_size)
         else:
             if parallelize:
-                self.similarity = SimilarityFromRayFunction(func=similarity, X=X, chunk_size=chunk_size, max_inflight_tasks=max_inflight_tasks)
+                similarity = SimilarityFromRayFunction(func=similarity, X=X, chunk_size=chunk_size, max_inflight_tasks=max_inflight_tasks)
             else:
-                self.similarity = SimilarityFromFunction(func=similarity, X=X, chunk_size=chunk_size)
+                similarity = SimilarityFromFunction(func=similarity, X=X, chunk_size=chunk_size)
 
     P_meta_ord = similarity.weighted_abundances(P_meta_ab)
     P_norm_subcom_ord = similarity.weighted_abundances(P_norm_subcom_ab)
