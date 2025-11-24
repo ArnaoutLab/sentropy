@@ -264,7 +264,6 @@ To calculate the alpha diversity (with $q=0$ as above), we again define counts, 
 
 ```python
 counts_2b = pd.DataFrame({"Community 2b": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=labels_2b)
-metacommunity_2b = Metacommunity(counts_2b, similarity=S_2b)
 get_sentropies(counts_2b, similarity=S_2b, viewpoint=0, measures=['alpha'])
 ```
 
