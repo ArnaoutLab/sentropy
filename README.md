@@ -490,7 +490,7 @@ we get a tuple of 2 elements, the first of which is a float representing the met
 | Subcommunity_2b_1   |               1.66 |              1.55 |
 | Subcommunity_2b_2   |               1.43 |              1.56 |
 
-If we do not pass anything to the `similarity' argument, then the function will compute the usual (i.e. similarity-insensitive) exponentiated Renyi divergence. We may also optionally pass a similarity function or a string representing a path to a csv file to `similarity'. In those cases, we may optionally pass values to the arguments `symmetric', `X', `chunk_size', `parallelize' and `max_inflight_tasks'. These latter arguments have the same meaning as in the function `get_sentropies'.
+If we do not pass anything to the `similarity` argument, then the function will compute the usual (i.e. similarity-insensitive) exponentiated Rényi divergence. We may also optionally pass a similarity function or a string representing a path to a CSV file to `similarity`. In those cases, we may optionally pass values to the arguments `symmetric`, `X`, `chunk_size`, `parallelize`, and `max_inflight_tasks`. These latter arguments have the same meaning as in the function `get_sentropies`.
 
 # Command-line usage
 The `sentropy` package can also be used from the command line as a module (via `python -m`). To illustrate using `sentropy` this way, we re-use again the example with counts_2b_1 and S_2b, now with counts_2b_1 also saved as a csv file (note again `index=False`):
