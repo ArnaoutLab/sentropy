@@ -123,7 +123,7 @@ import pandas as pd
 import numpy as np
 from sentropy import sentropy
 
-counts_1a = pd.DataFrame({"Dataset 1a": [30, 1, 1, 1, 1, 1]}, 
+counts_1a = pd.DataFrame({"subset 1a": [30, 1, 1, 1, 1, 1]}, 
    index=["apple", "orange", "banana", "pear", "blueberry", "grape"])
 
 sentropy(counts_1a, viewpoint=[0,1,np.inf], return_dataframe=True)
@@ -133,19 +133,19 @@ Here we requested to get diversity indices for 3 different viewpoint parameters.
 
 |      | community     | viewpoint | alpha |  rho | beta | gamma | normalized_alpha | normalized_rho | normalized_beta | rho_hat | beta_hat |
 | ---: | :------------ | --------: | ----: | ---: | ---: | ----: | ---------------: | -------------: | --------------: | ------: | -------: |
-|    0 | metacommunity |      0.00 |  6.00 | 1.00 | 1.00 |  6.00 |             6.00 |           1.00 |            1.00 |    1.00 |     1.00 |
-|    1 | Dataset 1a    |      0.00 |  6.00 | 1.00 | 1.00 |  6.00 |             6.00 |           1.00 |            1.00 |    1.00 |     1.00 |
-|    2 | metacommunity |      1.00 |  1.90 | 1.00 | 1.00 |  1.90 |             1.90 |           1.00 |            1.00 |    1.00 |     1.00 |
-|    3 | Dataset 1a    |      1.00 |  1.90 | 1.00 | 1.00 |  1.90 |             1.90 |           1.00 |            1.00 |    1.00 |     1.00 |
-|    4 | metacommunity |       inf |  1.17 | 1.00 | 1.00 |  1.17 |             1.17 |           1.00 |            1.00 |    1.00 |     1.00 |
-|    5 | Dataset 1a    |       inf |  1.17 | 1.00 | 1.00 |  1.17 |             1.17 |           1.00 |            1.00 |    1.00 |     1.00 |
+|    0 | set           |      0.00 |  6.00 | 1.00 | 1.00 |  6.00 |             6.00 |           1.00 |            1.00 |    1.00 |     1.00 |
+|    1 | subset 1a     |      0.00 |  6.00 | 1.00 | 1.00 |  6.00 |             6.00 |           1.00 |            1.00 |    1.00 |     1.00 |
+|    2 | set           |      1.00 |  1.90 | 1.00 | 1.00 |  1.90 |             1.90 |           1.00 |            1.00 |    1.00 |     1.00 |
+|    3 | subset 1a     |      1.00 |  1.90 | 1.00 | 1.00 |  1.90 |             1.90 |           1.00 |            1.00 |    1.00 |     1.00 |
+|    4 | set           |       inf |  1.17 | 1.00 | 1.00 |  1.17 |             1.17 |           1.00 |            1.00 |    1.00 |     1.00 |
+|    5 | subset 1a     |       inf |  1.17 | 1.00 | 1.00 |  1.17 |             1.17 |           1.00 |            1.00 |    1.00 |     1.00 |
 
 Looking at the alpha column, we see that the value of $D_1$ for this metacommunity is $D_1=1.90$. In this example, the metacommunity indices are the same as the subcommunity ones, since there is only one subcommunity. By default, the argument return_dataframe is False, in which case the function `sentropy' will return a python dictionary containing the requested diversity indices.
 
 Next, let us repeat for Dataset 1b. Again, we make the `counts` dataframe and pass it to the `sentropy` method:
 
 ```python
-counts_1b = pd.DataFrame({"Community 1b": [6, 6, 6, 6, 6, 5]},
+counts_1b = pd.DataFrame({"subset 1b": [6, 6, 6, 6, 6, 5]},
     index=["apple", "orange", "banana", "pear", "blueberry", "grape"])
 
 sentropy(counts_1b, viewpoint=[0,1,np.inf], return_dataframe=True)
@@ -155,12 +155,12 @@ and we obtain this DataFrame as output:
 
 |      | community     | viewpoint | alpha |  rho | beta | gamma | normalized_alpha | normalized_rho | normalized_beta | rho_hat | beta_hat |
 | ---: | :------------ | --------: | ----: | ---: | ---: | ----: | ---------------: | -------------: | --------------: | ------: | -------: |
-|    0 | metacommunity |      0.00 |  6.00 | 1.00 | 1.00 |  6.00 |             6.00 |           1.00 |            1.00 |    1.00 |     1.00 |
-|    1 | Dataset 1b    |      0.00 |  6.00 | 1.00 | 1.00 |  6.00 |             6.00 |           1.00 |            1.00 |    1.00 |     1.00 |
-|    2 | metacommunity |      1.00 |  5.99 | 1.00 | 1.00 |  5.99 |             5.99 |           1.00 |            1.00 |    1.00 |     1.00 |
-|    3 | Dataset 1b    |      1.00 |  5.99 | 1.00 | 1.00 |  5.99 |             5.99 |           1.00 |            1.00 |    1.00 |     1.00 |
-|    4 | metacommunity |       inf |  5.83 | 1.00 | 1.00 |  5.83 |             5.83 |           1.00 |            1.00 |    1.00 |     1.00 |
-|    5 | Dataset 1b    |       inf |  5.83 | 1.00 | 1.00 |  5.83 |             5.83 |           1.00 |            1.00 |    1.00 |     1.00 |
+|    0 | set           |      0.00 |  6.00 | 1.00 | 1.00 |  6.00 |             6.00 |           1.00 |            1.00 |    1.00 |     1.00 |
+|    1 | subset 1b     |      0.00 |  6.00 | 1.00 | 1.00 |  6.00 |             6.00 |           1.00 |            1.00 |    1.00 |     1.00 |
+|    2 | set           |      1.00 |  5.99 | 1.00 | 1.00 |  5.99 |             5.99 |           1.00 |            1.00 |    1.00 |     1.00 |
+|    3 | subset 1b     |      1.00 |  5.99 | 1.00 | 1.00 |  5.99 |             5.99 |           1.00 |            1.00 |    1.00 |     1.00 |
+|    4 | set           |       inf |  5.83 | 1.00 | 1.00 |  5.83 |             5.83 |           1.00 |            1.00 |    1.00 |     1.00 |
+|    5 | subset 1b     |       inf |  5.83 | 1.00 | 1.00 |  5.83 |             5.83 |           1.00 |            1.00 |    1.00 |     1.00 |
 
 By inspecting the alpha column, we see that $D_1 \approx 5.99$ for Dataset 1b. The larger value of $D_1$ for Dataset 1b aligns with the intuitive sense that more balance in the frequencies of unique elements means a more diverse dataset. 
 
@@ -191,7 +191,7 @@ S_2a = np.maximum( S_2a, S_2a.transpose() )
 ```
 We may optionally convert this to a DataFrame for inspection:
 ```python
-S_2a_df = pd.DataFrame({labels_2a[i]: S_2a[i] for i in range(no_species_2a)}, index=labels_2a, return_dataframe=True)
+S_2a_df = pd.DataFrame({labels_2a[i]: S_2a[i] for i in range(no_species_2a)}, index=labels_2a)
 ```
 
 which corresponds to the following table:
@@ -212,13 +212,13 @@ which corresponds to the following table:
 We make a DataFrame of counts in the same way as in the previous example:
 
 ```python
-counts_2a = pd.DataFrame({"Community 2a": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=labels_2a)
+counts_2a = pd.DataFrame({"subset 2a": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=labels_2a)
 ```
 
 To compute the similarity-sensitive diversity indices, we now pass the similarity matrix to the similarity argument of the metacommunity object. Let's now find $D_0^Z$. We pass the similarity matrix to the `similarity' argument of `sentropy':
 
 ```python
-sentropy(counts_2a, similarity=S_2a, viewpoint=0)
+sentropy(counts_2a, similarity=S_2a, viewpoint=[0])
 ```
 
 We can pass either a numpy array or a pandas DataFrame for the similarity matrix. Here we specified the viewpoint to be 0. If we did not specify the viewpoint, it defaults to 1. We can also specify a list of viewpoints of interest. 
@@ -242,7 +242,7 @@ S_2b[7][8:9] = (                                          0.85) # llama
 
 S_2b = np.maximum( S_2b, S_2b.transpose() )
 # optional, convert to DataFrame for inspection:
-S_2b_df = pd.DataFrame({labels_2b[i]: S_2b[i] for i in range(no_species_2b)}, index=labels_2b, return_dataframe=True)
+S_2b_df = pd.DataFrame({labels_2b[i]: S_2b[i] for i in range(no_species_2b)}, index=labels_2b)
 ```
 
 which corresponds to the following table:
@@ -263,8 +263,8 @@ The values of the similarity matrix indicate high similarity among the vertebrat
 To calculate the alpha diversity (with $q=0$ as above), we again define counts, pass it together with the similarity matrix to the `sentropy' method. In addition, we will specialize to viewpoint 0 and alpha diversity:
 
 ```python
-counts_2b = pd.DataFrame({"Community 2b": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=labels_2b)
-sentropy(counts_2b, similarity=S_2b, viewpoint=0, measures=['alpha'])
+counts_2b = pd.DataFrame({"subset 2b": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=labels_2b)
+sentropy(counts_2b, similarity=S_2b, viewpoint=[0], measures=['alpha'])
 ```
 
 Inspecting the result, we find $D_0^Z=2.16$. That this number is close to 2 reflects the fact that members in this community belong to two broad classes of animals: vertebrates and invertebrates. The remaining $0.16$ above $2$ is interpreted as reflecting the diversity within each phylum.
@@ -275,8 +275,8 @@ Recall beta diversity is between-group diversity. To illustrate, we will re-imag
 ```python
 counts_2b_1 = pd.DataFrame(
 {
-   "Subcommunity_2b_1": [1, 1, 1, 1, 0, 0, 0, 0, 0], # invertebrates
-      "Subcommunity_2b_2": [0, 0, 0, 0, 1, 1, 1, 1, 1], #   vertebrates
+   "subset_2b_1": [1, 1, 1, 1, 0, 0, 0, 0, 0], # invertebrates
+      "subset_2b_2": [0, 0, 0, 0, 1, 1, 1, 1, 1], #   vertebrates
 },
 index=labels_2b
 )
@@ -285,13 +285,13 @@ index=labels_2b
 We can obtain the representativeness $\bar{\rho}$ (“rho-bar”) of each subcommunity, here at $q=0$, as follows:
 
 ```python
-sentropy(counts_2b_1, similarity=S_2b, viewpoint=0, measures=['normalized_rho'])
+sentropy(counts_2b_1, similarity=S_2b, viewpoint=[0], measures=['normalized_rho'])
 ```
 
 with the output $[0.63, 0.67]$. Recall $\bar{\rho}$ indicates how well a subcommunity represents the metacommunity. Note the invertebrates are more diverse than the vertebrates, which we can see by calculating $q=0$ $\alpha$ diversity of these subcommunities:
 
 ```python
-sentropy(counts_2b_1, similarity=S_2b, viewpoint=0, measures=['alpha'])
+sentropy(counts_2b_1, similarity=S_2b, viewpoint=[0], measures=['alpha'])
 ```
 
 which outputs $[3.54, 2.30]$. In contrast, suppose we split Dataset 2b into two subsets at random, without regard to phylum:
@@ -299,8 +299,8 @@ which outputs $[3.54, 2.30]$. In contrast, suppose we split Dataset 2b into two 
 ```python
 counts_2b_2 = pd.DataFrame(
 {
-   "Subcommunity_2b_3": [1, 0, 1, 0, 1, 0, 1, 0, 1],
-   "Subcommunity_2b_4": [0, 1, 0, 1, 0, 1, 0, 1, 0],
+   "subset_2b_3": [1, 0, 1, 0, 1, 0, 1, 0, 1],
+   "subset_2b_4": [0, 1, 0, 1, 0, 1, 0, 1, 0],
 },
 index=labels_2b
 )
@@ -309,7 +309,7 @@ index=labels_2b
 Proceeding again as above,
 
 ```python
-sentropy(counts_2b_2, similarity=S_2b, viewpoint=0, measures=['normalized_rho'])
+sentropy(counts_2b_2, similarity=S_2b, viewpoint=[0], measures=['normalized_rho'])
 ```
 
 yielding $[0.93, 0.92]$. We find that the $\bar{\rho}$ of the two subsets are now substantially higher than with counts_2b_1. These high values reflect the fact that the vertebrates and the invertebrates are roughly equally represented, so each subcommunity is more representative of the entire metacommunity than with counts_2b_1.
@@ -331,7 +331,7 @@ S_2b_df.to_csv("S_2b.csv", index=False)
 then we can pass a path (as a string) to the ``similarity'' argument of `sentropy':
 
 ```python
-sentropy(counts_2b_1, similarity='S_2b.csv', chunk_size=5, viewpoint=0, measures=['alpha'])
+sentropy(counts_2b_1, similarity='S_2b.csv', chunk_size=5, viewpoint=[0], measures=['alpha'])
 ```
 The optional `chunk_size` argument specifies how many rows of the similarity matrix are read from the file at a time.
 
@@ -484,10 +484,10 @@ kl_div_effno(counts_2b_1, counts_2b_2, similarity=S_2b, viewpoint=1, return_data
 ```
 we get a tuple of 2 elements, the first of which is a float representing the metacommunity Renyi divergence at viewpoint 1 (in this case, 1), and the second of which is a DataFrame containing Renyi divergences between pairs of subcommunities, in this case: 
 
-|                     |  Subcommunity_2b_3 | Subcommunity_2b_4 |
+|                     |        subset_2b_3 |       subset_2b_4 |
 | :------------------ |           -------: |         --------: |
-| Subcommunity_2b_1   |               1.66 |              1.55 |
-| Subcommunity_2b_2   |               1.43 |              1.56 |
+|       subset_2b_1   |               1.66 |              1.55 |
+|       subset_2b_2   |               1.43 |              1.56 |
 
 Like for the `sentropy' function, by default the `return_dataframe` is set to False, in which case the Renyi divergences of the subcommunities will be returned as a numpy array. The rows are the subcommunities of the first counts (in the order in which they occur in the first counts), and the columns are the subcommunities of the second counts (in their native order).
 
