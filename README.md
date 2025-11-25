@@ -191,7 +191,7 @@ S_2a = np.maximum( S_2a, S_2a.transpose() )
 ```
 We may optionally convert this to a DataFrame for inspection:
 ```python
-S_2a_df = pd.DataFrame({labels_2a[i]: S_2a[i] for i in range(no_species_2a)}, index=labels_2a, return_dataframe=True)
+S_2a_df = pd.DataFrame({labels_2a[i]: S_2a[i] for i in range(no_species_2a)}, index=labels_2a)
 ```
 
 which corresponds to the following table:
@@ -218,7 +218,7 @@ counts_2a = pd.DataFrame({"Community 2a": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=la
 To compute the similarity-sensitive diversity indices, we now pass the similarity matrix to the similarity argument of the metacommunity object. Let's now find $D_0^Z$. We pass the similarity matrix to the `similarity' argument of `sentropy':
 
 ```python
-sentropy(counts_2a, similarity=S_2a, viewpoint=0)
+sentropy(counts_2a, similarity=S_2a, viewpoint=[0])
 ```
 
 We can pass either a numpy array or a pandas DataFrame for the similarity matrix. Here we specified the viewpoint to be 0. If we did not specify the viewpoint, it defaults to 1. We can also specify a list of viewpoints of interest. 
