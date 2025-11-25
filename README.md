@@ -242,7 +242,7 @@ S_2b[7][8:9] = (                                          0.85) # llama
 
 S_2b = np.maximum( S_2b, S_2b.transpose() )
 # optional, convert to DataFrame for inspection:
-S_2b_df = pd.DataFrame({labels_2b[i]: S_2b[i] for i in range(no_species_2b)}, index=labels_2b, return_dataframe=True)
+S_2b_df = pd.DataFrame({labels_2b[i]: S_2b[i] for i in range(no_species_2b)}, index=labels_2b)
 ```
 
 which corresponds to the following table:
@@ -264,7 +264,7 @@ To calculate the alpha diversity (with $q=0$ as above), we again define counts, 
 
 ```python
 counts_2b = pd.DataFrame({"Community 2b": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=labels_2b)
-sentropy(counts_2b, similarity=S_2b, viewpoint=0, measures=['alpha'])
+sentropy(counts_2b, similarity=S_2b, viewpoint=[0], measures=['alpha'])
 ```
 
 Inspecting the resulting dataframe, we find $D_0^Z=2.16$. That this number is close to 2 reflects the fact that members in this community belong to two broad classes of animals: vertebrates and invertebrates. The remaining $0.16$ above $2$ is interpreted as reflecting the diversity within each phylum.
