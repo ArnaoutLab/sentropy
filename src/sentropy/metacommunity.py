@@ -280,7 +280,7 @@ class Metacommunity:
             )
         return concat(dataframes).reset_index(drop=True)
 
-def get_sentropies(counts: Union[DataFrame, ndarray],
+def sentropy(counts: Union[DataFrame, ndarray],
     similarity: Optional[Union[ndarray, DataFrame, str, Callable]] = None,
     viewpoint: Union[float, Iterable[float]] = [0,1,np_inf],
     measures: Iterable[str] = MEASURES,

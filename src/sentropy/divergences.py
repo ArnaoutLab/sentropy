@@ -1,5 +1,5 @@
 from sentropy.powermean import power_mean
-from numpy import prod, power, ndarray, minimum, identity as np_identity, zeros as np_zeros
+from numpy import prod, power, ndarray, minimum, log as np_log, identity as np_identity, zeros as np_zeros
 from pandas import DataFrame
 from sentropy.similarity import SimilarityFromArray, SimilarityIdentity, SimilarityFromFile, SimilarityFromSymmetricFunction, SimilarityFromFunction
 from sentropy.ray import SimilarityFromSymmetricRayFunction, SimilarityFromRayFunction
@@ -31,8 +31,8 @@ def get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, atol):
         exp_renyi_div = prod(power(ord_ratio, P))
     return exp_renyi_div
 
-def get_exp_relative_entropy(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetric=False, X=None, chunk_size=10, \
-    parallelize=False, max_inflight_tasks=64):
+def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetric=False, X=None, chunk_size=10, \
+    parallelize=False, max_inflight_tasks=64, return_dataframe=False):
     P_meta_ab = make_metacommunity_abundance(P_abundance)
     Q_meta_ab = make_metacommunity_abundance(Q_abundance)
     P_norm_subcom_ab = make_normalized_subcommunity_abundance(P_abundance)
@@ -88,7 +88,14 @@ def get_exp_relative_entropy(P_abundance, Q_abundance, similarity=None, viewpoin
             exp_renyi_div = get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, min_count)
             exp_renyi_divs_subcom[i,j] = exp_renyi_div
 
-    exp_renyi_divs_subcom = DataFrame(exp_renyi_divs_subcom, columns=Q_subcommunities_names, \
+    if return_dataframe:
+        exp_renyi_divs_subcom = DataFrame(exp_renyi_divs_subcom, columns=Q_subcommunities_names, \
             index=P_subcommunities_names)
 
     return exp_renyi_div_meta, exp_renyi_divs_subcom
+
+def rel_ent(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetric=False, X=None, chunk_size=10, \
+    parallelize=False, max_inflight_tasks=64, return_dataframe=False):
+    exp_renyi_div_meta, exp_renyi_divs_subcom = kl_div_effno(P_abundance, Q_abundance, similarity, viewpoint, symmetric, X, chunk_size, \
+    parallelize, max_inflight_tasks, return_dataframe)
+    return np_log(exp_renyi_div_meta), np_log(exp_renyi_divs_subcom)

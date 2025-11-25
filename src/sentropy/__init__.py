@@ -7,5 +7,5 @@ See sentropy.metacommunity.Metacommunity
 """
 
 from sentropy.metacommunity import Metacommunity
-from sentropy.metacommunity import get_sentropies
-from sentropy.divergences import get_exp_relative_entropy
+from sentropy.metacommunity import sentropy
+from sentropy.divergences import kl_div_effno, rel_ent

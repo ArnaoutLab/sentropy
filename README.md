@@ -116,17 +116,17 @@ Dataset 1a is mostly apples; in dataset 1b, all fruits are represented at almost
 | grape     |          1 |          5 |
 | total     |         35 |         35 | 
 
-A frequency-sensitive metacommunity can be created in Python by passing a `counts` DataFrame to the `get_sentropies` method:
+A frequency-sensitive metacommunity can be created in Python by passing a `counts` DataFrame to the `sentropy` method:
 
 ```python
 import pandas as pd
 import numpy as np
-from sentropy import get_sentropies
+from sentropy import sentropy
 
 counts_1a = pd.DataFrame({"Dataset 1a": [30, 1, 1, 1, 1, 1]}, 
    index=["apple", "orange", "banana", "pear", "blueberry", "grape"])
 
-get_sentropies(counts_1a, viewpoint=[0,1,np.inf])
+sentropy(counts_1a, viewpoint=[0,1,np.inf], return_dataframe=True)
 ```
 
 Here we requested to get diversity indices for 3 different viewpoint parameters. The following output is produced (in the form of a Pandas DataFrame):
@@ -140,15 +140,15 @@ Here we requested to get diversity indices for 3 different viewpoint parameters.
 |    4 | metacommunity |       inf |  1.17 | 1.00 | 1.00 |  1.17 |             1.17 |           1.00 |            1.00 |    1.00 |     1.00 |
 |    5 | Dataset 1a    |       inf |  1.17 | 1.00 | 1.00 |  1.17 |             1.17 |           1.00 |            1.00 |    1.00 |     1.00 |
 
-Looking at the alpha column, we see that the value of $D_1$ for this metacommunity is $D_1=1.90$. In this example, the metacommunity indices are the same as the subcommunity ones, since there is only one subcommunity. 
+Looking at the alpha column, we see that the value of $D_1$ for this metacommunity is $D_1=1.90$. In this example, the metacommunity indices are the same as the subcommunity ones, since there is only one subcommunity. By default, the argument return_dataframe is False, in which case the function `sentropy' will return a python dictionary containing the requested diversity indices.
 
-Next, let us repeat for Dataset 1b. Again, we make the `counts` dataframe and pass it to the `get_sentropies` method:
+Next, let us repeat for Dataset 1b. Again, we make the `counts` dataframe and pass it to the `sentropy` method:
 
 ```python
 counts_1b = pd.DataFrame({"Community 1b": [6, 6, 6, 6, 6, 5]},
     index=["apple", "orange", "banana", "pear", "blueberry", "grape"])
 
-get_sentropies(counts_1b, viewpoint=[0,1,np.inf])
+sentropy(counts_1b, viewpoint=[0,1,np.inf], return_dataframe=True)
 ```
 
 and we obtain this DataFrame as output:
@@ -191,7 +191,7 @@ S_2a = np.maximum( S_2a, S_2a.transpose() )
 ```
 We may optionally convert this to a DataFrame for inspection:
 ```python
-S_2a_df = pd.DataFrame({labels_2a[i]: S_2a[i] for i in range(no_species_2a)}, index=labels_2a)
+S_2a_df = pd.DataFrame({labels_2a[i]: S_2a[i] for i in range(no_species_2a)}, index=labels_2a, return_dataframe=True)
 ```
 
 which corresponds to the following table:
@@ -215,10 +215,10 @@ We make a DataFrame of counts in the same way as in the previous example:
 counts_2a = pd.DataFrame({"Community 2a": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=labels_2a)
 ```
 
-To compute the similarity-sensitive diversity indices, we now pass the similarity matrix to the similarity argument of the metacommunity object. Let's now find $D_0^Z$. We pass the similarity matrix to the `similarity' argument of `get_sentropies':
+To compute the similarity-sensitive diversity indices, we now pass the similarity matrix to the similarity argument of the metacommunity object. Let's now find $D_0^Z$. We pass the similarity matrix to the `similarity' argument of `sentropy':
 
 ```python
-get_sentropies(counts_2a, similarity=S_2a, viewpoint=0)
+sentropy(counts_2a, similarity=S_2a, viewpoint=0)
 ```
 
 We can pass either a numpy array or a pandas DataFrame for the similarity matrix. Here we specified the viewpoint to be 0. If we did not specify the viewpoint, it defaults to 1. We can also specify a list of viewpoints of interest. 
@@ -242,7 +242,7 @@ S_2b[7][8:9] = (                                          0.85) # llama
 
 S_2b = np.maximum( S_2b, S_2b.transpose() )
 # optional, convert to DataFrame for inspection:
-S_2b_df = pd.DataFrame({labels_2b[i]: S_2b[i] for i in range(no_species_2b)}, index=labels_2b)
+S_2b_df = pd.DataFrame({labels_2b[i]: S_2b[i] for i in range(no_species_2b)}, index=labels_2b, return_dataframe=True)
 ```
 
 which corresponds to the following table:
@@ -260,11 +260,11 @@ which corresponds to the following table:
 
 The values of the similarity matrix indicate high similarity among the vertebrates, high similarity among the invertebrates and low similarity between vertebrates and invertebrates.
 
-To calculate the alpha diversity (with $q=0$ as above), we again define counts, pass it together with the similarity matrix to the `get_sentropies' method. In addition, we will specialize to viewpoint 0 and alpha diversity:
+To calculate the alpha diversity (with $q=0$ as above), we again define counts, pass it together with the similarity matrix to the `sentropy' method. In addition, we will specialize to viewpoint 0 and alpha diversity:
 
 ```python
 counts_2b = pd.DataFrame({"Community 2b": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=labels_2b)
-get_sentropies(counts_2b, similarity=S_2b, viewpoint=0, measures=['alpha'])
+sentropy(counts_2b, similarity=S_2b, viewpoint=0, measures=['alpha'])
 ```
 
 Inspecting the resulting dataframe, we find $D_0^Z=2.16$. That this number is close to 2 reflects the fact that members in this community belong to two broad classes of animals: vertebrates and invertebrates. The remaining $0.16$ above $2$ is interpreted as reflecting the diversity within each phylum.
@@ -285,13 +285,13 @@ index=labels_2b
 We can obtain the representativeness $\bar{\rho}$ (“rho-bar”) of each subcommunity, here at $q=0$, as follows:
 
 ```python
-get_sentropies(counts_2b_1, similarity=S_2b, viewpoint=0, measures=['normalized_rho'])
+sentropy(counts_2b_1, similarity=S_2b, viewpoint=0, measures=['normalized_rho'])
 ```
 
 with the output $[0.63, 0.67]$. Recall $\bar{\rho}$ indicates how well a subcommunity represents the metacommunity. Note the invertebrates are more diverse than the vertebrates, which we can see by calculating $q=0$ $\alpha$ diversity of these subcommunities:
 
 ```python
-get_sentropies(counts_2b_1, similarity=S_2b, viewpoint=0, measures=['alpha'])
+sentropy(counts_2b_1, similarity=S_2b, viewpoint=0, measures=['alpha'])
 ```
 
 which outputs $[3.54, 2.30]$. In contrast, suppose we split Dataset 2b into two subsets at random, without regard to phylum:
@@ -309,7 +309,7 @@ index=labels_2b
 Proceeding again as above,
 
 ```python
-get_sentropies(counts_2b_2, similarity=S_2b, viewpoint=0, measures=['normalized_rho'])
+sentropy(counts_2b_2, similarity=S_2b, viewpoint=0, measures=['normalized_rho'])
 ```
 
 yielding $[0.93, 0.92]$. We find that the $\bar{\rho}$ of the two subsets are now substantially higher than with counts_2b_1. These high values reflect the fact that the vertebrates and the invertebrates are roughly equally represented, so each subcommunity is more representative of the entire metacommunity than with counts_2b_1.
@@ -328,14 +328,14 @@ To illustrate passing a csv file, we re-use the counts_2b_1 and S_2b from above 
 ```python
 S_2b_df.to_csv("S_2b.csv", index=False)
 ```
-then we can pass a path (as a string) to the ``similarity'' argument of `get_sentropies':
+then we can pass a path (as a string) to the ``similarity'' argument of `sentropy':
 
 ```python
-get_sentropies(counts_2b_1, similarity='S_2b.csv', chunk_size=5, viewpoint=0, measures=['alpha'])
+sentropy(counts_2b_1, similarity='S_2b.csv', chunk_size=5, viewpoint=0, measures=['alpha'])
 ```
 The optional `chunk_size` argument specifies how many rows of the similarity matrix are read from the file at a time.
 
-Alternatively, to avoid a large footprint on either RAM or disk, the similarity matrix can be constructed and processed on the fly. In this case, we pass an array or `DataFrame` of features to the `X` argument of `get_sentropies'. Each row of X represents the feature values of a species. For example, given numeric features all of the same type:
+Alternatively, to avoid a large footprint on either RAM or disk, the similarity matrix can be constructed and processed on the fly. In this case, we pass an array or `DataFrame` of features to the `X` argument of `sentropy'. Each row of X represents the feature values of a species. For example, given numeric features all of the same type:
 
 ```python
 X = np.array([
@@ -347,7 +347,7 @@ X = np.array([
 def similarity_function(species_i, species_j):
   return 1 / (1 + np.linalg.norm(species_i - species_j))
 
-get_sentropies(np.array([[1, 1], [1, 0], [0, 1]]), similarity=similarity_function,
+sentropy(np.array([[1, 1], [1, 0], [0, 1]]), similarity=similarity_function,
                                                                X=X, chunk_size=10)
 ```
 
@@ -393,7 +393,7 @@ def feature_similarity(animal_i, animal_j):
         result *= 0.5
     return result
 
-get_sentropies(np.array([[1, 1], [1, 0], [0, 1]]), similarity=feature_similarity, X=X)
+sentropy(np.array([[1, 1], [1, 0], [0, 1]]), similarity=feature_similarity, X=X)
 ```
 
 A two-fold speed-up is possible when the following (typical) conditions hold:
@@ -406,7 +406,7 @@ In this case, we don't really need to call the simularity function twice for eac
 Pass ``symmetric=True'':
 
 ```python
-get_sentropies(np.array([[1, 1], [1, 0], [0, 1]]), similarity=feature_similarity, X=X, symmetric=True)
+sentropy(np.array([[1, 1], [1, 0], [0, 1]]), similarity=feature_similarity, X=X, symmetric=True)
 ```
 
 The similarity function will only be called for pairs of rows `species[i], species[j]` where i < j, and the similarity of $species_i$ to $species_j$ will be re-used for the similarity of $species_j$ to $species_i$. Thus, a nearly 2-fold speed-up is possible, if the similarity function is computationally expensive. (For a discussion of _nonsymmetric_ similarity, see [Leinster and Cobbold](https://doi.org/10.1890/10-2402.1).)
@@ -422,7 +422,7 @@ the installation of `ray` into your environment may entail some conflicting depe
 pip install 'sentropy[ray]'
 ```
 
-To actually use Ray, we pass `parallelize=True` to `get_sentropies`. Furthermore, we can optionally pass an integer to the `max_inflight_tasks` argument, to specify at most how many parallel tasks should be submitted to Ray at a time (to avoid overwhelming Ray). Each `chunk_size` rows of the similarity matrix are processed as a separate job. Thanks to this parallelization, up to an N-fold speedup is possible (where N is the number of cores or nodes).
+To actually use Ray, we pass `parallelize=True` to `sentropy`. Furthermore, we can optionally pass an integer to the `max_inflight_tasks` argument, to specify at most how many parallel tasks should be submitted to Ray at a time (to avoid overwhelming Ray). Each `chunk_size` rows of the similarity matrix are processed as a separate job. Thanks to this parallelization, up to an N-fold speedup is possible (where N is the number of cores or nodes).
 
 ## Calculating ordinariness
 
@@ -479,8 +479,8 @@ relative_abundances = similarity @ abundance
 ## Computing relative entropies
 In addition to computing entropies, `sentropy` also computes the relative entropies between metacommunities, both with and without inter-species similarity. To do so, we use the method `exp_relative_entropy', to obtain the exponentiated (i.e. the effective number version of the) relative entropies. As an example usage, we come back to the example of vertebrates versus invertebrates. By running:
 ```
-from sentropy import get_exp_relative_entropy
-get_exp_relative_entropy(counts_2b_1, counts_2b_2, similarity=S_2b, viewpoint=1)
+from sentropy import kl_div_effno
+kl_div_effno(counts_2b_1, counts_2b_2, similarity=S_2b, viewpoint=1, return_dataframe=True)
 ```
 we get a tuple of 2 elements, the first of which is a float representing the metacommunity Renyi divergence at viewpoint 1 (in this case, 1), and the second of which is a DataFrame containing Renyi divergences between pairs of subcommunities, in this case: 
 
@@ -489,9 +489,13 @@ we get a tuple of 2 elements, the first of which is a float representing the met
 | Subcommunity_2b_1   |               1.66 |              1.55 |
 | Subcommunity_2b_2   |               1.43 |              1.56 |
 
-We can also compare subcommunities within a single metacommunity. To do this, we can either pass the same metacommunity to the first two arguments of `get_exp_relative_entropy`, or alternatively we can prepare 2 different `counts`, one for each subcommunity (taken to be a metacommunity by itself). Note also that, when comparing subsets from different sets (e.g. the birds of prey from 2a vs. the invertebrates from 2b), the similarity matrix has to be defined for all pairs.
+Like for the `sentropy' function, by default the `return_dataframe` is set to False, in which case the Renyi divergences of the subcommunities will be returned as a numpy array. The rows are the subcommunities of the first counts (in the order in which they occur in the first counts), and the columns are the subcommunities of the second counts (in their native order).
 
-If we do not pass anything to the `similarity` argument, then the function will compute the usual (i.e. similarity-insensitive) exponentiated Rényi divergence. We may also optionally pass a similarity function or a string representing a path to a CSV file to `similarity`. In those cases, we may optionally pass values to the arguments `symmetric`, `X`, `chunk_size`, `parallelize`, and `max_inflight_tasks`. These latter arguments have the same meaning as in the function `get_sentropies`.
+We can also compare subcommunities within a single metacommunity. To do this, we can either pass the same metacommunity to the first two arguments of `kl_div_effno`, or alternatively we can prepare 2 different `counts`, one for each subcommunity (taken to be a metacommunity by itself). Note also that, when comparing subsets from different sets (e.g. the birds of prey from 2a vs. the invertebrates from 2b), the similarity matrix has to be defined for all pairs.
+
+If we do not pass anything to the `similarity` argument, then the function will compute the usual (i.e. similarity-insensitive) exponentiated Rényi divergence. We may also optionally pass a similarity function or a string representing a path to a CSV file to `similarity`. In those cases, we may optionally pass values to the arguments `symmetric`, `X`, `chunk_size`, `parallelize`, and `max_inflight_tasks`. These latter arguments have the same meaning as in the function `sentropy`.
+
+It is also convenient to obtain the actual KL/Renyi divergences without the exponentiation. To do so, we can call the `rel_ent` method. It has the same Python API as `kl_div_effno'.
 
 # Command-line usage
 The `sentropy` package can also be used from the command line as a module (via `python -m`). To illustrate using `sentropy` this way, we re-use again the example with counts_2b_1 and S_2b, now with counts_2b_1 also saved as a csv file (note again `index=False`):
