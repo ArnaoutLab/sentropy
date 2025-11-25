@@ -11,7 +11,7 @@ from typing import Callable, Iterable, Optional, Union
 
 from pandas import DataFrame, Index, Series, concat
 from numpy import array, atleast_1d, broadcast_to, divide, zeros, ndarray, power, prod, sum as np_sum, \
-identity as np_identity
+identity as np_identity, inf as np_inf
 from sentropy.exceptions import InvalidArgumentError
 
 from sentropy.abundance import make_abundance
@@ -282,17 +282,26 @@ class Metacommunity:
 
 def get_sentropies(counts: Union[DataFrame, ndarray],
     similarity: Optional[Union[ndarray, DataFrame, str, Callable]] = None,
-    viewpoint: Union[float, Iterable[float]] = 1,
+    viewpoint: Union[float, Iterable[float]] = [0,1,np_inf],
     measures: Iterable[str] = MEASURES,
     symmetric: Optional[bool] = False,
     X: Optional[Union[ndarray, DataFrame]] = None,
     chunk_size: Optional[int] = 10,
     parallelize: Optional[bool] = False,
     max_inflight_tasks: Optional[int] = 64,
+    return_dataframe: bool = False
     ):
 
     mc = Metacommunity(counts, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
-    sentropies = mc.to_dataframe(viewpoint, measures)
+    
+    if return_dataframe:
+        sentropies = mc.to_dataframe(viewpoint, measures)
+    else:
+        sentropies = {}
+        for q in viewpoint:
+            for measure in measures:
+                sentropies[f'metacommunity_{measure}_q={q}'] = mc.metacommunity_diversity(viewpoint=q, measure=measure)
+                sentropies[f'subcommunity_{measure}_q={q}'] = mc.subcommunity_diversity(viewpoint=q, measure=measure)
     return sentropies
 
 
