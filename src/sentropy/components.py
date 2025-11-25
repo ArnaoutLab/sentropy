@@ -14,18 +14,18 @@ class Components:
         self.abundance = abundance
 
         """Create the ordinariness vectors by multipying the
-        similarity matrix with each of the metacommunity abundance vector,
-        the subcommunity abundance vectors, and the normalized
-        subcommunity vectors.
+        similarity matrix with each of the set abundance vector,
+        the subset abundance vectors, and the normalized
+        subset vectors.
         (See Leinster book* page 174 for discussion of ordinariness.
         * https://arxiv.org/pdf/2012.02113)
         Of course, for IdentitySimilarity, this multiplication would be
         a no-op (and thus is not actually performed).
         """
         (
-            self.metacommunity_ordinariness,
-            self.subcommunity_ordinariness,
-            self.normalized_subcommunity_ordinariness,
+            self.set_ordinariness,
+            self.subset_ordinariness,
+            self.normalized_subset_ordinariness,
         ) = self.abundance.premultiply_by(similarity)
 
         self.numerators = {
@@ -39,17 +39,17 @@ class Components:
                     "beta_hat",
                     "rho_hat",
                 ],
-                self.metacommunity_ordinariness,
+                self.set_ordinariness,
             ),
         }
         self.denominators = {
             **dict.fromkeys(
                 ["alpha", "beta", "rho", "beta_hat", "rho_hat"],
-                self.subcommunity_ordinariness,
+                self.subset_ordinariness,
             ),
             **dict.fromkeys(
                 ["normalized_alpha", "normalized_beta", "normalized_rho"],
-                self.normalized_subcommunity_ordinariness,
+                self.normalized_subset_ordinariness,
             ),
-            "gamma": self.metacommunity_ordinariness,
+            "gamma": self.set_ordinariness,
         }

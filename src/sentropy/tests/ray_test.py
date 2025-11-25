@@ -33,7 +33,7 @@ from sentropy.tests.base_tests.similarity_test import (
     X_3by1,
     X_3by2,
 )
-from sentropy import Metacommunity
+from sentropy import Set
 from sentropy.exceptions import InvalidArgumentError
 
 
@@ -265,7 +265,7 @@ def test_comparisons():
             )
         else:
             similarity = simclass(func=similarity_function, X=X_large, chunk_size=4)
-        m = Metacommunity(abundances_large, similarity)
+        m = Set(abundances_large, similarity)
         df = m.to_dataframe(viewpoint=[0, 1, 2, 200], measures=MEASURES)
         results.append(df.drop(columns="community"))
     for result in results[1:]:
@@ -333,4 +333,4 @@ def test_interset_diversity_forbidden():
     )
     counts = array([[1, 1, 1, 1, 1]])
     with raises(InvalidArgumentError):
-        Metacommunity(counts, sim).to_dataframe(viewpoint=0)
+        Set(counts, sim).to_dataframe(viewpoint=0)

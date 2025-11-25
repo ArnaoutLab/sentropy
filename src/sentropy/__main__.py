@@ -14,7 +14,7 @@ from numpy import int64
 from pandas import read_csv
 
 from sentropy.log import LOG_HANDLER, LOGGER
-from sentropy import Metacommunity
+from sentropy import Set
 from sentropy.similarity import SimilarityFromFile
 from sentropy.parameters import configure_arguments
 
@@ -40,11 +40,11 @@ def main(args):
     counts = read_csv(args.input_filepath, sep=None, engine="python", dtype=int64)
     LOGGER.debug(f"data: {counts}")
     similarity = SimilarityFromFile(args.similarity, args.chunk_size)
-    metacommunity = Metacommunity(
+    set = Set(
         counts=counts,
         similarity=similarity,
     )
-    community_views = metacommunity.to_dataframe(viewpoint=args.viewpoint)
+    community_views = set.to_dataframe(viewpoint=args.viewpoint)
     community_views.to_csv(
         args.output_filepath, sep="\t", float_format="%.4f", index=False
     )

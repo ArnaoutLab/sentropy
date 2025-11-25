@@ -36,7 +36,7 @@ from sentropy.similarity import (
     weighted_similarity_chunk_nonsymmetric,
     weighted_similarity_chunk_symmetric,
 )
-from sentropy import Metacommunity
+from sentropy import Set
 from sentropy.exceptions import InvalidArgumentError
 from sentropy.abundance import make_abundance
 
@@ -241,7 +241,7 @@ def test_nonsquare_from_file(make_similarity_from_file):
     sim = make_similarity_from_file(similarity_class=IntersetSimilarityFromFile)
     counts = array([[1], [1], [1]])
     with raises(InvalidArgumentError):
-        Metacommunity(counts, sim).to_dataframe(viewpoint=0)
+        Set(counts, sim).to_dataframe(viewpoint=0)
 
 
 def test_interset_from_file(make_similarity_from_file):
@@ -271,7 +271,7 @@ def test_interset_from_file(make_similarity_from_file):
     similarities_out = empty_like(expected_similarity_matrix)
     sim.similarities_out = similarities_out
     result = sim.weighted_abundances(
-        abundance_object.normalized_subcommunity_abundance,
+        abundance_object.normalized_subset_abundance,
     )
     assert allclose(result, expected)
     assert allclose(expected_similarity_matrix, similarities_out)
@@ -388,9 +388,9 @@ def compare_dense_sparse(counts, dense_similarity, sparse_similarity):
         "normalized_rho",
         "normalized_beta",
     )
-    meta_dense = Metacommunity(counts, similarity=dense_similarity)
+    meta_dense = Set(counts, similarity=dense_similarity)
     meta_dense_df = meta_dense.to_dataframe(viewpoint=viewpoints, measures=measures)
-    meta_sparse = Metacommunity(
+    meta_sparse = Set(
         counts, similarity=SimilarityFromArray(sparse_similarity)
     )
     meta_sparse_df = meta_sparse.to_dataframe(viewpoint=viewpoints, measures=measures)
@@ -692,14 +692,14 @@ def test_feature_similarity():
         "rho_hat",
     ]
     viewpoints = [0, 1, 2, inf]
-    m = Metacommunity(
+    m = Set(
         animal_communities,
         similarity=SimilarityFromDataFrame(animal_similarity_matrix()),
     )
     df1 = m.to_dataframe(viewpoint=viewpoints, measures=measures).set_index(
         ["community", "viewpoint"]
     )
-    m = Metacommunity(
+    m = Set(
         animal_communities,
         SimilarityFromFunction(
             func=feature_similarity,
@@ -711,7 +711,7 @@ def test_feature_similarity():
         ["community", "viewpoint"]
     )
     assert allclose(df1.to_numpy(), df2.to_numpy())
-    m = Metacommunity(
+    m = Set(
         animal_communities,
         SimilarityFromSymmetricFunction(
             func=feature_similarity,
@@ -857,8 +857,8 @@ def test_compuation_count(
         sim = SimilarityFromDataFrame(similarity_dataframe_3by3)
 
     sim.weighted_abundances = count_decorator(sim.weighted_abundances, callcounter, key)
-    m = Metacommunity(abundances, sim)
-    m.metacommunity_diversity(viewpoint=1, measure="alpha")
+    m = Set(abundances, sim)
+    m.set_diversity(viewpoint=1, measure="alpha")
     m.to_dataframe(viewpoint=0)
 
     assert callcounter[key] == expected_count
@@ -894,7 +894,7 @@ def test_square_similarity_requirement():
     sim = SimilarityFromArray(array([[1.0, 0.4, 0.6], [0.2, 1.0, 0.9]]))
     counts = array([[1], [1], [1]])
     with raises(InvalidArgumentError):
-        Metacommunity(counts, sim).to_dataframe(viewpoint=0)
+        Set(counts, sim).to_dataframe(viewpoint=0)
 
 
 def test_interset_diversity_forbidden():
@@ -905,7 +905,7 @@ def test_interset_diversity_forbidden():
     )
     counts = array([[1, 1, 1, 1, 1]])
     with raises(InvalidArgumentError):
-        Metacommunity(counts, sim).to_dataframe(viewpoint=0)
+        Set(counts, sim).to_dataframe(viewpoint=0)
 
 
 def test_matmul():

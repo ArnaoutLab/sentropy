@@ -30,34 +30,34 @@ counts_dataframe_3by2 = DataFrame(counts_array_3by2())
 
 @dataclass
 class AbundanceExclusiveSpecies:
-    description: str = "2 subcommunities; both contain exclusive species"
+    description: str = "2 subsets; both contain exclusive species"
     counts: ndarray = field(default_factory=counts_array_3by2)
-    subcommunity_abundance: ndarray = field(
+    subset_abundance: ndarray = field(
         default_factory=lambda: array(
             [[2 / 10, 4 / 10], [3 / 10, 0 / 10], [0 / 10, 1 / 10]]
         )
     )
-    metacommunity_abundance: ndarray = field(
+    set_abundance: ndarray = field(
         default_factory=lambda: array([[6 / 10], [3 / 10], [1 / 10]])
     )
-    subcommunity_normalizing_constants: ndarray = field(
+    subset_normalizing_constants: ndarray = field(
         default_factory=lambda: array([5 / 10, 5 / 10])
     )
-    normalized_subcommunity_abundance: ndarray = field(
+    normalized_subset_abundance: ndarray = field(
         default_factory=lambda: array([[2 / 5, 4 / 5], [3 / 5, 0 / 5], [0 / 5, 1 / 5]])
     )
 
 
 @dataclass
 class AbundanceSingleExclusiveSpecies:
-    description: str = "2 subcommunities; one contains exclusive species"
+    description: str = "2 subsets; one contains exclusive species"
     counts: ndarray = field(default_factory=lambda: array([[2, 4], [3, 0], [5, 1]]))
-    subcommunity_abundance: ndarray = field(
+    subset_abundance: ndarray = field(
         default_factory=lambda: array(
             [[2 / 15, 4 / 15], [3 / 15, 0 / 15], [5 / 15, 1 / 15]]
         )
     )
-    metacommunity_abundance: ndarray = field(
+    set_abundance: ndarray = field(
         default_factory=lambda: array(
             [
                 [6 / 15],
@@ -66,10 +66,10 @@ class AbundanceSingleExclusiveSpecies:
             ]
         )
     )
-    subcommunity_normalizing_constants: ndarray = field(
+    subset_normalizing_constants: ndarray = field(
         default_factory=lambda: array([10 / 15, 5 / 15])
     )
-    normalized_subcommunity_abundance: ndarray = field(
+    normalized_subset_abundance: ndarray = field(
         default_factory=lambda: array(
             [[2 / 10, 4 / 5], [3 / 10, 0 / 5], [5 / 10, 1 / 5]]
         )
@@ -88,7 +88,7 @@ class AbundanceNoExclusiveSpecies:
             ],
         )
     )
-    subcommunity_abundance: ndarray = field(
+    subset_abundance: ndarray = field(
         default_factory=lambda: array(
             [
                 [2 / 16, 4 / 16],
@@ -97,13 +97,13 @@ class AbundanceNoExclusiveSpecies:
             ]
         )
     )
-    metacommunity_abundance: ndarray = field(
+    set_abundance: ndarray = field(
         default_factory=lambda: array([[6 / 16], [4 / 16], [6 / 16]])
     )
-    subcommunity_normalizing_constants: ndarray = field(
+    subset_normalizing_constants: ndarray = field(
         default_factory=lambda: array([6 / 16, 10 / 16])
     )
-    normalized_subcommunity_abundance: ndarray = field(
+    normalized_subset_abundance: ndarray = field(
         default_factory=lambda: array(
             [
                 [2 / 6, 4 / 10],
@@ -127,7 +127,7 @@ class AbundanceMutuallyExclusive:
             ],
         )
     )
-    subcommunity_abundance: ndarray = field(
+    subset_abundance: ndarray = field(
         default_factory=lambda: array(
             [
                 [2 / 10, 0 / 10],
@@ -137,13 +137,13 @@ class AbundanceMutuallyExclusive:
             ]
         )
     )
-    metacommunity_abundance: ndarray = field(
+    set_abundance: ndarray = field(
         default_factory=lambda: array([[2 / 10], [3 / 10], [1 / 10], [4 / 10]])
     )
-    subcommunity_normalizing_constants: ndarray = field(
+    subset_normalizing_constants: ndarray = field(
         default_factory=lambda: array([5 / 10, 5 / 10])
     )
-    normalized_subcommunity_abundance: ndarray = field(
+    normalized_subset_abundance: ndarray = field(
         default_factory=lambda: array(
             [
                 [2 / 5, 0 / 5],
@@ -156,7 +156,7 @@ class AbundanceMutuallyExclusive:
 
 
 @dataclass
-class AbundanceOneSubcommunity:
+class AbundanceOneSubset:
     description: str = "one community"
     counts: ndarray = field(
         default_factory=lambda: array(
@@ -167,7 +167,7 @@ class AbundanceOneSubcommunity:
             ],
         )
     )
-    subcommunity_abundance: ndarray = field(
+    subset_abundance: ndarray = field(
         default_factory=lambda: array(
             [
                 [2 / 10],
@@ -176,7 +176,7 @@ class AbundanceOneSubcommunity:
             ]
         )
     )
-    metacommunity_abundance: ndarray = field(
+    set_abundance: ndarray = field(
         default_factory=lambda: array(
             [
                 [2 / 10],
@@ -185,10 +185,10 @@ class AbundanceOneSubcommunity:
             ]
         )
     )
-    subcommunity_normalizing_constants: ndarray = field(
+    subset_normalizing_constants: ndarray = field(
         default_factory=lambda: array([10 / 10])
     )
-    normalized_subcommunity_abundance: ndarray = field(
+    normalized_subset_abundance: ndarray = field(
         default_factory=lambda: array(
             [
                 [2 / 10],
@@ -223,33 +223,33 @@ def test_make_abundance_not_implemented():
         AbundanceSingleExclusiveSpecies(),
         AbundanceNoExclusiveSpecies(),
         AbundanceMutuallyExclusive(),
-        AbundanceOneSubcommunity(),
+        AbundanceOneSubset(),
     ],
 )
 class TestAbundance:
-    def test_make_subcommunity_abundance(self, test_case):
+    def test_make_subset_abundance(self, test_case):
         abundance = make_abundance(counts=test_case.counts)
         assert allclose(
-            abundance.subcommunity_abundance,
-            test_case.subcommunity_abundance,
+            abundance.subset_abundance,
+            test_case.subset_abundance,
         )
 
-    def test_metacommunity_abundance(self, test_case):
+    def test_set_abundance(self, test_case):
         abundance = make_abundance(counts=test_case.counts)
         assert allclose(
-            abundance.metacommunity_abundance, test_case.metacommunity_abundance
+            abundance.set_abundance, test_case.set_abundance
         )
 
-    def test_subcommunity_normalizing_constants(self, test_case):
+    def test_subset_normalizing_constants(self, test_case):
         abundance = make_abundance(counts=test_case.counts)
         assert allclose(
-            abundance.subcommunity_normalizing_constants,
-            test_case.subcommunity_normalizing_constants,
+            abundance.subset_normalizing_constants,
+            test_case.subset_normalizing_constants,
         )
 
-    def test_normalized_subcommunity_abundance(self, test_case):
+    def test_normalized_subset_abundance(self, test_case):
         abundance = make_abundance(counts=test_case.counts)
         assert allclose(
-            abundance.normalized_subcommunity_abundance,
-            test_case.normalized_subcommunity_abundance,
+            abundance.normalized_subset_abundance,
+            test_case.normalized_subset_abundance,
         )

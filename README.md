@@ -267,7 +267,7 @@ counts_2b = pd.DataFrame({"Community 2b": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=la
 sentropy(counts_2b, similarity=S_2b, viewpoint=0, measures=['alpha'])
 ```
 
-Inspecting the resulting dataframe, we find $D_0^Z=2.16$. That this number is close to 2 reflects the fact that members in this community belong to two broad classes of animals: vertebrates and invertebrates. The remaining $0.16$ above $2$ is interpreted as reflecting the diversity within each phylum.
+Inspecting the result, we find $D_0^Z=2.16$. That this number is close to 2 reflects the fact that members in this community belong to two broad classes of animals: vertebrates and invertebrates. The remaining $0.16$ above $2$ is interpreted as reflecting the diversity within each phylum.
 
 ## Beta diversities
 Recall beta diversity is between-group diversity. To illustrate, we will re-imagine Dataset 2b as a metacommunity made up of 2 subcommunities—the invertebrates and the vertebrates—defined as follows:
@@ -495,7 +495,7 @@ We can also compare subcommunities within a single metacommunity. To do this, we
 
 If we do not pass anything to the `similarity` argument, then the function will compute the usual (i.e. similarity-insensitive) exponentiated Rényi divergence. We may also optionally pass a similarity function or a string representing a path to a CSV file to `similarity`. In those cases, we may optionally pass values to the arguments `symmetric`, `X`, `chunk_size`, `parallelize`, and `max_inflight_tasks`. These latter arguments have the same meaning as in the function `sentropy`.
 
-It is also convenient to obtain the actual KL/Renyi divergences without the exponentiation. To do so, we can call the `rel_ent` method. It has the same Python API as `kl_div_effno'.
+It is also convenient to obtain the actual KL/Renyi divergences without the exponentiation. To do so, we can call the `rel_ent` method. It has the same Python API as `kl_div_effno`.
 
 # Command-line usage
 The `sentropy` package can also be used from the command line as a module (via `python -m`). To illustrate using `sentropy` this way, we re-use again the example with counts_2b_1 and S_2b, now with counts_2b_1 also saved as a csv file (note again `index=False`):

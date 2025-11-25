@@ -1,10 +1,10 @@
-"""Module for calculating weighted subcommunity and metacommunity
+"""Module for calculating weighted subset and set
 similarities.
 
 At the heart of calculating diversity with similarity is the matrix multiplication
     Z @ p
 where Z is the similarity matrix and p is a vector (for a single unified
-community) or matrix (for subcommunities of a metacommunity) representing
+community) or matrix (for subsets of a set) representing
 abundances.
 ( See the Leinster and Cobbold paper, equation (1).)
 The Similarity class is responsible for premultiplying abundances by a

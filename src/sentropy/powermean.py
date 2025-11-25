@@ -1,4 +1,4 @@
-"""Miscellaneous helper module for the metacommunity package.
+"""Miscellaneous helper module for the set package.
 
 Functions
 ---------

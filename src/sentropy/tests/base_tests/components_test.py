@@ -1,43 +1,43 @@
 from numpy import allclose
 from pytest import mark
 
-from sentropy.metacommunity import Metacommunity
+from sentropy.set import Set
 from sentropy.components import Components
 from sentropy.abundance import make_abundance
-from sentropy.tests.base_tests.metacommunity_test import metacommunity_data
+from sentropy.tests.base_tests.set_test import set_data
 from sentropy.tests.base_tests.similarity_test import similarity_array_3by3_1
 
 
 @mark.parametrize(
     "data",
-    metacommunity_data,
+    set_data,
 )
 def test_make_components(data):
-    metacommunity = Metacommunity(counts=data.counts, similarity=data.similarity)
-    assert isinstance(metacommunity.components, Components)
+    set = Set(counts=data.counts, similarity=data.similarity)
+    assert isinstance(set.components, Components)
 
 
-@mark.parametrize("data", metacommunity_data[2:])
-def test_metacommunity_similarity(data):
-    metacommunity = Metacommunity(counts=data.counts, similarity=data.similarity)
+@mark.parametrize("data", set_data[2:])
+def test_set_similarity(data):
+    set = Set(counts=data.counts, similarity=data.similarity)
     assert allclose(
-        metacommunity.components.metacommunity_ordinariness,
-        data.metacommunity_similarity,
+        set.components.set_ordinariness,
+        data.set_similarity,
     )
 
 
-@mark.parametrize("data", metacommunity_data[2:])
-def test_subcommunity_similarity(data):
-    metacommunity = Metacommunity(counts=data.counts, similarity=data.similarity)
+@mark.parametrize("data", set_data[2:])
+def test_subset_similarity(data):
+    set = Set(counts=data.counts, similarity=data.similarity)
     assert allclose(
-        metacommunity.components.subcommunity_ordinariness, data.subcommunity_similarity
+        set.components.subset_ordinariness, data.subset_similarity
     )
 
 
-@mark.parametrize("data", metacommunity_data[2:])
-def test_normalized_subcommunity_similarity(data):
-    metacommunity = Metacommunity(counts=data.counts, similarity=data.similarity)
+@mark.parametrize("data", set_data[2:])
+def test_normalized_subset_similarity(data):
+    set = Set(counts=data.counts, similarity=data.similarity)
     assert allclose(
-        metacommunity.components.normalized_subcommunity_ordinariness,
-        data.normalized_subcommunity_similarity,
+        set.components.normalized_subset_ordinariness,
+        data.normalized_subset_similarity,
     )

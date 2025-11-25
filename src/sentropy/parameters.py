@@ -51,9 +51,9 @@ def configure_arguments():
         "-i",
         "--input_filepath",
         help=(
-            "A csv or tsv file with one column per subcommunity, one "
+            "A csv or tsv file with one column per subset, one "
             "row per species, where each element contains the count of "
-            "each species in the corresponding subcommunities."
+            "each species in the corresponding subsets."
         ),
     )
     parser.add_argument(

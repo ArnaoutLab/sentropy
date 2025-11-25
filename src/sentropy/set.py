@@ -1,10 +1,10 @@
-"""Module for metacommunity and subcommunity diversity measures.
+"""Module for set and subset diversity measures.
 
 Classes
 -------
-Metacommunity
-    Represents a metacommunity made up of subcommunities and computes
-    metacommunity and subcommunity diversity measures.
+Set
+    Represents a set made up of subsets and computes
+    set and subset diversity measures.
 """
 
 from typing import Callable, Iterable, Optional, Union
@@ -34,14 +34,14 @@ MEASURES = (
 )
 
 
-class Metacommunity:
+class Set:
     similarity: Similarity
     """Creates diversity components and calculates diversity measures.
 
     A community consists of a set of species, each of which may appear
-    any (non-negative) number of times. A metacommunity consists of one
-    or more subcommunities and can be represented by the number of
-    appearances of each species in each of the subcommunities that the
+    any (non-negative) number of times. A set consists of one
+    or more subsets and can be represented by the number of
+    appearances of each species in each of the subsets that the
     species appears in.
     """
     MEASURES = (
@@ -69,9 +69,9 @@ class Metacommunity:
         Parameters
         ----------
         counts:
-            2-d array with one column per subcommunity, one row per
+            2-d array with one column per subset, one row per
             species, containing the count of each species in the
-            corresponding subcommunities.
+            corresponding subsets.
         similarity:
             Optional. Can be:
             - None → use identity (frequency-only)
@@ -121,8 +121,8 @@ class Metacommunity:
             abundance=self.abundance, similarity=self.similarity
         )
 
-    def subcommunity_diversity(self, viewpoint: float, measure: str) -> ndarray:
-        """Calculates subcommunity diversity measures.
+    def subset_diversity(self, viewpoint: float, measure: str) -> ndarray:
+        """Calculates subset diversity measures.
 
         Parameters
         ----------
@@ -135,7 +135,7 @@ class Metacommunity:
 
         Returns
         -------
-        A numpy.ndarray with a diversity measure for each subcommunity.
+        A numpy.ndarray with a diversity measure for each subset.
         """
         if measure not in self.MEASURES:
             raise (
@@ -150,7 +150,7 @@ class Metacommunity:
         if measure == "gamma":
             denominator = broadcast_to(
                 denominator,
-                self.abundance.normalized_subcommunity_abundance.shape,
+                self.abundance.normalized_subset_abundance.shape,
             )
         community_ratio = divide(
             numerator,
@@ -160,7 +160,7 @@ class Metacommunity:
         )
         diversity_measure = power_mean(
             order=1 - viewpoint,
-            weights=self.abundance.normalized_subcommunity_abundance,
+            weights=self.abundance.normalized_subset_abundance,
             items=community_ratio,
             atol=self.abundance.min_count,
         )
@@ -177,8 +177,8 @@ class Metacommunity:
 
         return diversity_measure
 
-    def metacommunity_diversity(self, viewpoint: float, measure: str) -> ndarray:
-        """Calculates metacommunity diversity measures.
+    def set_diversity(self, viewpoint: float, measure: str) -> ndarray:
+        """Calculates set diversity measures.
 
         Parameters
         ----------
@@ -191,17 +191,17 @@ class Metacommunity:
 
         Returns
         -------
-        A numpy.ndarray containing the metacommunity diversity measure.
+        A numpy.ndarray containing the set diversity measure.
         """
-        subcommunity_diversity = self.subcommunity_diversity(viewpoint, measure)
+        subset_diversity = self.subset_diversity(viewpoint, measure)
         return power_mean(
             1 - viewpoint,
-            self.abundance.subcommunity_normalizing_constants,
-            subcommunity_diversity,
+            self.abundance.subset_normalizing_constants,
+            subset_diversity,
         )
 
-    def subcommunities_to_dataframe(self, viewpoint: float, measures=MEASURES):
-        """Table containing all subcommunity diversity values.
+    def subsets_to_dataframe(self, viewpoint: float, measures=MEASURES):
+        """Table containing all subset diversity values.
 
         Parameters
         ----------
@@ -213,21 +213,21 @@ class Metacommunity:
 
         Returns
         -------
-        A pandas.DataFrame containing all subcommunity diversity
+        A pandas.DataFrame containing all subset diversity
         measures for a given viewpoint
         """
         df = DataFrame(
             {
-                measure: self.subcommunity_diversity(viewpoint, measure)
+                measure: self.subset_diversity(viewpoint, measure)
                 for measure in measures
             }
         )
         df.insert(0, "viewpoint", viewpoint)
-        df.insert(0, "community", Series(self.abundance.subcommunities_names))
+        df.insert(0, "community", Series(self.abundance.subsets_names))
         return df
 
-    def metacommunity_to_dataframe(self, viewpoint: float, measures=MEASURES):
-        """Table containing all metacommunity diversity values.
+    def set_to_dataframe(self, viewpoint: float, measures=MEASURES):
+        """Table containing all set diversity values.
 
         Parameters
         ----------
@@ -239,22 +239,22 @@ class Metacommunity:
 
         Returns
         -------
-        A pandas.DataFrame containing all metacommunity diversity
+        A pandas.DataFrame containing all set diversity
         measures for a given viewpoint
         """
         df = DataFrame(
             {
-                measure: self.metacommunity_diversity(viewpoint, measure)
+                measure: self.set_diversity(viewpoint, measure)
                 for measure in measures
             },
-            index=Index(["metacommunity"], name="community"),
+            index=Index(["set"], name="community"),
         )
         df.insert(0, "viewpoint", viewpoint)
         df.reset_index(inplace=True)
         return df
 
     def to_dataframe(self, viewpoint: Union[float, Iterable[float]], measures=MEASURES):
-        """Table containing all metacommunity and subcommunity diversity
+        """Table containing all set and subset diversity
         values.
 
         Parameters
@@ -267,16 +267,16 @@ class Metacommunity:
 
         Returns
         -------
-        A pandas.DataFrame containing all metacommunity and subcommunity
+        A pandas.DataFrame containing all set and subset
         diversity measures for a given viewpoint
         """
         dataframes = []
         for q in atleast_1d(array(viewpoint)):
             dataframes.append(
-                self.metacommunity_to_dataframe(viewpoint=q, measures=measures)
+                self.set_to_dataframe(viewpoint=q, measures=measures)
             )
             dataframes.append(
-                self.subcommunities_to_dataframe(viewpoint=q, measures=measures)
+                self.subsets_to_dataframe(viewpoint=q, measures=measures)
             )
         return concat(dataframes).reset_index(drop=True)
 
@@ -292,7 +292,7 @@ def sentropy(counts: Union[DataFrame, ndarray],
     return_dataframe: bool = False
     ):
 
-    mc = Metacommunity(counts, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
+    mc = Set(counts, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
     
     if return_dataframe:
         sentropies = mc.to_dataframe(viewpoint, measures)
@@ -300,8 +300,8 @@ def sentropy(counts: Union[DataFrame, ndarray],
         sentropies = {}
         for q in viewpoint:
             for measure in measures:
-                sentropies[f'metacommunity_{measure}_q={q}'] = mc.metacommunity_diversity(viewpoint=q, measure=measure)
-                sentropies[f'subcommunity_{measure}_q={q}'] = mc.subcommunity_diversity(viewpoint=q, measure=measure)
+                sentropies[f'set_{measure}_q={q}'] = mc.set_diversity(viewpoint=q, measure=measure)
+                sentropies[f'subset_{measure}_q={q}'] = mc.subset_diversity(viewpoint=q, measure=measure)
     return sentropies
 
 

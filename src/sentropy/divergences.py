@@ -4,19 +4,19 @@ from pandas import DataFrame
 from sentropy.similarity import SimilarityFromArray, SimilarityIdentity, SimilarityFromFile, SimilarityFromSymmetricFunction, SimilarityFromFunction
 from sentropy.ray import SimilarityFromSymmetricRayFunction, SimilarityFromRayFunction
 
-def make_normalized_subcommunity_abundance(abundance):
+def make_normalized_subset_abundance(abundance):
     if type(abundance) == DataFrame:
         abundance = abundance.to_numpy()
     abundance = abundance.astype(float)
     return abundance/abundance.sum(axis=0)
 
-def make_metacommunity_abundance(abundance):
+def make_set_abundance(abundance):
     if type(abundance) == DataFrame:
         abundance = abundance.to_numpy()
     abundance = abundance.astype(float)
-    metacommunity_abundance = abundance.sum(axis=1, keepdims=True)
-    metacommunity_abundance /= metacommunity_abundance.sum()
-    return metacommunity_abundance
+    set_abundance = abundance.sum(axis=1, keepdims=True)
+    set_abundance /= set_abundance.sum()
+    return set_abundance
 
 def get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, atol):
     ord_ratio = P_ord/Q_ord
@@ -33,10 +33,10 @@ def get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, atol):
 
 def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetric=False, X=None, chunk_size=10, \
     parallelize=False, max_inflight_tasks=64, return_dataframe=False):
-    P_meta_ab = make_metacommunity_abundance(P_abundance)
-    Q_meta_ab = make_metacommunity_abundance(Q_abundance)
-    P_norm_subcom_ab = make_normalized_subcommunity_abundance(P_abundance)
-    Q_norm_subcom_ab = make_normalized_subcommunity_abundance(Q_abundance)
+    P_meta_ab = make_set_abundance(P_abundance)
+    Q_meta_ab = make_set_abundance(Q_abundance)
+    P_norm_subcom_ab = make_normalized_subset_abundance(P_abundance)
+    Q_norm_subcom_ab = make_normalized_subset_abundance(Q_abundance)
 
     if similarity is None:
         similarity = SimilarityIdentity()
@@ -63,25 +63,25 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
     Q_meta_ord = similarity.weighted_abundances(Q_meta_ab)
     Q_norm_subcom_ord = similarity.weighted_abundances(Q_norm_subcom_ab)
 
-    P_num_subcommunities = P_abundance.shape[1]
-    Q_num_subcommunities = Q_abundance.shape[1]
+    P_num_subsets = P_abundance.shape[1]
+    Q_num_subsets = Q_abundance.shape[1]
 
     if type(P_abundance) == DataFrame:
-        P_subcommunities_names = P_abundance.columns
+        P_subsets_names = P_abundance.columns
     else:
-        P_subcommunities_names = [str(i) for i in range(P_num_subcommunities)]
+        P_subsets_names = [str(i) for i in range(P_num_subsets)]
     if type(Q_abundance) == DataFrame:
-        Q_subcommunities_names = Q_abundance.columns
+        Q_subsets_names = Q_abundance.columns
     else:
-        Q_subcommunities_names = [str(i) for i in range(Q_num_subcommunities)]
+        Q_subsets_names = [str(i) for i in range(Q_num_subsets)]
 
     min_count = minimum(1 / P_abundance.sum(), 1e-9)
 
     exp_renyi_div_meta = get_exp_renyi_div_from_ords(P_meta_ab, P_meta_ord, Q_meta_ord, viewpoint, min_count)
 
-    exp_renyi_divs_subcom = np_zeros(shape=(P_num_subcommunities, Q_num_subcommunities))
-    for i in range(P_num_subcommunities):
-        for j in range(Q_num_subcommunities):
+    exp_renyi_divs_subcom = np_zeros(shape=(P_num_subsets, Q_num_subsets))
+    for i in range(P_num_subsets):
+        for j in range(Q_num_subsets):
             P = P_norm_subcom_ab[:,i]
             P_ord = P_norm_subcom_ord[:,i]
             Q_ord = Q_norm_subcom_ord[:,j]
@@ -89,8 +89,8 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
             exp_renyi_divs_subcom[i,j] = exp_renyi_div
 
     if return_dataframe:
-        exp_renyi_divs_subcom = DataFrame(exp_renyi_divs_subcom, columns=Q_subcommunities_names, \
-            index=P_subcommunities_names)
+        exp_renyi_divs_subcom = DataFrame(exp_renyi_divs_subcom, columns=Q_subsets_names, \
+            index=P_subsets_names)
 
     return exp_renyi_div_meta, exp_renyi_divs_subcom
 

@@ -1,4 +1,4 @@
-"""Tests for diversity.metacommunity."""
+"""Tests for diversity.set."""
 
 from dataclasses import dataclass, field
 from numpy import allclose, array, ndarray, identity, zeros, inf, maximum, log
@@ -17,7 +17,7 @@ from sentropy.similarity import (
     SimilarityFromSymmetricFunction,
     SimilarityFromFunction,
 )
-from sentropy import Metacommunity
+from sentropy import Set
 from sentropy.tests.base_tests.similarity_test import similarity_dataframe_3by3
 from sentropy.tests.base_tests.similarity_test import similarity_array_3by3_1
 
@@ -33,27 +33,27 @@ MEASURES = (
     "beta_hat",
 )
 
-subcommunity_names = ["subcommunity_1", "subcommunity_2"]
-counts_3by2 = DataFrame([[1, 5], [3, 0], [0, 1]], columns=subcommunity_names)
+subset_names = ["subset_1", "subset_2"]
+counts_3by2 = DataFrame([[1, 5], [3, 0], [0, 1]], columns=subset_names)
 counts_6by2 = DataFrame(
     [[1, 0], [1, 0], [1, 0], [0, 1], [0, 1], [0, 1]],
-    columns=subcommunity_names,
+    columns=subset_names,
 )
 
 
 @dataclass
-class FrequencyMetacommunity6by2:
-    description = "frequency-sensitive metacommunity; 6 species, 2 subcommunities"
+class FrequencySet6by2:
+    description = "frequency-sensitive set; 6 species, 2 subsets"
     viewpoint: float = 0.0
     counts: DataFrame = field(default_factory=lambda: counts_6by2)
     similarity: None = None
-    metacommunity_similarity: None = None
-    subcommunity_similarity: None = None
-    normalized_subcommunity_similarity: None = None
-    subcommunity_results: DataFrame = field(
+    set_similarity: None = None
+    subset_similarity: None = None
+    normalized_subset_similarity: None = None
+    subset_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "community": subcommunity_names,
+                "community": subset_names,
                 "viewpoint": [0.0, 0.0],
                 "alpha": [6.0, 6.0],
                 "rho": [1.0, 1.0],
@@ -67,10 +67,10 @@ class FrequencyMetacommunity6by2:
             },
         )
     )
-    metacommunity_results: DataFrame = field(
+    set_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "community": ["metacommunity"],
+                "community": ["set"],
                 "viewpoint": [0.0],
                 "alpha": [6.0],
                 "rho": [1.0],
@@ -88,18 +88,18 @@ class FrequencyMetacommunity6by2:
 
 
 @dataclass
-class FrequencyMetacommunity3by2:
-    description = "frequency-sensitive metacommunity; 3 species, 2 subcommunities"
+class FrequencySet3by2:
+    description = "frequency-sensitive set; 3 species, 2 subsets"
     viewpoint: float = 2.0
     counts: DataFrame = field(default_factory=lambda: counts_3by2)
     similarity: None = None
-    metacommunity_similarity: None = None
-    subcommunity_similarity: None = None
-    normalized_subcommunity_similarity: None = None
-    subcommunity_results: DataFrame = field(
+    set_similarity: None = None
+    subset_similarity: None = None
+    normalized_subset_similarity: None = None
+    subset_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "community": subcommunity_names,
+                "community": subset_names,
                 "viewpoint": [2.0, 2.0],
                 "alpha": [4.0, 2.30769231],
                 "rho": [1.26315789, 1.16129032],
@@ -113,10 +113,10 @@ class FrequencyMetacommunity3by2:
             }
         )
     )
-    metacommunity_results: DataFrame = field(
+    set_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "community": ["metacommunity"],
+                "community": ["set"],
                 "viewpoint": [2.0],
                 "alpha": [2.7777777777777777],
                 "rho": [1.2],
@@ -134,8 +134,8 @@ class FrequencyMetacommunity3by2:
 
 
 @dataclass
-class SimilarityMetacommunity6by2:
-    description = "similarity-sensitive metacommunity; 6 species, 2 subcommunities"
+class SimilaritySet6by2:
+    description = "similarity-sensitive set; 6 species, 2 subsets"
     viewpoint: float = 0.0
     counts: ndarray = field(default_factory=lambda: counts_6by2)
     similarity: ndarray = field(
@@ -150,7 +150,7 @@ class SimilarityMetacommunity6by2:
             ]
         )
     )
-    metacommunity_similarity: ndarray = field(
+    set_similarity: ndarray = field(
         default_factory=lambda: array(
             [
                 [0.68333333],
@@ -162,7 +162,7 @@ class SimilarityMetacommunity6by2:
             ]
         )
     )
-    subcommunity_similarity: ndarray = field(
+    subset_similarity: ndarray = field(
         default_factory=lambda: (
             array(
                 [
@@ -176,7 +176,7 @@ class SimilarityMetacommunity6by2:
             ),
         )
     )
-    normalized_subcommunity_similarity: ndarray = field(
+    normalized_subset_similarity: ndarray = field(
         default_factory=lambda: array(
             [
                 [0.66666667, 0.7],
@@ -188,10 +188,10 @@ class SimilarityMetacommunity6by2:
             ]
         )
     )
-    subcommunity_results: DataFrame = field(
+    subset_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "community": subcommunity_names,
+                "community": subset_names,
                 "viewpoint": [0.0, 0.0],
                 "alpha": [3.0, 3.0],
                 "rho": [2.05, 2.05],
@@ -205,10 +205,10 @@ class SimilarityMetacommunity6by2:
             }
         )
     )
-    metacommunity_results: DataFrame = field(
+    set_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "community": ["metacommunity"],
+                "community": ["set"],
                 "viewpoint": [0.0],
                 "alpha": [3.0],
                 "rho": [2.05],
@@ -226,15 +226,15 @@ class SimilarityMetacommunity6by2:
 
 
 @dataclass
-class SimilarityMetacommunity3by2:
-    description = "similarity-sensitive metacommunity; 3 species, 2 subcommunities"
+class SimilaritySet3by2:
+    description = "similarity-sensitive set; 3 species, 2 subsets"
     viewpoint: float = 2.0
     counts: DataFrame = field(default_factory=lambda: counts_3by2)
     similarity: ndarray = field(default_factory=lambda: array(similarity_array_3by3_1))
-    metacommunity_similarity: ndarray = field(
+    set_similarity: ndarray = field(
         default_factory=lambda: array([[0.76], [0.62], [0.22]])
     )
-    subcommunity_similarity: ndarray = field(
+    subset_similarity: ndarray = field(
         default_factory=lambda: (
             array(
                 [
@@ -245,7 +245,7 @@ class SimilarityMetacommunity3by2:
             ),
         )
     )
-    normalized_subcommunity_similarity: ndarray = field(
+    normalized_subset_similarity: ndarray = field(
         default_factory=lambda: array(
             [
                 [0.625, 0.85],
@@ -254,10 +254,10 @@ class SimilarityMetacommunity3by2:
             ]
         )
     )
-    subcommunity_results: DataFrame = field(
+    subset_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "community": subcommunity_names,
+                "community": subset_names,
                 "viewpoint": [2.0, 2.0],
                 "alpha": [3.07692308, 2.22222222],
                 "rho": [1.97775446, 1.48622222],
@@ -271,10 +271,10 @@ class SimilarityMetacommunity3by2:
             }
         )
     )
-    metacommunity_results: DataFrame = field(
+    set_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "community": ["metacommunity"],
+                "community": ["set"],
                 "viewpoint": [2.0],
                 "alpha": [2.5],
                 "rho": [1.6502801833927663],
@@ -291,18 +291,18 @@ class SimilarityMetacommunity3by2:
     )
 
 
-metacommunity_data = (
-    FrequencyMetacommunity6by2(),
-    FrequencyMetacommunity3by2(),
-    SimilarityMetacommunity6by2(),
-    SimilarityMetacommunity3by2(),
+set_data = (
+    FrequencySet6by2(),
+    FrequencySet3by2(),
+    SimilaritySet6by2(),
+    SimilaritySet3by2(),
 )
 
 
 @mark.parametrize(
     "data, expected",
     zip(
-        metacommunity_data,
+        set_data,
         (
             SimilarityIdentity,
             SimilarityIdentity,
@@ -311,75 +311,75 @@ metacommunity_data = (
         ),
     ),
 )
-def test_metacommunity(data, expected):
-    metacommunity = Metacommunity(counts=data.counts, similarity=data.similarity)
-    assert isinstance(metacommunity, Metacommunity)
-    assert isinstance(metacommunity.abundance, Abundance)
-    assert isinstance(metacommunity.similarity, expected)
+def test_set(data, expected):
+    set = Set(counts=data.counts, similarity=data.similarity)
+    assert isinstance(set, Set)
+    assert isinstance(set.abundance, Abundance)
+    assert isinstance(set.similarity, expected)
 
 
 @mark.parametrize("measure", MEASURES)
-@mark.parametrize("data", metacommunity_data)
-def test_metacommunity_diversity(data, measure):
-    metacommunity = Metacommunity(counts=data.counts, similarity=data.similarity)
-    metacommunity_diversity = metacommunity.metacommunity_diversity(
+@mark.parametrize("data", set_data)
+def test_set_diversity(data, measure):
+    set = Set(counts=data.counts, similarity=data.similarity)
+    set_diversity = set.set_diversity(
         measure=measure, viewpoint=data.viewpoint
     )
-    assert allclose(metacommunity_diversity, data.metacommunity_results[measure])
+    assert allclose(set_diversity, data.set_results[measure])
 
 
 @mark.parametrize("measure", MEASURES)
-@mark.parametrize("data", metacommunity_data)
-def test_subcommunity_diversity(data, measure):
-    metacommunity = Metacommunity(counts=data.counts, similarity=data.similarity)
-    subcommunity_diversity = metacommunity.subcommunity_diversity(
+@mark.parametrize("data", set_data)
+def test_subset_diversity(data, measure):
+    set = Set(counts=data.counts, similarity=data.similarity)
+    subset_diversity = set.subset_diversity(
         measure=measure, viewpoint=data.viewpoint
     )
-    assert allclose(subcommunity_diversity, data.subcommunity_results[measure])
+    assert allclose(subset_diversity, data.subset_results[measure])
 
 
-def test_subcommunity_diversity_invalid_measure():
+def test_subset_diversity_invalid_measure():
     with raises(InvalidArgumentError):
-        Metacommunity(counts=counts_3by2).subcommunity_diversity(
+        Set(counts=counts_3by2).subset_diversity(
             measure="omega", viewpoint=0
         )
 
 
-@mark.parametrize("data", metacommunity_data)
-def test_subcommunities_to_dataframe(data):
-    metacommunity = Metacommunity(counts=data.counts, similarity=data.similarity)
-    subcommunities_df = metacommunity.subcommunities_to_dataframe(data.viewpoint)
-    assert_frame_equal(subcommunities_df, data.subcommunity_results)
+@mark.parametrize("data", set_data)
+def test_subsets_to_dataframe(data):
+    set = Set(counts=data.counts, similarity=data.similarity)
+    subsets_df = set.subsets_to_dataframe(data.viewpoint)
+    assert_frame_equal(subsets_df, data.subset_results)
 
 
-@mark.parametrize("data", metacommunity_data)
+@mark.parametrize("data", set_data)
 def test_metacommunities_to_dataframe(data):
-    metacommunity = Metacommunity(counts=data.counts, similarity=data.similarity)
-    metacommunity_df = metacommunity.metacommunity_to_dataframe(
+    set = Set(counts=data.counts, similarity=data.similarity)
+    set_df = set.set_to_dataframe(
         viewpoint=data.viewpoint
     )
-    assert_frame_equal(metacommunity_df, data.metacommunity_results)
+    assert_frame_equal(set_df, data.set_results)
 
 
-@mark.parametrize("data", metacommunity_data)
+@mark.parametrize("data", set_data)
 def test_to_dataframe(data):
-    metacommunity = Metacommunity(counts=data.counts, similarity=data.similarity)
+    set = Set(counts=data.counts, similarity=data.similarity)
     expected = concat(
-        [data.metacommunity_results, data.subcommunity_results]
+        [data.set_results, data.subset_results]
     ).reset_index(drop=True)
-    assert_frame_equal(metacommunity.to_dataframe(viewpoint=data.viewpoint), expected)
+    assert_frame_equal(set.to_dataframe(viewpoint=data.viewpoint), expected)
 
 
-@mark.parametrize("data", metacommunity_data)
+@mark.parametrize("data", set_data)
 def test_select_measures(data):
-    metacommunity = Metacommunity(counts=data.counts, similarity=data.similarity)
+    set = Set(counts=data.counts, similarity=data.similarity)
     selected_measures = [
         "alpha",
         "gamma",
         "normalized_rho",
     ]
     expected_columns = selected_measures + ["community", "viewpoint"]
-    df = metacommunity.to_dataframe(
+    df = set.to_dataframe(
         viewpoint=data.viewpoint, measures=selected_measures
     )
     for col in df:
@@ -392,7 +392,7 @@ def test_effective_counts():
     """
     Test that:
     * passing None, an instance of SimilarityIdentity, or an identity matrix gives the same results
-    * normalized_alpha for each subcommunity is appropriate for effective species count for each viewpoint:
+    * normalized_alpha for each subset is appropriate for effective species count for each viewpoint:
       - raw species count at q = 0
       - 1/(proportion of largest species) at q = infinity
       - intermediate values of q yield intermediate values
@@ -405,7 +405,7 @@ def test_effective_counts():
     viewpoints = [0, 1, 2, 3, 4, 99, inf]
     first_df = None
     for sim in [None, SimilarityIdentity(), identity(5)]:
-        m = Metacommunity(counts, sim)
+        m = Set(counts, sim)
         df = m.to_dataframe(
             measures=["alpha", "normalized_alpha"], viewpoint=viewpoints
         )
@@ -434,7 +434,7 @@ def test_effective_counts():
         (3, 4, 0.1),
     ]:
         sim[i, j] = sim[j, i] = val
-    m = Metacommunity(counts, sim)
+    m = Set(counts, sim)
     df = m.to_dataframe(viewpoint=viewpoints)
     df.set_index(["community", "viewpoint"], inplace=True)
     for col in first_df:
@@ -453,14 +453,14 @@ def test_symmetric_similarity_function():
     def similarity_function(species_i, species_j):
         return 1 / (1 + norm(species_i - species_j))
 
-    metacommunity1 = Metacommunity(array([[1, 1], [1, 0], [0, 1]]), \
+    set1 = Set(array([[1, 1], [1, 0], [0, 1]]), \
         similarity=similarity_function, X=X, chunk_size=10)
 
-    metacommunity2 = Metacommunity(array([[1, 1], [1, 0], [0, 1]]), \
+    set2 = Set(array([[1, 1], [1, 0], [0, 1]]), \
         similarity=similarity_function, X=X, chunk_size=10, symmetric=True)
 
-    assert metacommunity1.to_dataframe(viewpoint=[0,1,inf]).equals(\
-        metacommunity2.to_dataframe(viewpoint=[0,1,inf]))
+    assert set1.to_dataframe(viewpoint=[0,1,inf]).equals(\
+        set2.to_dataframe(viewpoint=[0,1,inf]))
 
 
 def test_property1():
@@ -500,9 +500,9 @@ def test_property1():
     ]
 
     def get_result():
-        metacommunity = Metacommunity(communities,
+        set = Set(communities,
             similarity=similarity_function, X=X.to_numpy(), symmetric=True)
-        return metacommunity.to_dataframe(
+        return set.to_dataframe(
             viewpoint=viewpoints, measures=measures
         ).set_index(["community", "viewpoint"])
 
@@ -549,16 +549,16 @@ def test_property2():
 
     counts = DataFrame({"Community 2b": [1, 1, 1, 1, 1, 1, 1, 1, 0]}, index=labels_2b)
     viewpoints = [0, 1, 2, 3, 4, 5, inf]
-    metacommunity = Metacommunity(counts, similarity=S_2b_df)
-    df1 = metacommunity.to_dataframe(viewpoint=viewpoints).set_index(
+    set = Set(counts, similarity=S_2b_df)
+    df1 = set.to_dataframe(viewpoint=viewpoints).set_index(
         ["community", "viewpoint"]
     )
     counts = counts[counts["Community 2b"] > 0]
     S_2b = S_2b[:-1, :-1]
     S_2b_df = DataFrame({labels_2b[i]: S_2b[i] for i in range(no_species_2b-1)}, index=labels_2b[:-1])
     S_2b_df.to_csv('S_2b_df_after_removing_zero_abundance_species.csv', index=False)
-    metacommunity = Metacommunity(counts, similarity='S_2b_df_after_removing_zero_abundance_species.csv')
-    df2 = metacommunity.to_dataframe(viewpoint=viewpoints).set_index(
+    set = Set(counts, similarity='S_2b_df_after_removing_zero_abundance_species.csv')
+    df2 = set.to_dataframe(viewpoint=viewpoints).set_index(
         ["community", "viewpoint"]
     )
     assert allclose(df1.to_numpy(), df2.to_numpy())
@@ -592,15 +592,15 @@ def test_property3():
         "normalized_beta",
         "rho_hat",
     ]
-    metacommunity = Metacommunity(counts, sim)
-    df1 = metacommunity.to_dataframe(viewpoint=viewpoints, measures=measures).set_index(
+    set = Set(counts, sim)
+    df1 = set.to_dataframe(viewpoint=viewpoints, measures=measures).set_index(
         ["community", "viewpoint"]
     )
     labels = labels[:-1]
     sim = sim[:-1, :-1]
     counts = DataFrame({"A": [3, 2, 4], "B": [0, 4, 5], "C": [1, 1, 2]}, index=labels)
-    metacommunity = Metacommunity(counts, sim)
-    df2 = metacommunity.to_dataframe(viewpoint=viewpoints, measures=measures).set_index(
+    set = Set(counts, sim)
+    df2 = set.to_dataframe(viewpoint=viewpoints, measures=measures).set_index(
         ["community", "viewpoint"]
     )
     assert allclose(df1.to_numpy(), df2.to_numpy(), equal_nan=True)
@@ -616,13 +616,13 @@ def test_figure_1():
     naive_sim = None
     nonnaive_counts = naive_counts
     nonnaive_sim = array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0.9], [0, 0, 0.9, 1]])
-    before = Metacommunity(before_counts, before_sim)
-    naive = Metacommunity(naive_counts, naive_sim)
-    nonnaive = Metacommunity(nonnaive_counts, nonnaive_sim)
+    before = Set(before_counts, before_sim)
+    naive = Set(naive_counts, naive_sim)
+    nonnaive = Set(nonnaive_counts, nonnaive_sim)
     for q in [0, 1, 2, 3, 4, 5, inf]:
-        before_alpha = before.metacommunity_diversity(viewpoint=q, measure="alpha")
-        naive_alpha = naive.metacommunity_diversity(viewpoint=q, measure="alpha")
-        nonnaive_alpha = nonnaive.metacommunity_diversity(viewpoint=q, measure="alpha")
+        before_alpha = before.set_diversity(viewpoint=q, measure="alpha")
+        naive_alpha = naive.set_diversity(viewpoint=q, measure="alpha")
+        nonnaive_alpha = nonnaive.set_diversity(viewpoint=q, measure="alpha")
         assert (naive_alpha - before_alpha) >= 1.0
         assert (naive_alpha - nonnaive_alpha) > 0.9
         assert naive_alpha <= 4.0
