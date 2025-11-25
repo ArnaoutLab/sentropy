@@ -41,7 +41,7 @@ pytest --pyargs sentropy --cov sentropy
 
 If you use this package, please cite it as:
 
-Nguyen et al., <i>sentropy</i>. <https://github.com/ArnaoutLab/diversity>
+Nguyen et al., <i>greylock: A Python Package for Measuring The Composition of Complex Datasets</i>. <https://github.com/ArnaoutLab/diversity>
 
 ## Definitions
 
@@ -264,7 +264,6 @@ To calculate the alpha diversity (with $q=0$ as above), we again define counts, 
 
 ```python
 counts_2b = pd.DataFrame({"Community 2b": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=labels_2b)
-metacommunity_2b = Metacommunity(counts_2b, similarity=S_2b)
 get_sentropies(counts_2b, similarity=S_2b, viewpoint=0, measures=['alpha'])
 ```
 
@@ -478,7 +477,7 @@ relative_abundances = similarity @ abundance
 ```
 
 ## Computing relative entropies
-In addition to computing entropies, ``sentropy'' also computes the relative entropies between metacommunities, both with and without inter-species similarity. To do so, we use the method `exp_relative_entropy', to obtain the exponentiated (i.e. the effective number version of the) relative entropies. As an example usage, we come back to the example of vertebrates versus invertebrates. By running:
+In addition to computing entropies, `sentropy` also computes the relative entropies between metacommunities, both with and without inter-species similarity. To do so, we use the method `exp_relative_entropy', to obtain the exponentiated (i.e. the effective number version of the) relative entropies. As an example usage, we come back to the example of vertebrates versus invertebrates. By running:
 ```
 from sentropy import get_exp_relative_entropy
 get_exp_relative_entropy(counts_2b_1, counts_2b_2, similarity=S_2b, viewpoint=1)
@@ -490,7 +489,9 @@ we get a tuple of 2 elements, the first of which is a float representing the met
 | Subcommunity_2b_1   |               1.66 |              1.55 |
 | Subcommunity_2b_2   |               1.43 |              1.56 |
 
-If we do not pass anything to the `similarity' argument, then the function will compute the usual (i.e. similarity-insensitive) exponentiated Renyi divergence. We may also optionally pass a similarity function or a string representing a path to a csv file to `similarity'. In those cases, we may optionally pass values to the arguments `symmetric', `X', `chunk_size', `parallelize' and `max_inflight_tasks'. These latter arguments have the same meaning as in the function `get_sentropies'.
+We can also compare subcommunities within a single metacommunity. To do this, we can either pass the same metacommunity to the first two arguments of `get_exp_relative_entropy`, or alternatively we can prepare 2 different `counts`, one for each subcommunity (taken to be a metacommunity by itself). Note also that, when comparing subsets from different sets (e.g. the birds of prey from 2a vs. the invertebrates from 2b), the similarity matrix has to be defined for all pairs.
+
+If we do not pass anything to the `similarity` argument, then the function will compute the usual (i.e. similarity-insensitive) exponentiated Rényi divergence. We may also optionally pass a similarity function or a string representing a path to a CSV file to `similarity`. In those cases, we may optionally pass values to the arguments `symmetric`, `X`, `chunk_size`, `parallelize`, and `max_inflight_tasks`. These latter arguments have the same meaning as in the function `get_sentropies`.
 
 # Command-line usage
 The `sentropy` package can also be used from the command line as a module (via `python -m`). To illustrate using `sentropy` this way, we re-use again the example with counts_2b_1 and S_2b, now with counts_2b_1 also saved as a csv file (note again `index=False`):
