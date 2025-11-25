@@ -285,13 +285,13 @@ index=labels_2b
 We can obtain the representativeness $\bar{\rho}$ (“rho-bar”) of each subcommunity, here at $q=0$, as follows:
 
 ```python
-sentropy(counts_2b_1, similarity=S_2b, viewpoint=0, measures=['normalized_rho'])
+sentropy(counts_2b_1, similarity=S_2b, viewpoint=[0], measures=['normalized_rho'])
 ```
 
 with the output $[0.63, 0.67]$. Recall $\bar{\rho}$ indicates how well a subcommunity represents the metacommunity. Note the invertebrates are more diverse than the vertebrates, which we can see by calculating $q=0$ $\alpha$ diversity of these subcommunities:
 
 ```python
-sentropy(counts_2b_1, similarity=S_2b, viewpoint=0, measures=['alpha'])
+sentropy(counts_2b_1, similarity=S_2b, viewpoint=[0], measures=['alpha'])
 ```
 
 which outputs $[3.54, 2.30]$. In contrast, suppose we split Dataset 2b into two subsets at random, without regard to phylum:
@@ -309,7 +309,7 @@ index=labels_2b
 Proceeding again as above,
 
 ```python
-sentropy(counts_2b_2, similarity=S_2b, viewpoint=0, measures=['normalized_rho'])
+sentropy(counts_2b_2, similarity=S_2b, viewpoint=[0], measures=['normalized_rho'])
 ```
 
 yielding $[0.93, 0.92]$. We find that the $\bar{\rho}$ of the two subsets are now substantially higher than with counts_2b_1. These high values reflect the fact that the vertebrates and the invertebrates are roughly equally represented, so each subcommunity is more representative of the entire metacommunity than with counts_2b_1.
@@ -331,7 +331,7 @@ S_2b_df.to_csv("S_2b.csv", index=False)
 then we can pass a path (as a string) to the ``similarity'' argument of `sentropy':
 
 ```python
-sentropy(counts_2b_1, similarity='S_2b.csv', chunk_size=5, viewpoint=0, measures=['alpha'])
+sentropy(counts_2b_1, similarity='S_2b.csv', chunk_size=5, viewpoint=[0], measures=['alpha'])
 ```
 The optional `chunk_size` argument specifies how many rows of the similarity matrix are read from the file at a time.
 
