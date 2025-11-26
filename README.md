@@ -466,9 +466,17 @@ paralellized using Ray. For diversity calculations, we did this using the `Simil
 we need to use the `IntersetSimilarityFromRayFunction` class instead, like so:
 
 ```
-from sentropy.abundance import make_abundance
+from sentropy.abundance import Abundance
 from sentropy.ray import IntersetSimilarityFromRayFunction
-abundance = make_abundance(df)
+import numpy as np
+
+def similarity_function(species_i, species_j):
+    return 1 / (1 + np.linalg.norm(species_i - species_j))
+
+counts = np.array([[1,0],[0,1],[1,1]])
+abundance = Abundance(counts, subset_names=['1', '2'])
+community_species = np.array([[1, 2], [3, 4], [5, 6]])
+query_species = np.array([[1, -1], [3, 6]])
 similarity = IntersetSimilarityFromRayFunction(
   similarity_function,
   query_species,
