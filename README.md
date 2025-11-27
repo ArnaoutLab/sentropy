@@ -104,7 +104,7 @@ We illustrate the basic usage of `sentropy` on simple, field-of-study-agnostic d
 
 <img src='images/fruits-1.png' width='350'>
 
-Dataset 1a is mostly apples; in dataset 1b, all fruits are represented at almost identical frequencies. The frequencies of the fruits in each dataset is tabulated below:
+Dataset 1a is mostly apples; in dataset 1b, all fruits are represented at almost identical frequencies. The frequencies of the fruits in each dataset are tabulated below:
 
 |           | Dataset 1a | Dataset 1b | 
 | :-------- | ---------: | ---------: | 
