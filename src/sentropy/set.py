@@ -223,7 +223,7 @@ class Set:
             }
         )
         df.insert(0, "viewpoint", viewpoint)
-        df.insert(0, "community", Series(self.abundance.subsets_names))
+        df.insert(0, "set/subset", Series(self.abundance.subsets_names))
         return df
 
     def set_to_dataframe(self, viewpoint: float, measures=MEASURES):
@@ -247,7 +247,7 @@ class Set:
                 measure: self.set_diversity(viewpoint, measure)
                 for measure in measures
             },
-            index=Index(["set"], name="community"),
+            index=Index(["set"], name="set/subset"),
         )
         df.insert(0, "viewpoint", viewpoint)
         df.reset_index(inplace=True)
