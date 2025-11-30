@@ -118,12 +118,12 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
                 index=P_subsets_names)
 
         if eff_no == False:
-            exp_renyi_divs_subset = np_log(exp_renyi_div_subset)
+            exp_renyi_divs_subset = np_log(exp_renyi_divs_subset)
 
     if which=="both":
         return exp_renyi_div_set, exp_renyi_divs_subset
     elif which=="set":
-        return exp_renyi_divs_set
+        return exp_renyi_div_set
     elif which=="subset":
         return exp_renyi_divs_subset
 
