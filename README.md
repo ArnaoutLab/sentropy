@@ -140,7 +140,38 @@ Here we requested to get diversity indices for 3 different viewpoint parameters.
 |    4 | set           |       inf |  1.17 | 1.00 | 1.00 |  1.17 |             1.17 |           1.00 |            1.00 |    1.00 |     1.00 |
 |    5 | subset 1a     |       inf |  1.17 | 1.00 | 1.00 |  1.17 |             1.17 |           1.00 |            1.00 |    1.00 |     1.00 |
 
-Looking at the alpha column, we see that the value of $D_1$ for this metacommunity is $D_1=1.90$. In this example, the metacommunity indices are the same as the subcommunity ones, since there is only one subcommunity. By default, the argument return_dataframe is False, in which case the function `sentropy' will return a python dictionary containing the requested diversity indices.
+Looking at the alpha column, we see that the value of $D_1$ for this metacommunity is $D_1=1.90$. In this example, the metacommunity indices are the same as the subcommunity ones, since there is only one subcommunity. By default, the argument return_dataframe is False, in which case the function `relative_sentropy' will return a python dictionary containing the requested diversity indices. So for example, if we run
+
+```
+relative_sentropy(counts_1a, viewpoint=[0], measures=['alpha'])
+```
+we get the output
+
+```
+{'set_alpha_q=0': np.float64(6.0), 'subset_alpha_q=0': array([6.])}
+```
+
+Furthermore, if we are only interested the diversity indices at the set level or at the subset level only, we can pass `which="set"` or `which="subset"` respectively. By default, the `which` argument takes value `both`, which means both the diversity at the set level and subset level are computed. So for example, if we run
+
+```
+relative_sentropy(counts_1a, viewpoint=[0], measures=['alpha'], which='set')
+```
+
+we get the output
+```
+{'set_alpha_q=0': np.float64(6.0)}
+```
+If we are interested in computing the logarithms (with base e) of the LCR diversity indices, we can pass `eff_no=False`. By default, the `eff_no` argument (which stands for effective number) takes value `True`. So, if we run:
+
+```
+relative_sentropy(counts_1a, viewpoint=[0], measures=['alpha'], which='set', eff_no=False)
+```
+
+we get the output:
+
+```
+{'set_alpha_q=0': np.float64(1.791759469228055)}
+```
 
 Next, let us repeat for Dataset 1b. Again, we make the `counts` dataframe and pass it to the `sentropy` method:
 

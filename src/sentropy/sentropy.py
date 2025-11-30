@@ -1,5 +1,5 @@
 from typing import Union, Optional, Callable, Iterable, Tuple
-from numpy import inf as np_inf, ndarray, minimum, prod, power, zeros as np_zeros
+from numpy import inf as np_inf, ndarray, minimum, prod, power, zeros as np_zeros, log as np_log
 from pandas import DataFrame
 
 from sentropy.similarity import (
@@ -38,19 +38,23 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
     chunk_size: Optional[int] = 10,
     parallelize: Optional[bool] = False,
     max_inflight_tasks: Optional[int] = 64,
-    return_dataframe: bool = False
+    return_dataframe: bool = False,
+    which: str = 'both',
+    eff_no: bool = True,
     ):
 
     superset = Set(counts, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
     
     if return_dataframe:
-        sentropies = superset.to_dataframe(viewpoint, measures)
+        sentropies = superset.to_dataframe(viewpoint, measures, which=which, eff_no=eff_no)
     else:
         sentropies = {}
         for q in viewpoint:
             for measure in measures:
-                sentropies[f'set_{measure}_q={q}'] = superset.set_diversity(viewpoint=q, measure=measure)
-                sentropies[f'subset_{measure}_q={q}'] = superset.subset_diversity(viewpoint=q, measure=measure)
+                if which in ["both", "set"]:
+                    sentropies[f'set_{measure}_q={q}'] = superset.set_diversity(viewpoint=q, measure=measure, eff_no=eff_no)
+                if which in ["both", "subset"]:
+                    sentropies[f'subset_{measure}_q={q}'] = superset.subset_diversity(viewpoint=q, measure=measure, eff_no=eff_no)
     return sentropies
 
 
@@ -68,7 +72,7 @@ def get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, atol):
     return exp_renyi_div
 
 def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetric=False, X=None, chunk_size=10, \
-    parallelize=False, max_inflight_tasks=64, return_dataframe=False):
+    parallelize=False, max_inflight_tasks=64, return_dataframe=False, which='both', eff_no=True):
     P_superset = Set(P_abundance, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
     Q_superset = Set(Q_abundance, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
     P_set_ab = P_superset.abundance.set_abundance
@@ -94,22 +98,34 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
 
     min_count = minimum(1 / P_abundance.sum(), 1e-9)
 
-    exp_renyi_div_set = get_exp_renyi_div_from_ords(P_set_ab, P_set_ord, Q_set_ord, viewpoint, min_count)
+    if which in ["both", "set"]:
+        exp_renyi_div_set = get_exp_renyi_div_from_ords(P_set_ab, P_set_ord, Q_set_ord, viewpoint, min_count)
+        if eff_no == False:
+            exp_renyi_div_set = np_log(exp_renyi_div_set)
 
-    exp_renyi_divs_subset = np_zeros(shape=(P_num_subsets, Q_num_subsets))
-    for i in range(P_num_subsets):
-        for j in range(Q_num_subsets):
-            P = P_norm_subset_ab[:,i]
-            P_ord = P_norm_subset_ord[:,i]
-            Q_ord = Q_norm_subset_ord[:,j]
-            exp_renyi_div = get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, min_count)
-            exp_renyi_divs_subset[i,j] = exp_renyi_div
+    if which in ["both", "subset"]:
+        exp_renyi_divs_subset = np_zeros(shape=(P_num_subsets, Q_num_subsets))
+        for i in range(P_num_subsets):
+            for j in range(Q_num_subsets):
+                P = P_norm_subset_ab[:,i]
+                P_ord = P_norm_subset_ord[:,i]
+                Q_ord = Q_norm_subset_ord[:,j]
+                exp_renyi_div = get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, min_count)
+                exp_renyi_divs_subset[i,j] = exp_renyi_div
 
-    if return_dataframe:
-        exp_renyi_divs_subset = DataFrame(exp_renyi_divs_subset, columns=Q_subsets_names, \
-            index=P_subsets_names)
+        if return_dataframe:
+            exp_renyi_divs_subset = DataFrame(exp_renyi_divs_subset, columns=Q_subsets_names, \
+                index=P_subsets_names)
 
-    return exp_renyi_div_set, exp_renyi_divs_subset
+        if eff_no == False:
+            exp_renyi_divs_subset = np_log(exp_renyi_div_subset)
+
+    if which=="both":
+        return exp_renyi_div_set, exp_renyi_divs_subset
+    elif which=="set":
+        return exp_renyi_divs_set
+    elif which=="subset":
+        return exp_renyi_divs_subset
 
 
 # ----------------------------------------------------------------------
@@ -128,6 +144,8 @@ def relative_sentropy(
     parallelize: bool = False,
     max_inflight_tasks: int = 64,
     return_dataframe: bool = False,
+    which: str = 'both',
+    eff_no: bool = True,
 ) -> Union[dict, Tuple[dict, DataFrame]]:
     """
     Compute either
@@ -170,6 +188,8 @@ def relative_sentropy(
             parallelize=parallelize,
             max_inflight_tasks=max_inflight_tasks,
             return_dataframe=return_dataframe,
+            which=which,
+            eff_no = eff_no,
         )
 
     else:
@@ -184,4 +204,6 @@ def relative_sentropy(
             parallelize=parallelize,
             max_inflight_tasks=max_inflight_tasks,
             return_dataframe=return_dataframe,
+            which=which,
+            eff_no = eff_no,
         )

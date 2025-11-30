@@ -11,7 +11,7 @@ from typing import Callable, Iterable, Optional, Union
 
 from pandas import DataFrame, Index, Series, concat
 from numpy import array, atleast_1d, broadcast_to, divide, zeros, ndarray, power, prod, sum as np_sum, \
-identity as np_identity, inf as np_inf
+identity as np_identity, inf as np_inf, log as np_log
 from sentropy.exceptions import InvalidArgumentError
 
 from sentropy.abundance import make_abundance
@@ -121,7 +121,7 @@ class Set:
             abundance=self.abundance, similarity=self.similarity
         )
 
-    def subset_diversity(self, viewpoint: float, measure: str) -> ndarray:
+    def subset_diversity(self, viewpoint: float, measure: str, eff_no: bool) -> ndarray:
         """Calculates subset diversity measures.
 
         Parameters
@@ -175,9 +175,12 @@ class Set:
             N = self.counts.shape[1]
             return ((N / diversity_measure) - 1) / (N - 1)
 
-        return diversity_measure
+        if eff_no:
+            return diversity_measure
+        else:
+            return np_log(diversity_measure)
 
-    def set_diversity(self, viewpoint: float, measure: str) -> ndarray:
+    def set_diversity(self, viewpoint: float, measure: str, eff_no: bool) -> ndarray:
         """Calculates set diversity measures.
 
         Parameters
@@ -193,14 +196,19 @@ class Set:
         -------
         A numpy.ndarray containing the set diversity measure.
         """
-        subset_diversity = self.subset_diversity(viewpoint, measure)
-        return power_mean(
+        subset_diversity = self.subset_diversity(viewpoint, measure, eff_no=True)
+        diversity_measure = power_mean(
             1 - viewpoint,
             self.abundance.subset_normalizing_constants,
             subset_diversity,
         )
 
-    def subsets_to_dataframe(self, viewpoint: float, measures=MEASURES):
+        if eff_no:
+            return diversity_measure
+        else:
+            return np_log(diversity_measure)
+
+    def subsets_to_dataframe(self, viewpoint: float, measures=MEASURES, eff_no=True):
         """Table containing all subset diversity values.
 
         Parameters
@@ -218,7 +226,7 @@ class Set:
         """
         df = DataFrame(
             {
-                measure: self.subset_diversity(viewpoint, measure)
+                measure: self.subset_diversity(viewpoint, measure, eff_no)
                 for measure in measures
             }
         )
@@ -226,7 +234,7 @@ class Set:
         df.insert(0, "set/subset", Series(self.abundance.subsets_names))
         return df
 
-    def set_to_dataframe(self, viewpoint: float, measures=MEASURES):
+    def set_to_dataframe(self, viewpoint: float, measures=MEASURES, eff_no=True):
         """Table containing all set diversity values.
 
         Parameters
@@ -244,7 +252,7 @@ class Set:
         """
         df = DataFrame(
             {
-                measure: self.set_diversity(viewpoint, measure)
+                measure: self.set_diversity(viewpoint, measure, eff_no)
                 for measure in measures
             },
             index=Index(["set"], name="set/subset"),
@@ -253,7 +261,7 @@ class Set:
         df.reset_index(inplace=True)
         return df
 
-    def to_dataframe(self, viewpoint: Union[float, Iterable[float]], measures=MEASURES):
+    def to_dataframe(self, viewpoint: Union[float, Iterable[float]], measures=MEASURES, which="both", eff_no=True):
         """Table containing all set and subset diversity
         values.
 
@@ -272,12 +280,12 @@ class Set:
         """
         dataframes = []
         for q in atleast_1d(array(viewpoint)):
-            dataframes.append(
-                self.set_to_dataframe(viewpoint=q, measures=measures)
-            )
-            dataframes.append(
-                self.subsets_to_dataframe(viewpoint=q, measures=measures)
-            )
+            if which in ["both", "set"]:
+                dataframes.append(
+                self.set_to_dataframe(viewpoint=q, measures=measures, eff_no=eff_no))
+            if which in ["both", "subset"]:
+                dataframes.append(
+                self.subsets_to_dataframe(viewpoint=q, measures=measures, eff_no=eff_no))
         return concat(dataframes).reset_index(drop=True)
 
 
