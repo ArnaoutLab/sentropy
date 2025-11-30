@@ -53,19 +53,6 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
                 sentropies[f'subset_{measure}_q={q}'] = superset.subset_diversity(viewpoint=q, measure=measure)
     return sentropies
 
-def make_normalized_subset_abundance(abundance):
-    if type(abundance) == DataFrame:
-        abundance = abundance.to_numpy()
-    abundance = abundance.astype(float)
-    return abundance/abundance.sum(axis=0)
-
-def make_set_abundance(abundance):
-    if type(abundance) == DataFrame:
-        abundance = abundance.to_numpy()
-    abundance = abundance.astype(float)
-    set_abundance = abundance.sum(axis=1, keepdims=True)
-    set_abundance /= set_abundance.sum()
-    return set_abundance
 
 def get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, atol):
     ord_ratio = P_ord/Q_ord
@@ -82,35 +69,16 @@ def get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, atol):
 
 def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetric=False, X=None, chunk_size=10, \
     parallelize=False, max_inflight_tasks=64, return_dataframe=False):
-    P_meta_ab = make_set_abundance(P_abundance)
-    Q_meta_ab = make_set_abundance(Q_abundance)
-    P_norm_subcom_ab = make_normalized_subset_abundance(P_abundance)
-    Q_norm_subcom_ab = make_normalized_subset_abundance(Q_abundance)
-
-    if similarity is None:
-        similarity = SimilarityIdentity()
-    elif isinstance(similarity, ndarray):
-        similarity = SimilarityFromArray(similarity=similarity)
-    elif isinstance(similarity, DataFrame):
-        similarity = SimilarityFromArray(similarity=similarity.values)
-    elif isinstance(similarity, str):
-        similarity = SimilarityFromFile(similarity, chunk_size=chunk_size)
-    elif callable(similarity):
-        if symmetric:
-            if parallelize:
-                similarity = SimilarityFromSymmetricRayFunction(func=similarity,X=X, chunk_size=chunk_size, max_inflight_tasks=max_inflight_tasks)
-            else:
-                similarity = SimilarityFromSymmetricFunction(func=similarity,X=X, chunk_size=chunk_size)
-        else:
-            if parallelize:
-                similarity = SimilarityFromRayFunction(func=similarity, X=X, chunk_size=chunk_size, max_inflight_tasks=max_inflight_tasks)
-            else:
-                similarity = SimilarityFromFunction(func=similarity, X=X, chunk_size=chunk_size)
-
-    P_meta_ord = similarity.weighted_abundances(P_meta_ab)
-    P_norm_subcom_ord = similarity.weighted_abundances(P_norm_subcom_ab)
-    Q_meta_ord = similarity.weighted_abundances(Q_meta_ab)
-    Q_norm_subcom_ord = similarity.weighted_abundances(Q_norm_subcom_ab)
+    P_superset = Set(P_abundance, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
+    Q_superset = Set(Q_abundance, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
+    P_set_ab = P_superset.abundance.set_abundance
+    Q_set_ab = Q_superset.abundance.set_abundance
+    P_norm_subset_ab =  P_superset.abundance.normalized_subset_abundance
+    Q_norm_subset_ab =  Q_superset.abundance.normalized_subset_abundance
+    P_set_ord = P_superset.components.set_ordinariness
+    Q_set_ord = Q_superset.components.set_ordinariness
+    P_norm_subset_ord = P_superset.components.normalized_subset_ordinariness
+    Q_norm_subset_ord = Q_superset.components.normalized_subset_ordinariness
 
     P_num_subsets = P_abundance.shape[1]
     Q_num_subsets = Q_abundance.shape[1]
@@ -126,22 +94,22 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
 
     min_count = minimum(1 / P_abundance.sum(), 1e-9)
 
-    exp_renyi_div_meta = get_exp_renyi_div_from_ords(P_meta_ab, P_meta_ord, Q_meta_ord, viewpoint, min_count)
+    exp_renyi_div_set = get_exp_renyi_div_from_ords(P_set_ab, P_set_ord, Q_set_ord, viewpoint, min_count)
 
-    exp_renyi_divs_subcom = np_zeros(shape=(P_num_subsets, Q_num_subsets))
+    exp_renyi_divs_subset = np_zeros(shape=(P_num_subsets, Q_num_subsets))
     for i in range(P_num_subsets):
         for j in range(Q_num_subsets):
-            P = P_norm_subcom_ab[:,i]
-            P_ord = P_norm_subcom_ord[:,i]
-            Q_ord = Q_norm_subcom_ord[:,j]
+            P = P_norm_subset_ab[:,i]
+            P_ord = P_norm_subset_ord[:,i]
+            Q_ord = Q_norm_subset_ord[:,j]
             exp_renyi_div = get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, min_count)
-            exp_renyi_divs_subcom[i,j] = exp_renyi_div
+            exp_renyi_divs_subset[i,j] = exp_renyi_div
 
     if return_dataframe:
-        exp_renyi_divs_subcom = DataFrame(exp_renyi_divs_subcom, columns=Q_subsets_names, \
+        exp_renyi_divs_subset = DataFrame(exp_renyi_divs_subset, columns=Q_subsets_names, \
             index=P_subsets_names)
 
-    return exp_renyi_div_meta, exp_renyi_divs_subcom
+    return exp_renyi_div_set, exp_renyi_divs_subset
 
 
 # ----------------------------------------------------------------------
