@@ -7,5 +7,4 @@ See sentropy.set.Set
 """
 
 from sentropy.set import Set
-from sentropy.set import sentropy
-from sentropy.divergences import kl_div_effno, rel_ent
+from sentropy.sentropy import relative_sentropy

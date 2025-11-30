@@ -280,30 +280,6 @@ class Set:
             )
         return concat(dataframes).reset_index(drop=True)
 
-def sentropy(counts: Union[DataFrame, ndarray],
-    similarity: Optional[Union[ndarray, DataFrame, str, Callable]] = None,
-    viewpoint: Union[float, Iterable[float]] = [0,1,np_inf],
-    measures: Iterable[str] = MEASURES,
-    symmetric: Optional[bool] = False,
-    X: Optional[Union[ndarray, DataFrame]] = None,
-    chunk_size: Optional[int] = 10,
-    parallelize: Optional[bool] = False,
-    max_inflight_tasks: Optional[int] = 64,
-    return_dataframe: bool = False
-    ):
-
-    mc = Set(counts, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
-    
-    if return_dataframe:
-        sentropies = mc.to_dataframe(viewpoint, measures)
-    else:
-        sentropies = {}
-        for q in viewpoint:
-            for measure in measures:
-                sentropies[f'set_{measure}_q={q}'] = mc.set_diversity(viewpoint=q, measure=measure)
-                sentropies[f'subset_{measure}_q={q}'] = mc.subset_diversity(viewpoint=q, measure=measure)
-    return sentropies
-
 
 
 
