@@ -527,13 +527,13 @@ we get a tuple of 2 elements, the first of which is a float representing the met
 |       subset_2b_1   |               1.66 |              1.55 |
 |       subset_2b_2   |               1.43 |              1.56 |
 
-Like for the `sentropy' function, by default the `return_dataframe` is set to False, in which case the Renyi divergences of the subcommunities will be returned as a numpy array. The rows are the subcommunities of the first counts (in the order in which they occur in the first counts), and the columns are the subcommunities of the second counts (in their native order).
+Again by default the `return_dataframe` is set to False, in which case the Renyi divergences of the subcommunities will be returned as a numpy array. The rows are the subcommunities of the first counts (in the order in which they occur in the first counts), and the columns are the subcommunities of the second counts (in their native order).
 
-We can also compare subcommunities within a single metacommunity. To do this, we can either pass the same metacommunity to the first two arguments of `kl_div_effno`, or alternatively we can prepare 2 different `counts`, one for each subcommunity (taken to be a metacommunity by itself). Note also that, when comparing subsets from different sets (e.g. the birds of prey from 2a vs. the invertebrates from 2b), the similarity matrix has to be defined for all pairs.
+We can also compare subcommunities within a single metacommunity. To do this, we can either pass the same metacommunity to the first two arguments of `relative_sentropy`, or alternatively we can prepare 2 different `counts`, one for each subcommunity (taken to be a metacommunity by itself). Note also that, when comparing subsets from different sets (e.g. the birds of prey from 2a vs. the invertebrates from 2b), the similarity matrix has to be defined for all pairs.
 
 If we do not pass anything to the `similarity` argument, then the function will compute the usual (i.e. similarity-insensitive) exponentiated Rényi divergence. We may also optionally pass a similarity function or a string representing a path to a CSV file to `similarity`. In those cases, we may optionally pass values to the arguments `symmetric`, `X`, `chunk_size`, `parallelize`, and `max_inflight_tasks`. These latter arguments have the same meaning as in the function `sentropy`.
 
-It is also convenient to obtain the actual KL/Renyi divergences without the exponentiation. To do so, we can call the `rel_ent` method. It has the same Python API as `kl_div_effno`.
+It is also convenient to obtain the actual KL/Renyi divergences without the exponentiation. To do so, we pass `eff_no = False`, just like for LCR diversity indices.
 
 # Command-line usage
 The `sentropy` package can also be used from the command line as a module (via `python -m`). To illustrate using `sentropy` this way, we re-use again the example with counts_2b_1 and S_2b, now with counts_2b_1 also saved as a csv file (note again `index=False`):
