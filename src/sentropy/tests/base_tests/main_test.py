@@ -37,7 +37,7 @@ MAIN_TEST_CASES = [
             "0.7\t0.7\t0.7\t0.5\t0.5\t1.0\n"
         ),
         "output_filecontents": (
-            "community\tviewpoint\talpha\trho\tbeta\tgamma\tnormalized_alpha\tnormalized_rho\tnormalized_beta\trho_hat\tbeta_hat\n"
+            "set/subset\tviewpoint\talpha\trho\tbeta\tgamma\tnormalized_alpha\tnormalized_rho\tnormalized_beta\trho_hat\tbeta_hat\n"
             "set\t0\t3.0000\t2.0500\t0.4878\t1.4634\t1.5000\t1.0250\t0.9756\t1.0500\t-0.0244\n"
             "subset_1\t0\t3.0000\t2.0500\t0.4878\t1.4634\t1.5000\t1.0250\t0.9756\t1.0500\t-0.0244\n"
             "subset_2\t0\t3.0000\t2.0500\t0.4878\t1.4634\t1.5000\t1.0250\t0.9756\t1.0500\t-0.0244\n"
@@ -63,7 +63,7 @@ MAIN_TEST_CASES = [
             "0.1\t0.2\t1.0\n"
         ),
         "output_filecontents": (
-            "community\tviewpoint\talpha\trho\tbeta\tgamma\tnormalized_alpha\tnormalized_rho\tnormalized_beta\trho_hat\tbeta_hat\n"
+            "set/subset\tviewpoint\talpha\trho\tbeta\tgamma\tnormalized_alpha\tnormalized_rho\tnormalized_beta\trho_hat\tbeta_hat\n"
             "set\t2.0000\t2.6304\t1.7678\t0.5627\t1.4649\t1.3253\t0.8898\t1.1235\t0.7562\t0.0742\n"
             "subset_1\t2.0000\t2.8947\t1.9194\t0.5210\t1.4745\t1.3158\t0.8724\t1.1462\t0.9194\t0.0420\n"
             "subset_2\t2.0000\t2.4444\t1.6587\t0.6029\t1.4570\t1.3333\t0.9047\t1.1053\t0.6587\t0.2058\n"
@@ -98,7 +98,7 @@ MAIN_TEST_CASES = [
             "0.1\t0.2\t1.0\n"
         ),
         "output_filecontents": (
-            "community\tviewpoint\talpha\trho\tbeta\tgamma\tnormalized_alpha\tnormalized_rho\tnormalized_beta\trho_hat\tbeta_hat\n"
+            "set/subset\tviewpoint\talpha\trho\tbeta\tgamma\tnormalized_alpha\tnormalized_rho\tnormalized_beta\trho_hat\tbeta_hat\n"
             "set\t2.0000\t2.6304\t1.7678\t0.5627\t1.4649\t1.3253\t0.8898\t1.1235\t0.7562\t0.0742\n"
             "subset_1\t2.0000\t2.8947\t1.9194\t0.5210\t1.4745\t1.3158\t0.8724\t1.1462\t0.9194\t0.0420\n"
             "subset_2\t2.0000\t2.4444\t1.6587\t0.6029\t1.4570\t1.3333\t0.9047\t1.1053\t0.6587\t0.2058\n"
