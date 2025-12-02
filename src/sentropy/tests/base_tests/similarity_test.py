@@ -395,7 +395,7 @@ def compare_dense_sparse(counts, dense_similarity, sparse_similarity):
     )
     meta_sparse_df = meta_sparse.to_dataframe(viewpoint=viewpoints, measures=measures)
     for col in meta_dense_df:
-        if col != "community":
+        if col != "set/subset":
             assert allclose(meta_dense_df[col], meta_sparse_df[col])
 
 
@@ -697,7 +697,7 @@ def test_feature_similarity():
         similarity=SimilarityFromDataFrame(animal_similarity_matrix()),
     )
     df1 = m.to_dataframe(viewpoint=viewpoints, measures=measures).set_index(
-        ["community", "viewpoint"]
+        ["set/subset", "viewpoint"]
     )
     m = Set(
         animal_communities,
@@ -708,7 +708,7 @@ def test_feature_similarity():
         ),
     )
     df2 = m.to_dataframe(viewpoint=viewpoints, measures=measures).set_index(
-        ["community", "viewpoint"]
+        ["set/subset", "viewpoint"]
     )
     assert allclose(df1.to_numpy(), df2.to_numpy())
     m = Set(
@@ -720,7 +720,7 @@ def test_feature_similarity():
         ),
     )
     df3 = m.to_dataframe(viewpoint=viewpoints, measures=measures).set_index(
-        ["community", "viewpoint"]
+        ["set/subset", "viewpoint"]
     )
     assert allclose(df1.to_numpy(), df3.to_numpy())
 
