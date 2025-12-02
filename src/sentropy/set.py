@@ -196,7 +196,7 @@ class Set:
         -------
         A numpy.ndarray containing the set diversity measure.
         """
-        subset_diversity = self.subset_diversity(viewpoint, measure, eff_no=True)
+        subset_diversity = self.subset_diversity(viewpoint, measure, eff_no=eff_no)
         diversity_measure = power_mean(
             1 - viewpoint,
             self.abundance.subset_normalizing_constants,
@@ -208,7 +208,7 @@ class Set:
         else:
             return np_log(diversity_measure)
 
-    def subsets_to_dataframe(self, viewpoint: float, measures=MEASURES, eff_no=True):
+    def subsets_to_dataframe(self, viewpoint: float, measures: Iterable[str], eff_no: bool):
         """Table containing all subset diversity values.
 
         Parameters
@@ -234,7 +234,7 @@ class Set:
         df.insert(0, "set/subset", Series(self.abundance.subsets_names))
         return df
 
-    def set_to_dataframe(self, viewpoint: float, measures=MEASURES, eff_no=True):
+    def set_to_dataframe(self, viewpoint: float, measures: Iterable[str], eff_no: bool):
         """Table containing all set diversity values.
 
         Parameters
@@ -261,7 +261,7 @@ class Set:
         df.reset_index(inplace=True)
         return df
 
-    def to_dataframe(self, viewpoint: Union[float, Iterable[float]], measures=MEASURES, which="both", eff_no=True):
+    def to_dataframe(self, viewpoint: Union[float, Iterable[float]], measures: Iterable[str] = MEASURES, which: str = "both", eff_no: bool = True):
         """Table containing all set and subset diversity
         values.
 
