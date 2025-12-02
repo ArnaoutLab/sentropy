@@ -327,6 +327,15 @@ def test_set_diversity(data, measure):
     )
     assert allclose(set_diversity, data.set_results[measure])
 
+def test_effno_argument_in_set_diversity():
+    superset_1 = Set(counts=array([[1],[0],[0],[0]]))
+    set_diversity_1 = superset_1.set_diversity(measure='alpha', viewpoint=1, eff_no=False)
+
+    superset_2 = Set(counts=array([[1],[1],[1],[1]]))
+    set_diversity_2 = superset_2.set_diversity(measure='alpha', viewpoint=1, eff_no=False)
+
+    assert set_diversity_1 == 0
+    assert allclose(set_diversity_2, 1.38629)
 
 @mark.parametrize("measure", MEASURES)
 @mark.parametrize("data", set_data)
@@ -336,6 +345,16 @@ def test_subset_diversity(data, measure):
         measure=measure, viewpoint=data.viewpoint
     )
     assert allclose(subset_diversity, data.subset_results[measure])
+
+def test_effno_argument_in_subset_diversity():
+    superset_1 = Set(counts=array([[1],[0],[0],[0]]))
+    subset_diversity_1 = superset_1.subset_diversity(measure='alpha', viewpoint=1, eff_no=False)
+
+    superset_2 = Set(counts=array([[1],[1],[1],[1]]))
+    subset_diversity_2 = superset_2.subset_diversity(measure='alpha', viewpoint=1, eff_no=False)
+
+    assert subset_diversity_1 == 0
+    assert allclose(subset_diversity_2, 1.38629)
 
 
 def test_subset_diversity_invalid_measure():

@@ -148,7 +148,11 @@ class Set:
             )
 
         if f'subset_{measure}_q={viewpoint}' in self.subset_diversity_hash.keys():
-            return self.subset_diversity_hash[f'subset_{measure}_q={viewpoint}']
+            diversity_measure = self.subset_diversity_hash[f'subset_{measure}_q={viewpoint}']
+            if eff_no == False:
+                return np_log(diversity_measure)
+            else:
+                return diversity_measure
 
         numerator = self.components.numerators[measure]
         denominator = self.components.denominators[measure]
@@ -180,12 +184,12 @@ class Set:
             N = self.counts.shape[1]
             return ((N / diversity_measure) - 1) / (N - 1)
 
-        if eff_no==False:
-            diversity_measure = np_log(diversity_measure)
-
         self.subset_diversity_hash[f'subset_{measure}_q={viewpoint}'] = diversity_measure
 
-        return diversity_measure
+        if eff_no==False:
+            return np_log(diversity_measure)
+        else:
+            return diversity_measure
 
     def set_diversity(self, viewpoint: float, measure: str, eff_no: bool=True) -> ndarray:
         """Calculates set diversity measures.
@@ -204,7 +208,7 @@ class Set:
         A numpy.ndarray containing the set diversity measure.
         """
 
-        subset_diversity = self.subset_diversity(viewpoint, measure, eff_no=eff_no)
+        subset_diversity = self.subset_diversity(viewpoint, measure, eff_no=True)
 
         diversity_measure = power_mean(
             1 - viewpoint,
@@ -213,9 +217,9 @@ class Set:
         )
 
         if eff_no==False:
-            diversity_measure = np_log(diversity_measure)
-
-        return diversity_measure
+            return np_log(diversity_measure)
+        else:
+            return diversity_measure
 
     def subsets_to_dataframe(self, viewpoint: float, measures: Iterable[str]=MEASURES, eff_no: bool=True):
         """Table containing all subset diversity values.
