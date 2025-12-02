@@ -142,7 +142,7 @@ def relative_sentropy(
     counts_b: Optional[Union[DataFrame, ndarray]] = None,
     *,
     similarity: Optional[Union[ndarray, DataFrame, str, Callable]] = None,
-    viewpoint: Union[float, Iterable[float]] = (0, 1, np_inf),
+    viewpoint: float = 1,
     measures: Iterable[str] = MEASURES,
     symmetric: bool = False,
     X: Optional[Union[ndarray, DataFrame]] = None,
