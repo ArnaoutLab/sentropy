@@ -122,7 +122,7 @@ class Set:
         )
         self.subset_diversity_hash = {}
 
-    def subset_diversity(self, viewpoint: float, measure: str, eff_no: bool) -> ndarray:
+    def subset_diversity(self, viewpoint: float, measure: str, eff_no: bool=True) -> ndarray:
         """Calculates subset diversity measures.
 
         Parameters
@@ -187,7 +187,7 @@ class Set:
 
         return diversity_measure
 
-    def set_diversity(self, viewpoint: float, measure: str, eff_no: bool) -> ndarray:
+    def set_diversity(self, viewpoint: float, measure: str, eff_no: bool=True) -> ndarray:
         """Calculates set diversity measures.
 
         Parameters
@@ -217,7 +217,7 @@ class Set:
 
         return diversity_measure
 
-    def subsets_to_dataframe(self, viewpoint: float, measures: Iterable[str], eff_no: bool):
+    def subsets_to_dataframe(self, viewpoint: float, measures: Iterable[str]=MEASURES, eff_no: bool=True):
         """Table containing all subset diversity values.
 
         Parameters
@@ -243,7 +243,7 @@ class Set:
         df.insert(0, "set/subset", Series(self.abundance.subsets_names))
         return df
 
-    def set_to_dataframe(self, viewpoint: float, measures: Iterable[str], eff_no: bool):
+    def set_to_dataframe(self, viewpoint: float, measures: Iterable[str]=MEASURES, eff_no: bool=True):
         """Table containing all set diversity values.
 
         Parameters
