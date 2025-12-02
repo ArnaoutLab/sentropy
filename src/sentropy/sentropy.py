@@ -89,16 +89,14 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
     Q_num_subsets = Q_abundance.shape[1]
 
     if type(P_abundance)==DataFrame:
-        P_abundance = P_abundance.to_numpy()
-    if type(Q_abundance)==DataFrame:
-        Q_abundance = Q_abundance.to_numpy()
-
-    if type(P_abundance) == DataFrame:
         P_subsets_names = P_abundance.columns
+        P_abundance = P_abundance.to_numpy()
     else:
         P_subsets_names = [str(i) for i in range(P_num_subsets)]
-    if type(Q_abundance) == DataFrame:
+        
+    if type(Q_abundance)==DataFrame:
         Q_subsets_names = Q_abundance.columns
+        Q_abundance = Q_abundance.to_numpy()
     else:
         Q_subsets_names = [str(i) for i in range(Q_num_subsets)]
 
