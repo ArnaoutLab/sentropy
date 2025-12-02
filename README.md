@@ -424,7 +424,7 @@ def feature_similarity(animal_i, animal_j):
         result *= 0.5
     return result
 
-relative_sentropy(np.array([[1, 1], [1, 0], [0, 1]]), similarity=feature_similarity, X=X)
+relative_sentropy(np.array([[1, 1], [1, 0], [0, 1]]), viewpoint=[1], similarity=feature_similarity, X=X)
 ```
 
 A two-fold speed-up is possible when the following (typical) conditions hold:
@@ -437,7 +437,7 @@ In this case, we don't really need to call the simularity function twice for eac
 Pass ``symmetric=True'':
 
 ```python
-relative_sentropy(np.array([[1, 1], [1, 0], [0, 1]]), similarity=feature_similarity, X=X, symmetric=True)
+relative_sentropy(np.array([[1, 1], [1, 0], [0, 1]]), viewpoint=[1], similarity=feature_similarity, X=X, symmetric=True)
 ```
 
 The similarity function will only be called for pairs of rows `species[i], species[j]` where i < j, and the similarity of $species_i$ to $species_j$ will be re-used for the similarity of $species_j$ to $species_i$. Thus, a nearly 2-fold speed-up is possible, if the similarity function is computationally expensive. (For a discussion of _nonsymmetric_ similarity, see [Leinster and Cobbold](https://doi.org/10.1890/10-2402.1).)
