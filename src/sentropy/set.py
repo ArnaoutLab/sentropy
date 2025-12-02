@@ -203,10 +203,10 @@ class Set:
             subset_diversity,
         )
 
-        if eff_no:
-            return diversity_measure
-        else:
-            return np_log(diversity_measure)
+        if eff_no==False:
+            diversity_measure = np_log(diversity_measure)
+
+        return diversity_measure
 
     def subsets_to_dataframe(self, viewpoint: float, measures: Iterable[str], eff_no: bool):
         """Table containing all subset diversity values.
