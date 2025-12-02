@@ -31,6 +31,24 @@ def test_LCR_no_similarity():
     assert (diversity_indices['subset_gamma_q=1'] <= diversity_indices['subset_alpha_q=1']).all()
     assert (diversity_indices['set_gamma_q=1'] <= diversity_indices['set_alpha_q=1']).all()
 
+def test_LCR_return_dataframe():
+    #Check the inequalities in Table S2.1 of Reeve's paper that hold in the naive type model (the ones marked with asterisks)
+    counts = np.array([[1,3], [3,1], [1,1], [2,3]])
+    N, S = counts.shape[1], counts.shape[0]
+    weights = np.sum(counts, axis=0).astype(float)
+    weights /= np.sum(weights)
+    df = relative_sentropy(counts,viewpoint=[1], return_dataframe=True)
+
+    assert (df['rho'][1:].to_numpy() <= 1/weights).all()
+    assert df['rho'][0] <= N
+    assert (weights <= df['beta'][1:].to_numpy()).all()
+    assert (df['normalized_rho'][1:] <= 1).all()
+    assert df['normalized_rho'][0] <= 1
+    assert (1 <= df['normalized_beta'][1:]).all()
+    assert 1 <= df['normalized_beta'][0]
+    assert df['alpha'][0] <= N*df['gamma'][0]
+    assert df['normalized_alpha'][0] <= df['gamma'][0]
+
 def test_kl_div_no_similarity():
     counts_1 = np.array([[9/25], [12/25], [4/25]])
     counts_2 = np.array([[1/3], [1/3], [1/3]])
