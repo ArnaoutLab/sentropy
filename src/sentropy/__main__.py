@@ -51,7 +51,7 @@ def main(args):
     LOGGER.info("Done!")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     parser = configure_arguments()
     args = parser.parse_args()
     main(args)

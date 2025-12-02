@@ -102,7 +102,7 @@ class Similarity(ABC):
     def weighted_abundances(
         self,
         relative_abundances: Union[ndarray, spmatrix],
-    ) -> ndarray:
+    ) -> ndarray: # pragma: no cover
         """Calculates weighted sums of similarities to each species.
         Parameters
         ________
