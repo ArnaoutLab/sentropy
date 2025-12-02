@@ -4,6 +4,33 @@ SimilarityFromFile, SimilarityFromDataFrame
 import numpy as np
 import pandas as pd
 
+def test_LCR_no_similarity():
+    #Check most inequalities in Table S2.1 of Reeve's paper "how to partition diversity" https://arxiv.org/pdf/1404.6520.
+    
+    counts = np.array([[1,0], [0,1], [1,1], [2,3]])
+    similarity = np.array([[1,0.5,0,0],[0.5,1,0,0],[0,0,1,0.1],[0,0,0.1,1]])
+    N, S = counts.shape[1], counts.shape[0]
+    weights = np.sum(counts, axis=0).astype(float)
+    weights /= np.sum(weights)
+    diversity_indices = relative_sentropy(counts,viewpoint=[1], similarity=similarity)
+
+    assert 1 <= diversity_indices['set_alpha_q=1'] <= N*S
+    assert (1/weights <= diversity_indices['subset_alpha_q=1']).all() & (diversity_indices['subset_alpha_q=1'] <= S/weights).all()
+    assert (1 <= diversity_indices['subset_normalized_alpha_q=1']).all() & (diversity_indices['subset_normalized_alpha_q=1'] < S).all() 
+    assert (1 <= diversity_indices['set_normalized_alpha_q=1']) & (diversity_indices['set_normalized_alpha_q=1'] < S)
+    assert (1 <= diversity_indices['subset_rho_q=1']).all()
+    assert (1 <= diversity_indices['set_rho_q=1'])
+    assert (diversity_indices['subset_beta_q=1'] <= 1).all()
+    assert (0< diversity_indices['set_beta_q=1'] <= 1)
+    assert (weights <= diversity_indices['subset_normalized_rho_q=1']).all()
+    assert (0 <= diversity_indices['set_normalized_rho_q=1'])
+    assert (diversity_indices['subset_normalized_beta_q=1'] <= 1/weights).all()
+    assert (diversity_indices['set_normalized_beta_q=1'] <= N)
+    assert (1 <= diversity_indices['subset_gamma_q=1']).all() & (diversity_indices['subset_gamma_q=1'] <= S/weights).all()
+    assert (1 <= diversity_indices['set_gamma_q=1'] <= S)
+    assert (diversity_indices['subset_gamma_q=1'] <= diversity_indices['subset_alpha_q=1']).all()
+    assert (diversity_indices['set_gamma_q=1'] <= diversity_indices['set_alpha_q=1']).all()
+
 def test_kl_div_no_similarity():
     counts_1 = np.array([[9/25], [12/25], [4/25]])
     counts_2 = np.array([[1/3], [1/3], [1/3]])
