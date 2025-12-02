@@ -49,6 +49,35 @@ def test_LCR_return_dataframe():
     assert df['alpha'][0] <= N*df['gamma'][0]
     assert df['normalized_alpha'][0] <= df['gamma'][0]
 
+def test_arguments_symmetric_and_parallelize_of_LCR():
+    X = np.array([
+      [1, 2], 
+      [3, 4], 
+      [5, 6]
+    ])
+
+    def similarity_function(species_i, species_j):
+        return 1 / (1 + np.linalg.norm(species_i - species_j))
+
+    results_1 = relative_sentropy(np.array([[1, 1], [1, 0], [0, 1]]), viewpoint=[1],similarity=similarity_function,
+                                                               X=X, chunk_size=10, return_dataframe=True)
+
+    results_2 = relative_sentropy(np.array([[1, 1], [1, 0], [0, 1]]), viewpoint=[1],similarity=similarity_function,
+                                                               X=X, chunk_size=10, parallelize=True, return_dataframe=True)
+
+    results_3 = relative_sentropy(np.array([[1, 1], [1, 0], [0, 1]]), viewpoint=[1],similarity=similarity_function,
+                                                               X=X, chunk_size=10, symmetric=True, return_dataframe=True)
+
+    results_4 = relative_sentropy(np.array([[1, 1], [1, 0], [0, 1]]), viewpoint=[1],similarity=similarity_function,
+                                                               X=X, chunk_size=10, symmetric=True, return_dataframe=True)
+
+    assert results_1.equals(results_2)
+    assert results_1.equals(results_3)
+    assert results_1.equals(results_4)
+
+def similarity_function(species_i, species_j):
+    return 1 / (1 + np.linalg.norm(species_i - species_j))
+
 def test_kl_div_no_similarity():
     counts_1 = np.array([[9/25], [12/25], [4/25]])
     counts_2 = np.array([[1/3], [1/3], [1/3]])
@@ -59,6 +88,18 @@ def test_kl_div_no_similarity():
     assert np.allclose(results_default_viewpoint[0], 1.1023618416445828, atol=1e-8)
     assert np.allclose(results_default_viewpoint[0], results_default_viewpoint[1].iloc[0,0], rtol=1e-5)
     assert results_viewpoint_2[0] > results_default_viewpoint[0]
+
+def test_arguments_eff_no_and_which_in_kl_div():
+    counts_1 = np.array([[9/25], [12/25], [4/25]])
+    counts_2 = np.array([[1/3], [1/3], [1/3]])
+    results_1 = relative_sentropy(counts_1, counts_2)
+    results_2 = relative_sentropy(counts_1, counts_2, which='set')
+    results_3 = relative_sentropy(counts_1, counts_2, which='subset')
+    results_4 = relative_sentropy(counts_1, counts_2, eff_no=False)
+
+    assert results_2 == results_1[0]
+    assert results_3 == results_1[1]
+    assert np.allclose(results_4[0], 0.0853)
 
 
 def test_kl_div_with_similarity_from_array():

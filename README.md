@@ -378,7 +378,7 @@ X = np.array([
 def similarity_function(species_i, species_j):
   return 1 / (1 + np.linalg.norm(species_i - species_j))
 
-relative_sentropy(np.array([[1, 1], [1, 0], [0, 1]]), similarity=similarity_function,
+relative_sentropy(np.array([[1, 1], [1, 0], [0, 1]]), viewpoint=[1], similarity=similarity_function,
                                                                X=X, chunk_size=10)
 ```
 
