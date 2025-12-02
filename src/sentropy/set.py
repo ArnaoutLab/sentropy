@@ -175,10 +175,10 @@ class Set:
             N = self.counts.shape[1]
             return ((N / diversity_measure) - 1) / (N - 1)
 
-        if eff_no:
-            return diversity_measure
-        else:
-            return np_log(diversity_measure)
+        if eff_no==False:
+            diversity_measure = np_log(diversity_measure)
+
+        return diversity_measure
 
     def set_diversity(self, viewpoint: float, measure: str, eff_no: bool) -> ndarray:
         """Calculates set diversity measures.
