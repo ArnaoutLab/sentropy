@@ -120,6 +120,7 @@ class Set:
         self.components = Components(
             abundance=self.abundance, similarity=self.similarity
         )
+        self.subset_diversity_hash = {}
 
     def subset_diversity(self, viewpoint: float, measure: str, eff_no: bool) -> ndarray:
         """Calculates subset diversity measures.
@@ -145,6 +146,10 @@ class Set:
                     f"{', '.join(self.MEASURES)}"
                 )
             )
+
+        if f'subset_{measure}_q={viewpoint}' in self.subset_diversity_hash.keys():
+            return self.subset_diversity_hash[f'subset_{measure}_q={viewpoint}']
+
         numerator = self.components.numerators[measure]
         denominator = self.components.denominators[measure]
         if measure == "gamma":
@@ -178,6 +183,8 @@ class Set:
         if eff_no==False:
             diversity_measure = np_log(diversity_measure)
 
+        self.subset_diversity_hash[f'subset_{measure}_q={viewpoint}'] = diversity_measure
+
         return diversity_measure
 
     def set_diversity(self, viewpoint: float, measure: str, eff_no: bool) -> ndarray:
@@ -196,7 +203,9 @@ class Set:
         -------
         A numpy.ndarray containing the set diversity measure.
         """
+
         subset_diversity = self.subset_diversity(viewpoint, measure, eff_no=eff_no)
+
         diversity_measure = power_mean(
             1 - viewpoint,
             self.abundance.subset_normalizing_constants,
