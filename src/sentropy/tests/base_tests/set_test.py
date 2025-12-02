@@ -356,6 +356,18 @@ def test_effno_argument_in_subset_diversity():
     assert subset_diversity_1 == 0
     assert allclose(subset_diversity_2, 1.38629)
 
+def test_effno_argument_in_subset_diversity_2():
+    #This time, we'll call the set_diversity function first, which computes the subset diversities 
+    #anyway and store them in memory. Then we'll call the subset_diversity, which will simply look up 
+    #the previously stored values.
+
+    superset = Set(counts=array([[1,1],[0,1],[0,1],[0,1]]))
+    superset.set_diversity(measure='normalized_alpha', viewpoint=1)
+
+    subset_diversity = superset.subset_diversity(measure='normalized_alpha', viewpoint=1, eff_no=False)
+
+    assert allclose(subset_diversity, [0, 1.38629])
+
 
 def test_subset_diversity_invalid_measure():
     with raises(InvalidArgumentError):
