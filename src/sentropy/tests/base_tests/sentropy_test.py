@@ -69,14 +69,11 @@ def test_arguments_symmetric_and_parallelize_of_LCR():
                                                                X=X, chunk_size=10, symmetric=True, return_dataframe=True)
 
     results_4 = relative_sentropy(np.array([[1, 1], [1, 0], [0, 1]]), viewpoint=[1],similarity=similarity_function,
-                                                               X=X, chunk_size=10, symmetric=True, return_dataframe=True)
+                                            X=X, chunk_size=10, symmetric=True, parallelize=True, return_dataframe=True)
 
     assert results_1.equals(results_2)
     assert results_1.equals(results_3)
     assert results_1.equals(results_4)
-
-def similarity_function(species_i, species_j):
-    return 1 / (1 + np.linalg.norm(species_i - species_j))
 
 def test_kl_div_no_similarity():
     counts_1 = np.array([[9/25], [12/25], [4/25]])
