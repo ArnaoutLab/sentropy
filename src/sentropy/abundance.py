@@ -1,3 +1,5 @@
+# abundance.py
+
 """Module for calculating relative sub- and metacomunity abundances.
 
 Classes
@@ -13,14 +15,22 @@ AbundanceForDiversity
 from functools import cached_property
 from typing import Iterable, Union
 
-from numpy import arange, ndarray, concatenate, minimum
-from pandas import DataFrame, RangeIndex
+from numpy import arange
+from pandas import DataFrame
 from scipy.sparse import issparse  # type: ignore[import]
+
+from sentropy.backend import get_backend, NumpyBackend
+from sentropy.exceptions import InvalidArgumentError
+
+# We'll avoid importing numpy or torch directly here. Use backend ops when available.
 
 
 class Abundance:
     def __init__(
-        self, counts: ndarray, subset_names: Iterable[Union[str, int]]
+        self,
+        counts,
+        subset_names: Iterable[Union[str, int]],
+        backend=None,
     ) -> None:
         """
         Parameters
@@ -29,58 +39,48 @@ class Abundance:
             2-d array with one column per subset, one row per
             species, containing the count of each species in the
             corresponding subsets.
+        backend:
+            An instance of a backend (from sentropy.backend.get_backend or backend class).
+            If None, numpy backend is used.
         """
+        self.backend = backend if backend is not None else get_backend("numpy")
+        # convert counts to backend array
+        self.counts = self.backend.asarray(counts) if hasattr(self.backend, "asarray") else self.backend.array(counts)
         self.subsets_names = subset_names
-        self.num_subsets = counts.shape[1]
-        self.min_count = minimum(1 / counts.sum(), 1e-9)
+        self.num_subsets = self.counts.shape[1]
+        # min_count : small nonzero for numerical stability
+        total = self.backend.sum(self.counts)
+        # guard: total could be scalar tensor -> convert to python float if needed
+        try:
+            total_scalar = float(total)
+        except Exception:
+            total_scalar = total
+        # compute min_count using backend's array semantics
+        # fallback to numpy small value
+        self.min_count = min(1.0 / (total_scalar if total_scalar != 0 else 1.0), 1e-9)
 
-        self.subset_abundance = self.make_subset_abundance(counts=counts)
+        self.subset_abundance = self.make_subset_abundance(counts=self.counts)
         self.normalized_subset_abundance = (
             self.make_normalized_subset_abundance()
         )
 
-    def make_subset_abundance(self, counts: ndarray) -> ndarray:
-        """Calculates the relative abundances in subsets.
+    def make_subset_abundance(self, counts):
+        """Calculates the relative abundances in subsets."""
+        # counts / counts.sum()
+        total = self.backend.sum(counts)
+        # broadcasting semantics should match numpy/torch
+        return counts / total
 
-        Parameters
-        ----------
-        counts
-            2-d array with one column per subset, one row per
-            species, containing the count of each species in the
-            corresponding subsets.
+    def make_subset_normalizing_constants(self):
+        """Calculates subset normalizing constants."""
+        return self.backend.sum(self.subset_abundance, axis=0)
 
-        Returns
-        -------
-        A numpy.ndarray of shape (n_species, n_subsets), where
-        rows correspond to unique species, columns correspond to
-        subsets and each element is the abundance of the species
-        in the subset relative to the total set size.
-        """
-        return counts / counts.sum()
-
-    def make_subset_normalizing_constants(self) -> ndarray:
-        """Calculates subset normalizing constants.
-
-        Returns
-        -------
-        A numpy.ndarray of shape (n_subsets,), with the fraction
-        of each subset's size of the set.
-        """
-        return self.subset_abundance.sum(axis=0)
-
-    def make_normalized_subset_abundance(self) -> ndarray:
-        """Calculates normalized relative abundances in subsets.
-
-        Returns
-        -------
-        A numpy.ndarray of shape (n_species, n_subsets), where
-        rows correspond to unique species, columns correspond to
-        subsets and each element is the abundance of the species
-        in the subset relative to the subset size.
-        """
+    def make_normalized_subset_abundance(self):
+        """Calculates normalized relative abundances in subsets."""
         self.subset_normalizing_constants = (
             self.make_subset_normalizing_constants()
         )
+        # divide by constants: ensure broadcasting
         return self.subset_abundance / self.subset_normalizing_constants
 
     def premultiply_by(self, similarity):
@@ -93,27 +93,17 @@ class AbundanceForDiversity(Abundance):
     """
 
     def __init__(
-        self, counts: ndarray, subset_names: Iterable[Union[str, int]]
+        self, counts, subset_names: Iterable[Union[str, int]], backend=None
     ) -> None:
-        super().__init__(counts, subset_names)
+        super().__init__(counts, subset_names, backend=backend)
         self.set_abundance = self.make_set_abundance()
         self.unified_abundance_array = None
 
     def unify_abundance_array(self) -> None:
         """Creates one matrix containing all the abundance matrices:
         set, subset, and normalized subset.
-        These matrices are still available as views on the unified
-        data structure. (Because we are using basic slicing here, only
-        one copy of the data will exist after garbage collection.)
-
-        This allows for a major computational improvement in efficiency:
-        The similarity matrix only has to be generated and used
-        once (in the case where a pre-computed similarity matrix is not
-        in RAM). That is, we make only one call to
-        similarity.weighted_abundances(), in cases where generation of the
-        similarity matrix is expensive.
         """
-        self.unified_abundance_array = concatenate(
+        self.unified_abundance_array = self.backend.concatenate(
             (
                 self.set_abundance,
                 self.subset_abundance,
@@ -125,6 +115,7 @@ class AbundanceForDiversity(Abundance):
     def get_unified_abundance_array(self):
         if self.unified_abundance_array is None:
             self.unify_abundance_array()
+            # update views (these are backend arrays)
             self.set_abundance = self.unified_abundance_array[:, [0]]
             self.subset_abundance = self.unified_abundance_array[
                 :, 1 : (1 + self.num_subsets)
@@ -164,45 +155,28 @@ class AbundanceForDiversity(Abundance):
             normalized_subset_ordinariness,
         )
 
-    def make_set_abundance(self) -> ndarray:
-        """Calculates the relative abundances in set.
-
-        Returns
-        -------
-        A numpy.ndarray of shape (n_species, 1), where rows correspond
-        to unique species and each row contains the relative abundance
-        of the species in the set.
-        """
-        return self.subset_abundance.sum(axis=1, keepdims=True)
+    def make_set_abundance(self):
+        """Calculates the relative abundances in set."""
+        return self.backend.sum(self.subset_abundance, axis=1, keepdims=True)
 
 
-def make_abundance(counts: Union[DataFrame, ndarray], for_diversity=True) -> Abundance:
-    """Initializes a concrete subclass of Abundance.
-
-    Parameters
-    ----------
-    counts:
-        2-d array with one column per subset, one row per species,
-        where the elements are the species counts
-
-    Returns
-    -------
-    An instance of a concrete subclass of Abundance.
-    """
+def make_abundance(counts, for_diversity=True, backend=None):
+    """Initializes a concrete subclass of Abundance."""
     if not for_diversity:
         specific_class = Abundance
     else:
         specific_class = AbundanceForDiversity
     if isinstance(counts, DataFrame):
+        arr = counts.to_numpy()
         return specific_class(
-            counts=counts.to_numpy(), subset_names=counts.columns.to_list()
+            counts=arr, subset_names=counts.columns.to_list(), backend=backend
         )
     elif hasattr(counts, "shape"):
         if issparse(counts):
             raise TypeError("sparse abundance matrix not yet implemented")
         else:
             return specific_class(
-                counts=counts, subset_names=arange(counts.shape[1])
+                counts=counts, subset_names=arange(counts.shape[1]), backend=backend
             )
     else:
         raise NotImplementedError(

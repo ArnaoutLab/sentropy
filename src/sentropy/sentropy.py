@@ -42,6 +42,8 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
     return_dataframe: bool = False,
     which: str = 'both',
     eff_no: bool = True,
+    backend: str = 'numpy',
+    device: str = 'cpu',
     ):
 
     superset = Set(counts, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
@@ -73,9 +75,9 @@ def get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, atol):
     return exp_renyi_div
 
 def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetric=False, X=None, chunk_size=10, \
-    parallelize=False, max_inflight_tasks=64, return_dataframe=False, which='both', eff_no=True):
-    P_superset = Set(P_abundance, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
-    Q_superset = Set(Q_abundance, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
+    parallelize=False, max_inflight_tasks=64, return_dataframe=False, which='both', eff_no=True, backend='numpy', device='cpu'):
+    P_superset = Set(P_abundance, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks, backend, device)
+    Q_superset = Set(Q_abundance, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks, backend, device)
     P_set_ab = P_superset.abundance.set_abundance
     Q_set_ab = Q_superset.abundance.set_abundance
     P_norm_subset_ab =  P_superset.abundance.normalized_subset_abundance
@@ -150,6 +152,8 @@ def relative_sentropy(
     return_dataframe: bool = False,
     which: str = 'both',
     eff_no: bool = True,
+    backend: str = 'numpy',
+    device: str = 'cpu',
 ) -> Union[dict, Tuple[dict, DataFrame]]:
     """
     Compute either
@@ -194,6 +198,8 @@ def relative_sentropy(
             return_dataframe=return_dataframe,
             which=which,
             eff_no = eff_no,
+            backend = backend,
+            device = device,
         )
 
     else:
@@ -210,4 +216,6 @@ def relative_sentropy(
             return_dataframe=return_dataframe,
             which=which,
             eff_no = eff_no,
+            backend = backend,
+            device = device,
         )

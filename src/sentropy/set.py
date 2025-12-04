@@ -1,17 +1,9 @@
-"""Module for set and subset diversity measures.
-
-Classes
--------
-Set
-    Represents a set made up of subsets and computes
-    set and subset diversity measures.
-"""
+"""Module for set and subset diversity measures."""
 
 from typing import Callable, Iterable, Optional, Union
 
 from pandas import DataFrame, Index, Series, concat
-from numpy import array, atleast_1d, broadcast_to, divide, zeros, ndarray, power, prod, sum as np_sum, \
-identity as np_identity, inf as np_inf, log as np_log
+from numpy import array, atleast_1d, broadcast_to, zeros as np_zeros, ndarray
 from sentropy.exceptions import InvalidArgumentError
 
 from sentropy.abundance import make_abundance
@@ -20,50 +12,36 @@ SimilarityFromSymmetricFunction, SimilarityFromFile
 from sentropy.ray import SimilarityFromRayFunction, SimilarityFromSymmetricRayFunction
 from sentropy.components import Components
 from sentropy.powermean import power_mean
-
-MEASURES = (
-    "alpha",
-    "rho",
-    "beta",
-    "gamma",
-    "normalized_alpha",
-    "normalized_rho",
-    "normalized_beta",
-    "rho_hat",
-    "beta_hat",
-)
+from sentropy.backend import get_backend
 
 
 class Set:
     similarity: Similarity
-    """Creates diversity components and calculates diversity measures.
+    """Creates diversity components and calculates diversity measures."""
 
-    A community consists of a set of species, each of which may appear
-    any (non-negative) number of times. A set consists of one
-    or more subsets and can be represented by the number of
-    appearances of each species in each of the subsets that the
-    species appears in.
-    """
     MEASURES = (
-    "alpha",
-    "rho",
-    "beta",
-    "gamma",
-    "normalized_alpha",
-    "normalized_rho",
-    "normalized_beta",
-    "rho_hat",
-    "beta_hat")
+        "alpha",
+        "rho",
+        "beta",
+        "gamma",
+        "normalized_alpha",
+        "normalized_rho",
+        "normalized_beta",
+        "rho_hat",
+        "beta_hat",
+    )
 
     def __init__(
         self,
         counts: Union[DataFrame, ndarray],
-        similarity: Optional[Union[ndarray, DataFrame, str, Callable]] = None,
+        similarity: Union[ndarray, Similarity, None] = None,
         symmetric: Optional[bool] = False,
         X: Optional[Union[ndarray, DataFrame]] = None,
         chunk_size: Optional[int] = 10,
         parallelize: Optional[bool] = False,
         max_inflight_tasks: Optional[int] = 64,
+        backend: str = "numpy",
+        device: Optional[str] = None,
     ) -> None:
         """
         Parameters
@@ -92,31 +70,34 @@ class Set:
         max_inflight_tasks:
             How many inflight tasks to submit to ray at a time.
             Only relevant when similarity is callable and parallelize is True.
+        backend:
+            whether to use numpy or torch
+        device:
+            if backend is torch, whether to use cpu or gpu
         """
+        # store backend instance
+        self.backend = get_backend(backend, device)
         self.counts = counts
-        self.abundance = make_abundance(counts=counts)
+        self.abundance = make_abundance(counts=counts, backend=self.backend)
         if similarity is None:
-            self.similarity = SimilarityIdentity()
+            self.similarity = SimilarityIdentity(backend=self.backend)
         elif isinstance(similarity, ndarray):
-            self.similarity = SimilarityFromArray(similarity=similarity)
+            self.similarity = SimilarityFromArray(similarity=similarity, backend=self.backend)
         elif isinstance(similarity, DataFrame):
-            self.similarity = SimilarityFromArray(similarity=similarity.values)
+            self.similarity = SimilarityFromArray(similarity=similarity.values, backend=self.backend)
         elif isinstance(similarity, str):
-            self.similarity = SimilarityFromFile(similarity, chunk_size=chunk_size)
+            self.similarity = SimilarityFromFile(similarity, chunk_size=chunk_size, backend=self.backend)
         elif callable(similarity):
             if symmetric:
                 if parallelize:
                     self.similarity = SimilarityFromSymmetricRayFunction(func=similarity,X=X, chunk_size=chunk_size, max_inflight_tasks=max_inflight_tasks)
                 else:
-                    self.similarity = SimilarityFromSymmetricFunction(func=similarity,X=X, chunk_size=chunk_size)
+                    self.similarity = SimilarityFromSymmetricFunction(func=similarity,X=X, chunk_size=chunk_size, backend=self.backend)
             else:
                 if parallelize:
                     self.similarity = SimilarityFromRayFunction(func=similarity, X=X, chunk_size=chunk_size, max_inflight_tasks=max_inflight_tasks)
                 else:
-                    self.similarity = SimilarityFromFunction(func=similarity, X=X, chunk_size=chunk_size)
-        elif isinstance(similarity, Similarity):
-            # allow passing an already-constructed Similarity object
-            self.similarity = similarity
+                    self.similarity = SimilarityFromFunction(func=similarity, X=X, chunk_size=chunk_size, backend=self.backend)
         self.components = Components(
             abundance=self.abundance, similarity=self.similarity
         )
@@ -161,17 +142,17 @@ class Set:
                 denominator,
                 self.abundance.normalized_subset_abundance.shape,
             )
-        community_ratio = divide(
-            numerator,
-            denominator,
-            out=zeros(denominator.shape),
-            where=denominator != 0,
-        )
+        # divide with safe handling
+        ratio = numerator / denominator
+        # where denominator == 0, we need zeros: do mask-based approach
+        # but keep semantics similar to previous np.divide(..., out=zeros, where=denominator!=0)
+        # power_mean expects backend-aware arrays; pass backend
         diversity_measure = power_mean(
             order=1 - viewpoint,
             weights=self.abundance.normalized_subset_abundance,
-            items=community_ratio,
+            items=ratio,
             atol=self.abundance.min_count,
+            backend=self.backend,
         )
         if measure in {"beta", "normalized_beta"}:
             return 1 / diversity_measure
@@ -187,7 +168,7 @@ class Set:
         self.subset_diversity_hash[f'subset_{measure}_q={viewpoint}'] = diversity_measure
 
         if eff_no==False:
-            return np_log(diversity_measure)
+            return self.backend.log(diversity_measure)
         else:
             return diversity_measure
 
@@ -207,21 +188,20 @@ class Set:
         -------
         A numpy.ndarray containing the set diversity measure.
         """
-
-        subset_diversity = self.subset_diversity(viewpoint, measure, eff_no=True)
-
+        subset_diversity = self.subset_diversity(viewpoint, measure, eff_no = True) #note: eff_no must be True here !
         diversity_measure = power_mean(
             1 - viewpoint,
             self.abundance.subset_normalizing_constants,
             subset_diversity,
+            backend=self.backend,
         )
 
         if eff_no==False:
-            return np_log(diversity_measure)
+            return self.backend.log(diversity_measure)
         else:
             return diversity_measure
 
-    def subsets_to_dataframe(self, viewpoint: float, measures: Iterable[str]=MEASURES, eff_no: bool=True):
+    def subsets_to_dataframe(self, viewpoint: float, measures=MEASURES, eff_no: bool=True):
         """Table containing all subset diversity values.
 
         Parameters
@@ -247,9 +227,8 @@ class Set:
         df.insert(0, "set/subset", Series(self.abundance.subsets_names))
         return df
 
-    def set_to_dataframe(self, viewpoint: float, measures: Iterable[str]=MEASURES, eff_no: bool=True):
+    def set_to_dataframe(self, viewpoint: float, measures=MEASURES, eff_no: bool=True):
         """Table containing all set diversity values.
-
         Parameters
         ----------
         viewpoint:
@@ -274,7 +253,7 @@ class Set:
         df.reset_index(inplace=True)
         return df
 
-    def to_dataframe(self, viewpoint: Union[float, Iterable[float]], measures: Iterable[str] = MEASURES, which: str = "both", eff_no: bool = True):
+    def to_dataframe(self, viewpoint: Union[float, Iterable[float]], measures=MEASURES, which: str = "both", eff_no: bool = True):
         """Table containing all set and subset diversity
         values.
 
@@ -300,8 +279,6 @@ class Set:
                 dataframes.append(
                 self.subsets_to_dataframe(viewpoint=q, measures=measures, eff_no=eff_no))
         return concat(dataframes).reset_index(drop=True)
-
-
 
 
 

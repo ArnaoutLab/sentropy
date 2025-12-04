@@ -1,22 +1,26 @@
+# ray.py
+
 from typing import List, Any, Callable, Union
-from numpy import ndarray, empty, concatenate, float64, vstack, zeros
+from numpy import ndarray, concatenate
 from pandas import DataFrame
 from sentropy.exceptions import InvalidArgumentError
 
 # avoid mypy error: see https://github.com/jorenham/scipy-stubs/issues/100
 from scipy.sparse import spmatrix  # type: ignore
 import ray  # type: ignore
+
 from sentropy.similarity import (
     SimilarityFromFunction,
     SimilarityFromSymmetricFunction,
     weighted_similarity_chunk_nonsymmetric,
     weighted_similarity_chunk_symmetric,
 )
+from sentropy.backend import get_backend
 
 
 class SimilarityFromRayFunction(SimilarityFromFunction):
     """Implements Similarity by calculating similarities with a callable
-    function."""
+    function using Ray for parallelism."""
 
     def __init__(
         self,
@@ -25,25 +29,11 @@ class SimilarityFromRayFunction(SimilarityFromFunction):
         chunk_size: int = 100,
         max_inflight_tasks: int = 64,
         similarities_out: Union[ndarray, None] = None,
+        backend=None,
     ) -> None:
-        """
-        similarity:
-            A Callable that calculates similarity between a pair of
-            species. Must take two rows from X and return a numeric
-            similarity value.
-            If X is a 2D array, the rows will be 1D arrays.
-            If X is a DataFrame, the rows will be named tuples.
-        X:
-            An array or DataFrame where each row contains the feature values
-            for a given species.
-        chunk_size:
-            Determines how many rows of the similarity matrix each will
-            be processes at a time. In general, choosing a larger
-            chunk_size will make the calculation faster, but will also
-            require more memory.
-        """
         super().__init__(func, X, chunk_size, similarities_out)
         self.max_inflight_tasks = max_inflight_tasks
+        self.backend = backend or get_backend("numpy")
 
     def get_Y(self):
         return None
@@ -51,7 +41,7 @@ class SimilarityFromRayFunction(SimilarityFromFunction):
     def weighted_abundances(
         self,
         relative_abundance: Union[ndarray, spmatrix],
-    ) -> ndarray:
+    ):
         weighted_similarity_chunk = ray.remote(weighted_similarity_chunk_nonsymmetric)
         X_ref = ray.put(self.X)
         Y_ref = ray.put(self.get_Y())
@@ -83,8 +73,13 @@ class SimilarityFromRayFunction(SimilarityFromFunction):
             )
             futures.append(chunk_future)
         process_refs(futures)
-        results.sort()  # This sorts by chunk index (1st in tuple)
+        results.sort()
         weighted_similarity_chunks = [r[1] for r in results]
+        # Convert to backend array if requested
+        if self.backend.name == "torch":
+            import torch as _torch
+
+            return _torch.as_tensor(concatenate(weighted_similarity_chunks), dtype=_torch.float64)
         return concatenate(weighted_similarity_chunks)
 
 
@@ -97,8 +92,9 @@ class IntersetSimilarityFromRayFunction(SimilarityFromRayFunction):
         chunk_size: int = 100,
         max_inflight_tasks=64,
         similarities_out: Union[ndarray, None] = None,
+        backend=None,
     ):
-        super().__init__(func, X, chunk_size, max_inflight_tasks, similarities_out)
+        super().__init__(func, X, chunk_size, max_inflight_tasks, similarities_out, backend)
         self.Y = Y
 
     def get_Y(self):
@@ -113,10 +109,7 @@ class IntersetSimilarityFromRayFunction(SimilarityFromRayFunction):
 
 
 class SimilarityFromSymmetricRayFunction(SimilarityFromSymmetricFunction):
-    """Implements Similarity by calculating similarities with a callable
-    function for one triangle of the similarity matrix, and re-using those
-    values for the other triangle.
-    """
+    """Parallelized symmetric-function similarity via Ray."""
 
     def __init__(
         self,
@@ -125,9 +118,11 @@ class SimilarityFromSymmetricRayFunction(SimilarityFromSymmetricFunction):
         chunk_size: int = 100,
         max_inflight_tasks: int = 64,
         similarities_out: Union[ndarray, None] = None,
+        backend=None,
     ) -> None:
         super().__init__(func, X, chunk_size, similarities_out)
         self.max_inflight_tasks = max_inflight_tasks
+        self.backend = backend or get_backend("numpy")
 
     def weighted_abundances(
         self,
@@ -169,4 +164,10 @@ class SimilarityFromSymmetricRayFunction(SimilarityFromSymmetricFunction):
             self.similarities_out += self.similarities_out.T
             for i in range(self.X.shape[0]):
                 self.similarities_out[i, i] = 1.0
+        # convert to torch if requested
+        if self.backend.name == "torch":
+            import torch as _torch
+
+            return _torch.as_tensor(result, dtype=_torch.float64)
         return result
+

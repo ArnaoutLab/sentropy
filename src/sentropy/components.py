@@ -13,14 +13,11 @@ class Components:
     def __init__(self, abundance: Abundance, similarity: Similarity) -> None:
         self.abundance = abundance
 
-        """Create the ordinariness vectors by multipying the
+        """
+        Create the ordinariness vectors by multiplying the
         similarity matrix with each of the set abundance vector,
         the subset abundance vectors, and the normalized
         subset vectors.
-        (See Leinster book* page 174 for discussion of ordinariness.
-        * https://arxiv.org/pdf/2012.02113)
-        Of course, for IdentitySimilarity, this multiplication would be
-        a no-op (and thus is not actually performed).
         """
         (
             self.set_ordinariness,
