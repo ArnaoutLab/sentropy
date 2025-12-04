@@ -66,14 +66,15 @@ def power_mean(
     __validate_power_mean_args(weights, items, atol, weight_is_nonzero, backend)
 
     # Analytical limits
-    if backend.isclose(order, 0, atol):
-        # product of power(items, weights) across axis 0 where weight_is_nonzero
-        powered = backend.power(items, weights)
-        return backend.prod(powered, axis=0)
-    elif order < -100:
+    if order < -100:
         return backend.amin(items, axis=0)
     elif order > 100:
         return backend.amax(items, axis=0)
+    elif backend.isclose(order, 0, atol):
+        # product of power(items, weights) across axis 0 where weight_is_nonzero
+        powered = backend.power(items, weights)
+        return backend.prod(powered, axis=0)
+
     else:
         # result = zeros(shape=items.shape, dtype=float64)
         result = backend.zeros(getattr(items, "shape", None))

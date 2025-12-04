@@ -262,7 +262,9 @@ class TorchBackend(BaseBackend):
         return self.torch.amax(x, dim=axis)
 
     def isclose(self, a, b, atol=1e-9):
-        return self.torch.isclose(self.torch.tensor(a), self.torch.tensor(b), atol=atol)
+        a = self.torch.tensor(a)
+        b = self.torch.tensor(b).to(a.dtype)
+        return self.torch.isclose(a, b, atol=atol)
 
     def multiply(self, a, b, out=None, where=None):
         return a * b
