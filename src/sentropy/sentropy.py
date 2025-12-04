@@ -46,7 +46,7 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
     device: str = 'cpu',
     ):
 
-    superset = Set(counts, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks)
+    superset = Set(counts, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks, backend, device)
     
     if return_dataframe:
         sentropies = superset.to_dataframe(viewpoint, measures, which=which, eff_no=eff_no)

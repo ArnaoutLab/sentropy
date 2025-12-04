@@ -98,6 +98,9 @@ class BaseBackend:
     def log(self, x):
         raise NotImplementedError
 
+    def broadcast_to(self, x, shape):
+        raise NotImplementedError
+
 
 class NumpyBackend(BaseBackend):
     name = "numpy"
@@ -177,6 +180,9 @@ class NumpyBackend(BaseBackend):
     def log(self, x):
         return _np.log(x)
 
+    def broadcast_to(self, x, shape):
+        return _np.broadcast_to(x, shape)
+
 
 class TorchBackend(BaseBackend):
     name = "torch"
@@ -216,7 +222,7 @@ class TorchBackend(BaseBackend):
 
     def sum(self, x, axis=None, keepdims=False):
         if axis is None:
-            return self.torch.sum(x, keepdim=keepdims)
+            return self.torch.sum(x, dim=axis, keepdim=keepdims)
         return self.torch.sum(x, dim=axis, keepdim=keepdims)
 
     def zeros(self, shape, dtype=None):
@@ -256,7 +262,7 @@ class TorchBackend(BaseBackend):
         return self.torch.amax(x, dim=axis)
 
     def isclose(self, a, b, atol=1e-9):
-        return self.torch.isclose(a, b, atol=atol)
+        return self.torch.isclose(self.torch.tensor(a), self.torch.tensor(b), atol=atol)
 
     def multiply(self, a, b, out=None, where=None):
         return a * b
@@ -284,6 +290,9 @@ class TorchBackend(BaseBackend):
 
     def log(self, x):
         return self.torch.log(x)
+
+    def broadcast_to(self, x, shape):
+        return self.torch.broadcast_to(x, shape)
 
 
 def get_backend(name: str = "numpy", device: Optional[str] = None) -> BaseBackend:

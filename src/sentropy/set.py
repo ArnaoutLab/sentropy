@@ -137,11 +137,13 @@ class Set:
 
         numerator = self.components.numerators[measure]
         denominator = self.components.denominators[measure]
+
         if measure == "gamma":
-            denominator = broadcast_to(
+            denominator = self.backend.broadcast_to(
                 denominator,
                 self.abundance.normalized_subset_abundance.shape,
             )
+            
         # divide with safe handling
         ratio = numerator / denominator
         # where denominator == 0, we need zeros: do mask-based approach
@@ -197,9 +199,9 @@ class Set:
         )
 
         if eff_no==False:
-            return self.backend.log(diversity_measure)
+            return self.backend.log(diversity_measure).item()
         else:
-            return diversity_measure
+            return diversity_measure.item()
 
     def subsets_to_dataframe(self, viewpoint: float, measures=MEASURES, eff_no: bool=True):
         """Table containing all subset diversity values.
@@ -271,7 +273,7 @@ class Set:
         diversity measures for a given viewpoint
         """
         dataframes = []
-        for q in atleast_1d(array(viewpoint)):
+        for q in viewpoint:
             if which in ["both", "set"]:
                 dataframes.append(
                 self.set_to_dataframe(viewpoint=q, measures=measures, eff_no=eff_no))
