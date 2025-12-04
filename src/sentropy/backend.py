@@ -50,9 +50,6 @@ class BaseBackend:
     def sum(self, x, axis=None):
         raise NotImplementedError
 
-    def zeros(self, shape, dtype=None):
-        raise NotImplementedError
-
     def ones(self, shape, dtype=None):
         raise NotImplementedError
 
@@ -101,6 +98,14 @@ class BaseBackend:
     def broadcast_to(self, x, shape):
         raise NotImplementedError
 
+    def zeros(self, shape):
+        raise NotImplementedError
+
+    def empty(self, shape):
+        raise NotImplementedError
+
+    def copy(self, x):
+        raise NotImplementedError
 
 class NumpyBackend(BaseBackend):
     name = "numpy"
@@ -122,13 +127,10 @@ class NumpyBackend(BaseBackend):
         return _np.asarray(x)
 
     def matmul(self, A, B):
-        return _np.matmul(A, B)
+        return A @ B
 
     def sum(self, x, axis=None, keepdims=False):
         return _np.sum(x, axis=axis, keepdims=keepdims)
-
-    def zeros(self, shape, dtype=None):
-        return _np.zeros(shape, dtype=dtype)
 
     def ones(self, shape, dtype=None):
         return _np.ones(shape, dtype=dtype)
@@ -183,6 +185,15 @@ class NumpyBackend(BaseBackend):
     def broadcast_to(self, x, shape):
         return _np.broadcast_to(x, shape)
 
+    def zeros(self, shape):
+        return _np.zeros(shape)
+
+    def empty(self, shape):
+        return _np.empty(shape)
+
+    def copy(self, x):
+        return x.copy()
+
 
 class TorchBackend(BaseBackend):
     name = "torch"
@@ -218,15 +229,13 @@ class TorchBackend(BaseBackend):
         return self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
 
     def matmul(self, A, B):
+        B = B.to(A.dtype)
         return A @ B
 
     def sum(self, x, axis=None, keepdims=False):
         if axis is None:
             return self.torch.sum(x, dim=axis, keepdim=keepdims)
         return self.torch.sum(x, dim=axis, keepdim=keepdims)
-
-    def zeros(self, shape, dtype=None):
-        return self.torch.zeros(shape, dtype=(dtype or self.dtype), device=self.device)
 
     def ones(self, shape, dtype=None):
         return self.torch.ones(shape, dtype=(dtype or self.dtype), device=self.device)
@@ -295,6 +304,15 @@ class TorchBackend(BaseBackend):
 
     def broadcast_to(self, x, shape):
         return self.torch.broadcast_to(x, shape)
+
+    def zeros(self, shape):
+        return self.torch.zeros(shape)
+
+    def empty(self, shape):
+        return self.torch.empty(shape)
+
+    def copy(self, x):
+        return x.clone()
 
 
 def get_backend(name: str = "numpy", device: Optional[str] = None) -> BaseBackend:

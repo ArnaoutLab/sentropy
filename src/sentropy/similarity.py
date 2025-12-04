@@ -167,39 +167,6 @@ class IntersetSimilarityFromFile(SimilarityFromFile):
         )
 
 
-def weighted_similarity_chunk_nonsymmetric(
-    similarity: Callable,
-    X: Union[_np.ndarray, DataFrame],
-    Y: Union[_np.ndarray, DataFrame, None],
-    relative_abundance,
-    chunk_size: int,
-    chunk_index: int,
-    return_Z: bool = True,
-) -> Tuple[int, _np.ndarray, Union[_np.ndarray, None]]:
-    """
-    Calculates some rows of the matrix product of Z @ p,
-    where Z is not given explicitly but rather each entry
-    Z[i,j] is calculated by a function.
-    """
-    def enum_helper(X):
-        if type(X) == DataFrame:
-            return X.itertuples()
-        return X
-
-    if Y is None:
-        Y = X
-    chunk = X[chunk_index : chunk_index + chunk_size]
-    similarities_chunk = _np.empty(shape=(chunk.shape[0], Y.shape[0]))
-    for i, row_i in enumerate(enum_helper(chunk)):
-        for j, row_j in enumerate(enum_helper(Y)):
-            similarities_chunk[i, j] = similarity(row_i, row_j)
-    result = similarities_chunk @ (relative_abundance if not hasattr(relative_abundance, "to_numpy") else relative_abundance)
-    if return_Z:
-        return chunk_index, result, similarities_chunk
-    else:
-        return chunk_index, result, None
-
-
 class SimilarityFromSymmetricFunction(Similarity):
     def __init__(
         self,
@@ -219,11 +186,11 @@ class SimilarityFromSymmetricFunction(Similarity):
 
     def weighted_abundances(self, abundance):
         # result should be backend array; start as copy
-        result = abundance.copy()
+        result = self.backend.copy(abundance)
         if self.similarities_out is not None:
             self.similarities_out.fill(0.0)
         for chunk_index in range(0, self.X.shape[0], self.chunk_size):
-            _, chunk, similarities = weighted_similarity_chunk_symmetric(
+            _, chunk, similarities = self.weighted_similarity_chunk_symmetric(
                 similarity=self.func,
                 X=self.X,
                 relative_abundance=abundance,
@@ -244,53 +211,52 @@ class SimilarityFromSymmetricFunction(Similarity):
         return result
 
 
-def weighted_similarity_chunk_symmetric(
-    similarity: Callable,
-    X: Union[_np.ndarray, DataFrame],
-    relative_abundance,
-    chunk_size: int,
-    chunk_index: int,
-    return_Z: bool = True,
-):
-    def enum_helper(X, start_index=0):
-        if type(X) == DataFrame:
-            return X.iloc[start_index:].itertuples()
-        return X[start_index:]
+    def weighted_similarity_chunk_symmetric(self, similarity: Callable,
+        X: Union[_np.ndarray, DataFrame],
+        relative_abundance,
+        chunk_size: int,
+        chunk_index: int,
+        return_Z: bool = True,
+    ):
+        def enum_helper(X, start_index=0):
+            if type(X) == DataFrame:
+                return X.iloc[start_index:].itertuples()
+            return X[start_index:]
 
-    chunk = X[chunk_index : chunk_index + chunk_size]
-    similarities_chunk = _np.zeros(shape=(chunk.shape[0], X.shape[0]))
-    for i, row_i in enumerate(enum_helper(chunk)):
-        for j, row_j in enumerate(enum_helper(X, chunk_index + i + 1)):
-            similarities_chunk[i, i + j + chunk_index + 1] = similarity(row_i, row_j)
-    rows_result = similarities_chunk @ relative_abundance
-    rows_after_count = max(0, relative_abundance.shape[0] - (chunk_index + chunk_size))
-    from numpy import vstack, zeros as _zeros
-    rows_result = vstack(
-        (
-            _zeros(shape=(chunk_index, relative_abundance.shape[1])),
-            rows_result,
-            _zeros(
-                shape=(
-                    rows_after_count,
-                    relative_abundance.shape[1],
-                )
-            ),
+        chunk = X[chunk_index : chunk_index + chunk_size]
+        similarities_chunk = self.backend.zeros(shape=(chunk.shape[0], X.shape[0]))
+        for i, row_i in enumerate(enum_helper(chunk)):
+            for j, row_j in enumerate(enum_helper(X, chunk_index + i + 1)):
+                similarities_chunk[i, i + j + chunk_index + 1] = similarity(row_i, row_j)
+        rows_result = self.backend.matmul(similarities_chunk, relative_abundance)
+        rows_after_count = max(0, relative_abundance.shape[0] - (chunk_index + chunk_size))
+        from numpy import vstack, zeros as _zeros
+        rows_result = vstack(
+            (
+                _zeros(shape=(chunk_index, relative_abundance.shape[1])),
+                rows_result,
+                _zeros(
+                    shape=(
+                        rows_after_count,
+                        relative_abundance.shape[1],
+                    )
+                ),
+            )
         )
-    )
-    relative_abundance_slice = relative_abundance[chunk_index : chunk_index + chunk_size]
-    cols_result = similarities_chunk.T @ relative_abundance_slice
-    result = rows_result + cols_result
-    if return_Z:
-        return chunk_index, result, similarities_chunk
-    else:
-        return chunk_index, result, None
+        relative_abundance_slice = relative_abundance[chunk_index : chunk_index + chunk_size]
+        cols_result = similarities_chunk.T @ relative_abundance_slice
+        result = rows_result + cols_result
+        if return_Z:
+            return chunk_index, result, similarities_chunk
+        else:
+            return chunk_index, result, None
 
 
 class SimilarityFromFunction(SimilarityFromSymmetricFunction):
     def weighted_abundances(self, relative_abundance):
         weighted_similarity_chunks = []
         for chunk_index in range(0, self.X.shape[0], self.chunk_size):
-            _, result, similarities = weighted_similarity_chunk_nonsymmetric(
+            _, result, similarities = self.weighted_similarity_chunk_nonsymmetric(
                 self.func,
                 self.X,
                 self.get_Y(),
@@ -304,10 +270,42 @@ class SimilarityFromFunction(SimilarityFromSymmetricFunction):
                 self.similarities_out[
                     chunk_index : chunk_index + result.shape[0], :
                 ] = similarities
-        return _np.concatenate(weighted_similarity_chunks)
+        return self.backend.concatenate(weighted_similarity_chunks)
 
     def get_Y(self):
         return None
+
+    def weighted_similarity_chunk_nonsymmetric(self, similarity: Callable,
+    X: Union[_np.ndarray, DataFrame],
+    Y: Union[_np.ndarray, DataFrame, None],
+    relative_abundance,
+    chunk_size: int,
+    chunk_index: int,
+    return_Z: bool = True,
+    ) -> Tuple[int, _np.ndarray, Union[_np.ndarray, None]]:
+        """
+        Calculates some rows of the matrix product of Z @ p,
+        where Z is not given explicitly but rather each entry
+        Z[i,j] is calculated by a function.
+        """
+        def enum_helper(X):
+            if type(X) == DataFrame:
+                return X.itertuples()
+            return X
+
+        if Y is None:
+            Y = X
+        chunk = X[chunk_index : chunk_index + chunk_size]
+        similarities_chunk = self.backend.empty(shape=(chunk.shape[0], Y.shape[0]))
+        for i, row_i in enumerate(enum_helper(chunk)):
+            for j, row_j in enumerate(enum_helper(Y)):
+                similarities_chunk[i, j] = similarity(row_i, row_j)
+
+        result = self.backend.matmul(similarities_chunk, relative_abundance)
+        if return_Z:
+            return chunk_index, result, similarities_chunk
+        else:
+            return chunk_index, result, None
 
 
 class IntersetSimilarityFromFunction(SimilarityFromFunction):

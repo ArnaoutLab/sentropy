@@ -130,6 +130,7 @@ class AbundanceForDiversity(Abundance):
             all_ordinariness = similarity.self_similar_weighted_abundances(
                 self.get_unified_abundance_array()
             )
+            
             set_ordinariness = all_ordinariness[:, [0]]
             subset_ordinariness = all_ordinariness[
                 :, 1 : (1 + self.num_subsets)
