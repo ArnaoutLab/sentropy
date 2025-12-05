@@ -96,6 +96,29 @@ The `sentropy` package is able to calculate all of the similarity- and frequency
   - $\hat{B}$ - average rescaled distinctiveness of subcommunities
   - $G$ - metacommunity diversity
 
+The core function is `relative_sentropy`, which accepts the following arguments:
+
+```python
+relative_sentropy(
+    counts_a: Union[pandas.core.frame.DataFrame, numpy.ndarray], 
+    counts_b: Union[numpy.ndarray, pandas.core.frame.DataFrame, NoneType] = None, 
+    *, 
+    similarity: Union[numpy.ndarray, pandas.core.frame.DataFrame, str, Callable, NoneType] = None, 
+    viewpoint: float = 1, 
+    measures: Iterable[str] = ('alpha', 'rho', 'beta', 'gamma', 'normalized_alpha', 'normalized_rho', 'normalized_beta', 'rho_hat', 'beta_hat'), 
+    symmetric: bool = False, 
+    X: Union[numpy.ndarray, pandas.core.frame.DataFrame, NoneType] = None, 
+    chunk_size: int = 10, 
+    parallelize: bool = False, 
+    max_inflight_tasks: int = 64, 
+    return_dataframe: bool = False, 
+    which: str = 'both', 
+    eff_no: bool = True, 
+    backend: str = 'numpy', 
+    device: str = 'cpu'
+) -> Union[dict, Tuple[dict, pandas.core.frame.DataFrame]]
+```
+Below we explain the meaning of the arguments by way of examples.
 
 # Basic usage
 ## Alpha diversities 
@@ -534,6 +557,9 @@ We can also compare subcommunities within a single metacommunity. To do this, we
 If we do not pass anything to the `similarity` argument, then the function will compute the usual (i.e. similarity-insensitive) exponentiated Rényi divergence. We may also optionally pass a similarity function or a string representing a path to a CSV file to `similarity`. In those cases, we may optionally pass values to the arguments `symmetric`, `X`, `chunk_size`, `parallelize`, and `max_inflight_tasks`. These latter arguments have the same meaning as when we compute LCR indices.
 
 It is also convenient to obtain the actual KL/Renyi divergences without the exponentiation. To do so, we pass `eff_no = False`, just like for LCR diversity indices. Finally, we can also pass `which="set"` or `which="subset"` if we are interested only in the divergence at the set level or at the subset level.
+
+# Pytorch and GPU support
+It is possible to use PyTorch instead of numpy. To do so, we pass `backend="torch"` to `relative_sentropy`. Furthermore, on a computer with NVIDIA CUDA, it is possible to have diversities computed on the GPU by passing `device="cuda"`.
 
 # Command-line usage
 The `sentropy` package can also be used from the command line as a module (via `python -m`). To illustrate using `sentropy` this way, we re-use again the example with counts_2b_1 and S_2b, now with counts_2b_1 also saved as a csv file (note again `index=False`):
