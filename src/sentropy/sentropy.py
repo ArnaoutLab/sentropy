@@ -98,7 +98,7 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
                 weights=P,
                 items=ord_ratio,
                 atol=atol,
-                backend=backend,
+                backend=P_superset.backend,
             )
         else:
             exp_renyi_div = P_superset.backend.prod(P_superset.backend.power(ord_ratio, P))

@@ -10,15 +10,7 @@ Usage:
 
 from typing import Optional
 import numpy as _np
-
-# Try to import torch (optional)
-try:
-    import torch as _torch  # type: ignore
-    _has_torch = True
-except Exception:
-    _torch = None
-    _has_torch = False
-
+import torch as _torch
 
 class BackendError(RuntimeError):
     pass
@@ -108,8 +100,6 @@ class BaseBackend:
         raise NotImplementedError
 
 class NumpyBackend(BaseBackend):
-    name = "numpy"
-
     def __init__(self, device: Optional[str] = None):
         super().__init__(device)
 
@@ -196,11 +186,6 @@ class NumpyBackend(BaseBackend):
 
 
 class TorchBackend(BaseBackend):
-    name = "torch"
-
-    if not _has_torch:
-        raise BackendError("PyTorch is not available. Install torch to use 'torch' backend.")
-
     def __init__(self, device: Optional[str] = None):
         super().__init__(device or ("cuda" if _torch.cuda.is_available() else "cpu"))
         self.torch = _torch
@@ -320,8 +305,5 @@ def get_backend(name: str = "numpy", device: Optional[str] = None) -> BaseBacken
     if name in ("numpy", "np"):
         return NumpyBackend(device=device)
     if name in ("torch", "pytorch"):
-        if not _has_torch:
-            raise BackendError("PyTorch is not installed but 'torch' backend was requested.")
         return TorchBackend(device=device)
-    raise BackendError(f"Unknown backend '{name}'. Valid names: 'numpy', 'torch'.")
 

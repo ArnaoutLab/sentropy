@@ -52,14 +52,8 @@ def power_mean(
     otherwise numpy backend is used.
     """
     # Choose backend
-    if backend is None:
-        try:
-            from torch import Tensor as _TorchTensor  # type: ignore
-
-            is_torch = isinstance(weights, _TorchTensor)
-        except Exception:
-            is_torch = False
-        backend = get_backend("torch") if is_torch else get_backend("numpy")
+    if type(backend)==str:
+        backend=get_backend(backend) 
 
     abs_weights = backend.abs(weights)
     weight_is_nonzero = abs_weights >= atol
