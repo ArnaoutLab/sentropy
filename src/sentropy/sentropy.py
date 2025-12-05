@@ -60,20 +60,6 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
                     sentropies[f'subset_{measure}_q={q}'] = superset.subset_diversity(viewpoint=q, measure=measure, eff_no=eff_no)
     return sentropies
 
-
-def get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, atol):
-    ord_ratio = P_ord/Q_ord
-    if viewpoint != 1:
-        exp_renyi_div = power_mean(
-            order=viewpoint-1,
-            weights=P,
-            items=ord_ratio,
-            atol=atol,
-        )
-    else:
-        exp_renyi_div = prod(power(ord_ratio, P))
-    return exp_renyi_div
-
 def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetric=False, X=None, chunk_size=10, \
     parallelize=False, max_inflight_tasks=64, return_dataframe=False, which='both', eff_no=True, backend='numpy', device='cpu'):
     P_superset = Set(P_abundance, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks, backend, device)
@@ -104,10 +90,24 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
 
     min_count = minimum(1 / P_abundance.sum(), 1e-9)
 
+    def get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, atol, backend):
+        ord_ratio = P_ord/Q_ord
+        if viewpoint != 1:
+            exp_renyi_div = power_mean(
+                order=viewpoint-1,
+                weights=P,
+                items=ord_ratio,
+                atol=atol,
+                backend=backend,
+            )
+        else:
+            exp_renyi_div = P_superset.backend.prod(P_superset.backend.power(ord_ratio, P))
+        return exp_renyi_div
+
     if which in ["both", "set"]:
-        exp_renyi_div_set = get_exp_renyi_div_from_ords(P_set_ab, P_set_ord, Q_set_ord, viewpoint, min_count)
+        exp_renyi_div_set = get_exp_renyi_div_from_ords(P_set_ab, P_set_ord, Q_set_ord, viewpoint, min_count, backend)
         if eff_no == False:
-            exp_renyi_div_set = np_log(exp_renyi_div_set)
+            exp_renyi_div_set = P_superset.backend.log(exp_renyi_div_set)
 
     if which in ["both", "subset"]:
         exp_renyi_divs_subset = np_zeros(shape=(P_num_subsets, Q_num_subsets))
@@ -116,7 +116,7 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
                 P = P_norm_subset_ab[:,i]
                 P_ord = P_norm_subset_ord[:,i]
                 Q_ord = Q_norm_subset_ord[:,j]
-                exp_renyi_div = get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, min_count)
+                exp_renyi_div = get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, min_count, backend)
                 exp_renyi_divs_subset[i,j] = exp_renyi_div
 
         if return_dataframe:
@@ -124,7 +124,7 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
                 index=P_subsets_names)
 
         if eff_no == False:
-            exp_renyi_divs_subset = np_log(exp_renyi_divs_subset)
+            exp_renyi_divs_subset = P_superset.backend.log(exp_renyi_divs_subset)
 
     if which=="both":
         return exp_renyi_div_set, exp_renyi_divs_subset
