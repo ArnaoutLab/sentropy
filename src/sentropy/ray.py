@@ -20,6 +20,7 @@ def weighted_similarity_chunk_nonsymmetric(similarity: Callable,
     X: Union[_np.ndarray, DataFrame],
     Y: Union[_np.ndarray, DataFrame, None],
     relative_abundance,
+    backend,
     chunk_size: int,
     chunk_index: int,
     return_Z: bool = True,
@@ -29,6 +30,7 @@ def weighted_similarity_chunk_nonsymmetric(similarity: Callable,
     where Z is not given explicitly but rather each entry
     Z[i,j] is calculated by a function.
     """
+
     def enum_helper(X):
         if type(X) == DataFrame:
             return X.itertuples()
@@ -37,12 +39,12 @@ def weighted_similarity_chunk_nonsymmetric(similarity: Callable,
     if Y is None:
         Y = X
     chunk = X[chunk_index : chunk_index + chunk_size]
-    similarities_chunk = _np.empty(shape=(chunk.shape[0], Y.shape[0]))
+    similarities_chunk = backend.empty(shape=(chunk.shape[0], Y.shape[0]))
     for i, row_i in enumerate(enum_helper(chunk)):
         for j, row_j in enumerate(enum_helper(Y)):
             similarities_chunk[i, j] = similarity(row_i, row_j)
 
-    result = similarities_chunk @ (relative_abundance if not hasattr(relative_abundance, "to_numpy") else relative_abundance)
+    result = backend.matmul(similarities_chunk, relative_abundance)
     if return_Z:
         return chunk_index, result, similarities_chunk
     else:
@@ -51,6 +53,7 @@ def weighted_similarity_chunk_nonsymmetric(similarity: Callable,
 def weighted_similarity_chunk_symmetric(similarity: Callable,
         X: Union[_np.ndarray, DataFrame],
         relative_abundance,
+        backend,
         chunk_size: int,
         chunk_index: int,
         return_Z: bool = True,
@@ -61,11 +64,11 @@ def weighted_similarity_chunk_symmetric(similarity: Callable,
         return X[start_index:]
 
     chunk = X[chunk_index : chunk_index + chunk_size]
-    similarities_chunk = _np.zeros(shape=(chunk.shape[0], X.shape[0]))
+    similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
     for i, row_i in enumerate(enum_helper(chunk)):
         for j, row_j in enumerate(enum_helper(X, chunk_index + i + 1)):
             similarities_chunk[i, i + j + chunk_index + 1] = similarity(row_i, row_j)
-    rows_result = similarities_chunk @ relative_abundance
+    rows_result = backend.zeros(similarities_chunk, relative_abundance)
     rows_after_count = max(0, relative_abundance.shape[0] - (chunk_index + chunk_size))
     from numpy import vstack, zeros as _zeros
     rows_result = vstack(
@@ -81,7 +84,7 @@ def weighted_similarity_chunk_symmetric(similarity: Callable,
         )
     )
     relative_abundance_slice = relative_abundance[chunk_index : chunk_index + chunk_size]
-    cols_result = similarities_chunk.T @ relative_abundance_slice
+    cols_result = backend.matmul(similarities_chunk.T, relative_abundance_slice)
     result = rows_result + cols_result
     if return_Z:
         return chunk_index, result, similarities_chunk
@@ -138,6 +141,7 @@ class SimilarityFromRayFunction(SimilarityFromFunction):
                 X=X_ref,
                 Y=Y_ref,
                 relative_abundance=abundance_ref,
+                backend=self.backend,
                 chunk_size=self.chunk_size,
                 chunk_index=chunk_index,
                 return_Z=(self.similarities_out is not None),
@@ -146,6 +150,7 @@ class SimilarityFromRayFunction(SimilarityFromFunction):
         process_refs(futures)
         results.sort()
         weighted_similarity_chunks = [r[1] for r in results]
+
         # Convert to backend array if requested
         if self.backend.name == "torch":
             import torch as _torch
@@ -225,6 +230,7 @@ class SimilarityFromSymmetricRayFunction(SimilarityFromSymmetricFunction):
                 similarity=self.func,
                 X=X_ref,
                 relative_abundance=abundance_ref,
+                backend=self.backend,
                 chunk_size=self.chunk_size,
                 chunk_index=chunk_index,
                 return_Z=(self.similarities_out is not None),

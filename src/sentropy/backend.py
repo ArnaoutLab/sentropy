@@ -100,6 +100,8 @@ class BaseBackend:
         raise NotImplementedError
 
 class NumpyBackend(BaseBackend):
+    name = "numpy"
+
     def __init__(self, device: Optional[str] = None):
         super().__init__(device)
 
@@ -186,6 +188,8 @@ class NumpyBackend(BaseBackend):
 
 
 class TorchBackend(BaseBackend):
+    name = "torch"
+    
     def __init__(self, device: Optional[str] = None):
         super().__init__(device or ("cuda" if _torch.cuda.is_available() else "cpu"))
         self.torch = _torch

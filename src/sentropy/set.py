@@ -90,12 +90,14 @@ class Set:
         elif callable(similarity):
             if symmetric:
                 if parallelize:
-                    self.similarity = SimilarityFromSymmetricRayFunction(func=similarity,X=X, chunk_size=chunk_size, max_inflight_tasks=max_inflight_tasks)
+                    self.similarity = SimilarityFromSymmetricRayFunction(func=similarity,X=X, chunk_size=chunk_size, \
+                        max_inflight_tasks=max_inflight_tasks, backend=self.backend)
                 else:
                     self.similarity = SimilarityFromSymmetricFunction(func=similarity,X=X, chunk_size=chunk_size, backend=self.backend)
             else:
                 if parallelize:
-                    self.similarity = SimilarityFromRayFunction(func=similarity, X=X, chunk_size=chunk_size, max_inflight_tasks=max_inflight_tasks)
+                    self.similarity = SimilarityFromRayFunction(func=similarity, X=X, chunk_size=chunk_size, \
+                        max_inflight_tasks=max_inflight_tasks, backend=self.backend)
                 else:
                     self.similarity = SimilarityFromFunction(func=similarity, X=X, chunk_size=chunk_size, backend=self.backend)
         self.components = Components(
@@ -131,7 +133,7 @@ class Set:
         if f'subset_{measure}_q={viewpoint}' in self.subset_diversity_hash.keys():
             diversity_measure = self.subset_diversity_hash[f'subset_{measure}_q={viewpoint}']
             if eff_no == False:
-                return np_log(diversity_measure)
+                return self.backend.log(diversity_measure)
             else:
                 return diversity_measure
 
@@ -149,6 +151,7 @@ class Set:
         # where denominator == 0, we need zeros: do mask-based approach
         # but keep semantics similar to previous np.divide(..., out=zeros, where=denominator!=0)
         # power_mean expects backend-aware arrays; pass backend
+
         diversity_measure = power_mean(
             order=1 - viewpoint,
             weights=self.abundance.normalized_subset_abundance,
