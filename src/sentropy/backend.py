@@ -194,7 +194,10 @@ class TorchBackend(BaseBackend):
         super().__init__(device or ("cuda" if _torch.cuda.is_available() else "cpu"))
         self.torch = _torch
         # default dtype to float64 to preserve numeric behavior
-        self.dtype = self.torch.float64
+        if device == 'mps':
+            self.dtype = self.torch.float32
+        else:
+            self.dtype = self.torch.float64
 
     def array(self, x, dtype=None):
         # if x already tensor, cast
