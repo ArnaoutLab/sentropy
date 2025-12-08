@@ -559,7 +559,42 @@ If we do not pass anything to the `similarity` argument, then the function will 
 It is also convenient to obtain the actual KL/Renyi divergences without the exponentiation. To do so, we pass `eff_no = False`, just like for LCR diversity indices. Finally, we can also pass `which="set"` or `which="subset"` if we are interested only in the divergence at the set level or at the subset level.
 
 # Pytorch and GPU support
-It is possible to use PyTorch instead of numpy. To do so, we pass `backend="torch"` to `relative_sentropy`. Furthermore, on a computer with NVIDIA CUDA, it is possible to have diversities computed on the GPU by passing `device="cuda"`.
+For heavier computations, it is possible to use PyTorch instead of numpy to obtain some acceleration. To do so, we pass `backend="torch"` to `relative_sentropy`. (By the fault, the `backend` argument takes value `"numpy"`.) In order to have the computation of the diversity indices run on the GPU, we can additionally pass `device="mps"` or `device="cuda"`, depending on whether the computation runs on a Mac computer with Apple silicon, or a computer with NVIDIA CUDA. (By default, the `device` argument takes value `cpu`, which means the computation runs on the CPU.) For example, consider the following set with 100 subsets and 10000 entities:
+
+```python
+big_counts = np.random.randint(101, size=(10000,100))
+
+n = 10000
+# Generate random values for upper triangle (excluding diagonal)
+indices = np.triu_indices(n, k=1)
+values = np.random.rand(len(indices[0]))
+# Create zero matrix and fill upper triangle
+big_sim_matrix = np.zeros((n, n))
+big_sim_matrix[indices] = values
+# Symmetrize by adding transpose
+big_sim_matrix = big_sim_matrix + big_sim_matrix.T
+# Set diagonal to 1
+np.fill_diagonal(big_sim_matrix, 1.0)
+```
+We can have the computation of diversities run by torch on the CPU by calling:
+
+```python
+relative_sentropy(big_counts, similarity=big_sim_matrix, viewpoint=[0,1, 1.5, np.inf], backend='torch')
+```
+
+or we can have the computation run by torch on the GPU of Apple Silicon by calling:
+
+```python
+relative_sentropy(big_counts, similarity=big_sim_matrix, viewpoint=[0,1, 1.5, np.inf], backend='torch', device=`mps`)
+```
+
+or we can have the computation run by torch on CUDA by calling:
+
+```python
+relative_sentropy(big_counts, similarity=big_sim_matrix, viewpoint=[0,1, 1.5, np.inf], backend='torch', device=`cuda`)
+```
+
+The latter two commands above result in a 3x speedup compared to the default settings (with numpy and CPU). The first of the 3 commands above might result in a more minor speedup. 
 
 # Command-line usage
 The `sentropy` package can also be used from the command line as a module (via `python -m`). To illustrate using `sentropy` this way, we re-use again the example with counts_2b_1 and S_2b, now with counts_2b_1 also saved as a csv file (note again `index=False`):
