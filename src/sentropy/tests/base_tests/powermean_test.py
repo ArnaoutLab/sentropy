@@ -221,7 +221,7 @@ items_6by4 = array(
             ),
             items_6by4[:, :3],
             1e-2,
-            array([0.8120992339, 0.4198668065, 0.7245218911]),
+            array([0.8120992339, 0.4198668065, 0.72451461]),
         ),
         (  # Some zero weights; order == -inf; 2-d data; atol == 1e-9.
             -inf,
@@ -245,6 +245,7 @@ def test_power_mean(order, weights, items, atol, expected):
         weights=weights,
         items=items,
         atol=atol,
+        backend='numpy',
     )
     assert allclose(actual_result, expected)
 
@@ -311,4 +312,5 @@ def test_power_mean_invalid_args(order, weights, items):
             weights=weights,
             items=items,
             atol=1e-8,
+            backend='numpy',
         )

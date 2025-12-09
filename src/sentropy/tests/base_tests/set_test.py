@@ -398,7 +398,7 @@ def test_to_dataframe(data):
     expected = concat(
         [data.set_results, data.subset_results]
     ).reset_index(drop=True)
-    assert_frame_equal(set.to_dataframe(viewpoint=data.viewpoint), expected)
+    assert_frame_equal(set.to_dataframe(viewpoint=[data.viewpoint]), expected)
 
 
 @mark.parametrize("data", set_data)
@@ -411,7 +411,7 @@ def test_select_measures(data):
     ]
     expected_columns = selected_measures + ["set/subset", "viewpoint"]
     df = set.to_dataframe(
-        viewpoint=data.viewpoint, measures=selected_measures
+        viewpoint=[data.viewpoint], measures=selected_measures
     )
     for col in df:
         assert col in expected_columns

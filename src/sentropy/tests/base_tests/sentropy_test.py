@@ -29,7 +29,7 @@ def test_LCR_no_similarity():
     assert (1 <= diversity_indices['subset_gamma_q=1']).all() & (diversity_indices['subset_gamma_q=1'] <= S/weights).all()
     assert (1 <= diversity_indices['set_gamma_q=1'] <= S)
     assert (diversity_indices['subset_gamma_q=1'] <= diversity_indices['subset_alpha_q=1']).all()
-    assert (diversity_indices['set_gamma_q=1'] <= diversity_indices['set_alpha_q=1']).all()
+    assert (diversity_indices['set_gamma_q=1'] <= diversity_indices['set_alpha_q=1'])
 
 def test_LCR_return_dataframe():
     #Check the inequalities in Table S2.1 of Reeve's paper that hold in the naive type model (the ones marked with asterisks)

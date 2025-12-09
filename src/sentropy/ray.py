@@ -68,7 +68,7 @@ def weighted_similarity_chunk_symmetric(similarity: Callable,
     for i, row_i in enumerate(enum_helper(chunk)):
         for j, row_j in enumerate(enum_helper(X, chunk_index + i + 1)):
             similarities_chunk[i, i + j + chunk_index + 1] = similarity(row_i, row_j)
-    rows_result = backend.zeros(similarities_chunk, relative_abundance)
+    rows_result = backend.matmul(similarities_chunk, relative_abundance)
     rows_after_count = max(0, relative_abundance.shape[0] - (chunk_index + chunk_size))
     from numpy import vstack, zeros as _zeros
     rows_result = vstack(
