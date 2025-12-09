@@ -585,13 +585,13 @@ relative_sentropy(big_counts, similarity=big_sim_matrix, viewpoint=[0,1, 1.5, np
 or we can have the computation run by torch on the GPU of Apple Silicon by calling:
 
 ```python
-relative_sentropy(big_counts, similarity=big_sim_matrix, viewpoint=[0,1, 1.5, np.inf], backend='torch', device=`mps`)
+relative_sentropy(big_counts, similarity=big_sim_matrix, viewpoint=[0,1, 1.5, np.inf], backend='torch', device='mps')
 ```
 
 or we can have the computation run by torch on CUDA by calling:
 
 ```python
-relative_sentropy(big_counts, similarity=big_sim_matrix, viewpoint=[0,1, 1.5, np.inf], backend='torch', device=`cuda`)
+relative_sentropy(big_counts, similarity=big_sim_matrix, viewpoint=[0,1, 1.5, np.inf], backend='torch', device='cuda')
 ```
 
 The latter two commands above result in a 3x speedup compared to the default settings (with numpy and CPU). The first of the 3 commands above might result in a more minor speedup. 
