@@ -150,13 +150,7 @@ class SimilarityFromRayFunction(SimilarityFromFunction):
         process_refs(futures)
         results.sort()
         weighted_similarity_chunks = [r[1] for r in results]
-
-        # Convert to backend array if requested
-        if self.backend.name == "torch":
-            import torch as _torch
-
-            return _torch.as_tensor(concatenate(weighted_similarity_chunks), dtype=_torch.float64)
-        return concatenate(weighted_similarity_chunks)
+        return self.backend.concatenate(weighted_similarity_chunks)
 
 
 class IntersetSimilarityFromRayFunction(SimilarityFromRayFunction):
@@ -241,10 +235,5 @@ class SimilarityFromSymmetricRayFunction(SimilarityFromSymmetricFunction):
             self.similarities_out += self.similarities_out.T
             for i in range(self.X.shape[0]):
                 self.similarities_out[i, i] = 1.0
-        # convert to torch if requested
-        if self.backend.name == "torch":
-            import torch as _torch
-
-            return _torch.as_tensor(result, dtype=_torch.float64)
         return result
 
