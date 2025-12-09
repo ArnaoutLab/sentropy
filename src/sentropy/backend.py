@@ -52,7 +52,7 @@ class BaseBackend:
     def matmul(self, A, B):
         raise NotImplementedError
 
-    def sum(self, x, axis=None):
+    def sum(self, x, axis=None, keepdims=False, where=None):
         raise NotImplementedError
 
     def ones(self, shape, dtype=None):
@@ -67,7 +67,7 @@ class BaseBackend:
     def identity(self, n):
         raise NotImplementedError
 
-    def power(self, x, exponent):
+    def power(self, x, exponent, out=None, where=None):
         raise NotImplementedError
 
     def prod(self, x, axis=None, where=None):
@@ -140,8 +140,11 @@ class NumpyBackend(BaseBackend):
     def matmul(self, A, B):
         return A @ B
 
-    def sum(self, x, axis=None, keepdims=False):
-        return _np.sum(x, axis=axis, keepdims=keepdims)
+    def sum(self, x, axis=None, keepdims=False, where=None):
+        if where is not None:
+            return _np.sum(x, axis=axis, keepdims=keepdims, where=where)
+        else:
+            return _np.sum(x, axis=axis, keepdims=keepdims)
 
     def ones(self, shape, dtype=None):
         return _np.ones(shape, dtype=dtype)
@@ -155,8 +158,11 @@ class NumpyBackend(BaseBackend):
     def identity(self, n):
         return _np.identity(n)
 
-    def power(self, x, exponent):
-        return _np.power(x, exponent)
+    def power(self, x, exponent, out=None, where=None):
+        if where is not None:
+            return _np.power(x, exponent, out=out, where=where)
+        else:
+            return _np.power(x, exponent, out=out)
 
     def prod(self, x, axis=None, where=None):
         # numpy prod doesn't accept where prior to newer numpy; use fallback
@@ -176,7 +182,10 @@ class NumpyBackend(BaseBackend):
         return _np.isclose(a, b, atol=atol)
 
     def multiply(self, a, b, out=None, where=None):
-        return _np.multiply(a, b, out=out)
+        if where is not None:
+            return _np.multiply(a, b, out=out, where=where)
+        else:
+            return _np.multiply(a, b, out=out)
 
     def abs(self, x):
         return _np.abs(x)
@@ -246,9 +255,9 @@ class TorchBackend(BaseBackend):
         B = B.to(A.dtype)
         return A @ B
 
-    def sum(self, x, axis=None, keepdims=False):
-        if axis is None:
-            return self.torch.sum(x, dim=axis, keepdim=keepdims)
+    def sum(self, x, axis=None, keepdims=False, where=None):
+        if where is not None:
+            x = x*where
         return self.torch.sum(x, dim=axis, keepdim=keepdims)
 
     def ones(self, shape, dtype=None):
@@ -266,8 +275,12 @@ class TorchBackend(BaseBackend):
     def identity(self, n):
         return self.torch.eye(n, dtype=self.dtype, device=self.device)
 
-    def power(self, x, exponent):
-        return self.torch.pow(x, exponent)
+    def power(self, x, exponent, out=None, where=None):
+        if where is None:
+            return self.torch.pow(x, exponent)
+        else:
+            out = torch.where(where, torch.pow(x, exponent), x)
+            return out
 
     def prod(self, x, axis=None, where=None):
         if axis is None:
@@ -290,7 +303,11 @@ class TorchBackend(BaseBackend):
         return self.torch.isclose(a, b, atol=atol)
 
     def multiply(self, a, b, out=None, where=None):
-        return a * b
+        if where is None:
+            return torch.multiply(a,b,out=out)
+        else:
+            out = torch.where(where, a*b, out)
+            return out
 
     def abs(self, x):
         return self.torch.abs(x)

@@ -51,6 +51,7 @@ def power_mean(
     If backend is None, will select torch backend if inputs are torch tensors,
     otherwise numpy backend is used.
     """
+
     # Choose backend
     if type(backend)==str:
         backend=get_backend(backend) 
@@ -70,11 +71,9 @@ def power_mean(
         return backend.prod(powered, axis=0)
 
     else:
-        # result = zeros(shape=items.shape, dtype=float64)
-        result = backend.zeros(getattr(items, "shape", None))
-        powered = backend.power(items, order)
-        # multiply powered by weights elementwise
-        multiplied = backend.multiply(powered, weights)
-        items_sum = backend.sum(multiplied, axis=0)
+        result = backend.zeros(shape=items.shape)
+        backend.power(items, order, where=weight_is_nonzero, out=result)
+        backend.multiply(result, weights, where=weight_is_nonzero, out=result)
+        items_sum = backend.sum(result, axis=0, where=weight_is_nonzero)
         return backend.power(items_sum, 1.0 / order)
 

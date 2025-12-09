@@ -148,7 +148,7 @@ class Set:
                 denominator,
                 self.abundance.normalized_subset_abundance.shape,
             )
-            
+
         # divide with safe handling
         ratio = self.backend.divide(numerator, denominator)
 
