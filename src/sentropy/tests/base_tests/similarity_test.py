@@ -356,9 +356,10 @@ def test_weighted_abundances_from_function(
 
 
 def test_weighted_similarity_chunk(similarity_function):
-    chunk_index, chunk, similarities = weighted_similarity_chunk_nonsymmetric(
-        similarity=similarity_function,
-        X=X_3by2,
+    similarity = SimilarityFromFunction(func=similarity_function, X=X_3by2)
+    chunk_index, chunk, similarities = similarity.weighted_similarity_chunk_nonsymmetric(
+        similarity=similarity.func,
+        X=similarity.X,
         Y=None,
         relative_abundance=relative_abundance_3by2,
         chunk_size=3,
@@ -474,9 +475,10 @@ symmetric_example_abundance = array([[1, 0], [0, 1], [1, 0], [0, 10]])
     ],
 )
 def test_weighted_similarity_chunk_symmetric(chunk_index, expected):
-    _, result, _ = weighted_similarity_chunk_symmetric(
-        another_similarity_func,
-        symmetric_example_X,
+    similarity = SimilarityFromSymmetricFunction(func=another_similarity_func, X=symmetric_example_X)
+    _, result, _ = similarity.weighted_similarity_chunk_symmetric(
+        similarity.func,
+        similarity.X,
         symmetric_example_abundance,
         2,
         chunk_index,
