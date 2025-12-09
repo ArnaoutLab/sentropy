@@ -150,10 +150,7 @@ class Set:
             )
             
         # divide with safe handling
-        ratio = numerator / denominator
-        # where denominator == 0, we need zeros: do mask-based approach
-        # but keep semantics similar to previous np.divide(..., out=zeros, where=denominator!=0)
-        # power_mean expects backend-aware arrays; pass backend
+        ratio = self.backend.divide(numerator, denominator)
 
         diversity_measure = power_mean(
             order=1 - viewpoint,

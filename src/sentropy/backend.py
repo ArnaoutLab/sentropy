@@ -112,6 +112,9 @@ class BaseBackend:
     def copy(self, x):
         raise NotImplementedError
 
+    def divide(self, x, y):
+        raise NotImplementedError
+
 class NumpyBackend(BaseBackend):
     name = "numpy"
 
@@ -201,6 +204,9 @@ class NumpyBackend(BaseBackend):
 
     def copy(self, x):
         return x.copy()
+
+    def divide(self, x, y):
+        return _np.divide(x, y, out=_np.zeros(y.shape), where=y !=0)
 
 
 class TorchBackend(BaseBackend):
@@ -321,6 +327,12 @@ class TorchBackend(BaseBackend):
 
     def copy(self, x):
         return x.clone()
+
+    def divide(self, x, y):
+        out = torch.zeros_like(y)
+        mask = y != 0
+        out[mask] = x[mask]/y[mask]
+        return out
 
 
 def get_backend(name: str = "numpy", device: Optional[str] = None) -> BaseBackend:
