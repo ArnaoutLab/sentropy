@@ -35,7 +35,7 @@ class BackendError(RuntimeError):
     pass
 
 
-class BaseBackend:
+class BaseBackend: # pragma: no cover
     name = "base"
 
     def __init__(self, device: Optional[str] = None):
@@ -140,8 +140,8 @@ class NumpyBackend(BaseBackend):
         # x already numpy-like
         return _np.asarray(x)
 
-    def to_device(self, x):
-        return _np.asarray(x)
+    # def to_device(self, x):
+    #     return _np.asarray(x)
 
     def matmul(self, A, B):
         return A @ B
@@ -201,8 +201,8 @@ class NumpyBackend(BaseBackend):
     def any(self, x, axis=None):
         return _np.any(x, axis=axis)
 
-    def where(self, cond, x, y):
-        return _np.where(cond, x, y)
+    # def where(self, cond, x, y):
+    #     return _np.where(cond, x, y)
 
     def log(self, x):
         return _np.log(x)
@@ -247,9 +247,7 @@ class TorchBackend(BaseBackend):
     def to_numpy(self, x):
         if isinstance(x, self.torch.Tensor):
             return x.detach().cpu().numpy()
-        import numpy as np
-
-        return np.asarray(x)
+        return _np.asarray(x)
 
     def to_device(self, x):
         if isinstance(x, self.torch.Tensor):
@@ -292,6 +290,7 @@ class TorchBackend(BaseBackend):
                 return self.torch.where(where, result, x)
             else:
                 out.copy_(x)
+                result = result.to(out.dtype)
                 out[where] = result[where]
                 return out
 

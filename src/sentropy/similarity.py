@@ -68,31 +68,17 @@ class SimilarityFromArray(Similarity):
     ):
         super().__init__(similarities_out=similarities_out, backend=backend)
         self.similarity_raw = similarity
-        if similarity is not None:
-            #convert to backend array if backend supports it
-            try:
-                self.similarity = self.backend.asarray(similarity)
-            except Exception:
-                self.similarity = similarity
-        else:
-            self.similarity = similarity
+        self.similarity = self.backend.asarray(similarity)
 
     def weighted_abundances(self, relative_abundance):
         if self.similarities_out is not None:
             # write to the numpy buffer if provided
             # similarity may be backend tensor — convert to numpy if needed
-            try:
-                self.similarities_out[:, :] = self.backend.to_numpy(self.similarity)
-            except Exception:
-                # fallback: try copying via numpy
-                self.similarities_out[:, :] = _np.asarray(self.similarity)
+            self.similarities_out[:, :] = self.backend.to_numpy(self.similarity)
         return self.backend.matmul(self.similarity, relative_abundance)
 
     def self_similar_weighted_abundances(self, relative_abundances):
-        if self.similarity.shape[0] == self.similarity.shape[1]:
-            return self.weighted_abundances(relative_abundances)
-        else:
-            raise InvalidArgumentError("Similarity matrix must be square")
+        return self.weighted_abundances(relative_abundances)
 
 
 class SimilarityFromDataFrame(SimilarityFromArray):

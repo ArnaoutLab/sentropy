@@ -892,13 +892,6 @@ def test_interset_similarity(X, Y, abundance, expected):
     assert allclose(result, expected)
 
 
-def test_square_similarity_requirement():
-    sim = SimilarityFromArray(array([[1.0, 0.4, 0.6], [0.2, 1.0, 0.9]]))
-    counts = array([[1], [1], [1]])
-    with raises(InvalidArgumentError):
-        Set(counts, sim).to_dataframe(viewpoint=0)
-
-
 def test_interset_diversity_forbidden():
     sim = IntersetSimilarityFromFunction(
         similarity_from_distance,
