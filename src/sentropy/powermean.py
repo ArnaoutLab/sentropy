@@ -62,9 +62,9 @@ def power_mean(
 
     # Analytical limits
     if order < -100:
-        return backend.amin(items, axis=0)
+        return backend.amin(items, axis=0, where=weight_is_nonzero, initial=_np_inf)
     elif order > 100:
-        return backend.amax(items, axis=0)
+        return backend.amax(items, axis=0, where=weight_is_nonzero, initial=-_np_inf)
     elif backend.isclose(order, 0, atol):
         # product of power(items, weights) across axis 0 where weight_is_nonzero
         powered = backend.power(items, weights)

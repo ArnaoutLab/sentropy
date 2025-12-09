@@ -172,17 +172,16 @@ class NumpyBackend(BaseBackend):
 
     def prod(self, x, axis=None, where=None):
         # numpy prod doesn't accept where prior to newer numpy; use fallback
-        return _np.prod(x, axis=axis)
+        if where is not None:
+            return _np.prod(x, axis=axis, where=where)
+        else:
+            return _np.prod(x, axis=axis)
 
     def amin(self, x, axis=None, where=None, initial=None):
-        if where is None:
-            return _np.amin(x, axis=axis)
-        return _np.amin(x, axis=axis)
+        return _np.amin(x, axis=axis, where=where, initial=initial)
 
     def amax(self, x, axis=None, where=None, initial=None):
-        if where is None:
-            return _np.amax(x, axis=axis)
-        return _np.amax(x, axis=axis)
+        return _np.amax(x, axis=axis, where=where, initial=initial)
 
     def isclose(self, a, b, atol=1e-9):
         return _np.isclose(a, b, atol=atol)
@@ -283,25 +282,83 @@ class TorchBackend(BaseBackend):
 
     def power(self, x, exponent, out=None, where=None):
         if where is None:
-            return self.torch.pow(x, exponent)
+            if out is not None:
+                return out.copy_(self.torch.pow(x, exponent))
+            else:
+                return self.torch.pow(x, exponent)
         else:
-            out = torch.where(where, torch.pow(x, exponent), x)
-            return out
+            result = self.torch.pow(x, exponent)
+            if out is None:
+                return self.torch.where(where, result, x)
+            else:
+                out.copy_(x)
+                out[where] = result[where]
+                return out
 
     def prod(self, x, axis=None, where=None):
-        if axis is None:
-            return self.torch.prod(x)
         return self.torch.prod(x, dim=axis)
 
     def amin(self, x, axis=None, where=None, initial=None):
-        if axis is None:
-            return self.torch.amin(x)
-        return self.torch.amin(x, dim=axis)
+        # Convert axis naming
+        dim = axis
+
+        # Case 1: No `where` mask — simplest path
+        if where is None:
+            if initial is None:
+                return self.torch.amin(x, dim=dim)
+            else:
+                # Apply initial: min(initial, torch.min(x))
+                min_x = self.torch.amin(x, dim=dim)
+                return self.torch.minimum(min_x, self.torch.tensor(initial))
+
+        # Case 2: `where` mask exists
+        # PyTorch has no where-min, so emulate:
+        # Mask out invalid entries by replacing them with +inf so they don't affect min
+
+        # Get +inf of correct dtype
+        inf = self.torch.tensor(float("inf"))
+
+        # Apply mask: where False → replace x with +inf
+        masked = self.torch.where(where, x, inf)
+
+        # Compute min of masked entries
+        result = self.torch.amin(masked, dim=dim)
+
+        # Apply `initial` if needed
+        if initial is not None:
+            result = self.torch.minimum(result, self.torch.tensor(initial))
+
+        return result
+
 
     def amax(self, x, axis=None, where=None, initial=None):
-        if axis is None:
-            return self.torch.amax(x)
-        return self.torch.amax(x, dim=axis)
+        dim = axis
+
+        # Case 1: No `where` mask
+        if where is None:
+            if initial is None:
+                return self.torch.amax(x, dim=dim)
+            else:
+                # min_x = torch.max(x)
+                max_x = self.torch.amax(x, dim=dim)
+                initial_tensor = self.torch.tensor(initial)
+                return self.torch.maximum(max_x, initial_tensor)
+
+        # Case 2: where mask exists
+        # Replace masked-out entries with -inf so they can't affect max
+        ninf = self.torch.tensor(float("-inf"))
+
+        masked = self.torch.where(where, x, ninf)
+
+        result = self.torch.amax(masked, dim=dim)
+
+        # Apply initial if provided
+        if initial is not None:
+            initial_tensor = self.torch.tensor(initial)
+            result = self.torch.maximum(result, initial_tensor)
+
+        return result
+
 
     def isclose(self, a, b, atol=1e-9):
         a = self.torch.tensor(a)
@@ -310,10 +367,17 @@ class TorchBackend(BaseBackend):
 
     def multiply(self, a, b, out=None, where=None):
         if where is None:
-            return torch.multiply(a,b,out=out)
+            return self.torch.multiply(a,b, out=out)
         else:
-            out = torch.where(where, a*b, out)
-            return out
+            result = a*b
+            if result.dtype != out.dtype:
+                result = result.to(out.dtype)
+            if out is None:
+                return self.torch.where(where, result, a)
+            else:
+                out.copy_(a)
+                out[where] = result[where]
+                return out
 
     def abs(self, x):
         return self.torch.abs(x)
@@ -343,18 +407,19 @@ class TorchBackend(BaseBackend):
         return self.torch.broadcast_to(x, shape)
 
     def zeros(self, shape):
-        return self.torch.zeros(shape)
+        return self.torch.zeros(shape, device=self.device)
 
     def empty(self, shape):
-        return self.torch.empty(shape)
+        return self.torch.empty(shape, device=self.device)
 
     def copy(self, x):
         return x.clone()
 
     def divide(self, x, y):
-        out = torch.zeros_like(y)
-        mask = y != 0
-        out[mask] = x[mask]/y[mask]
+        # Ensure x and y are tensors
+        x = self.torch.as_tensor(x)
+        y = self.torch.as_tensor(y)
+        out = self.torch.where(y!=0, x/y, self.torch.zeros_like(x))
         return out
 
 

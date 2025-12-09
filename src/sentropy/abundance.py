@@ -127,7 +127,6 @@ class AbundanceForDiversity(Abundance):
 
     def premultiply_by(self, similarity):
         if similarity.is_expensive():
-            print("type(similarity):", type(similarity))
             all_ordinariness = similarity.self_similar_weighted_abundances(
                 self.get_unified_abundance_array()
             )

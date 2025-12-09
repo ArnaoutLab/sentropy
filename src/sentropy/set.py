@@ -14,6 +14,8 @@ from sentropy.components import Components
 from sentropy.powermean import power_mean
 from sentropy.backend import get_backend
 
+from torch import Tensor
+
 
 class Set:
     similarity: Similarity
@@ -223,11 +225,10 @@ class Set:
         measures for a given viewpoint
         """
         df = DataFrame(
-            {
-                measure: self.subset_diversity(viewpoint, measure, eff_no)
-                for measure in measures
-            }
-        )
+        {
+            measure: (self.subset_diversity(viewpoint, measure, eff_no).cpu() if isinstance(self.subset_diversity(viewpoint, measure, eff_no),Tensor) else \
+                self.subset_diversity(viewpoint, measure, eff_no)) for measure in measures
+        })
         df.insert(0, "viewpoint", viewpoint)
         df.insert(0, "set/subset", Series(self.abundance.subsets_names))
         return df
@@ -247,13 +248,14 @@ class Set:
         A pandas.DataFrame containing all set diversity
         measures for a given viewpoint
         """
+
         df = DataFrame(
-            {
-                measure: self.set_diversity(viewpoint, measure, eff_no)
-                for measure in measures
-            },
-            index=Index(["set"], name="set/subset"),
-        )
+        {
+            measure: (self.set_diversity(viewpoint, measure, eff_no).cpu() if isinstance(self.set_diversity(viewpoint, measure, eff_no),Tensor) else \
+                self.set_diversity(viewpoint, measure, eff_no)) for measure in measures
+        },
+        index=Index(["set"], name="set/subset"))
+
         df.insert(0, "viewpoint", viewpoint)
         df.reset_index(inplace=True)
         return df
