@@ -23,6 +23,12 @@ sparse_classes = [
         scipy.sparse.coo_matrix,
         scipy.sparse.csc_matrix,
         scipy.sparse.csr_matrix,
+        scipy.sparse.dia_array,
+        scipy.sparse.dia_matrix,
+        scipy.sparse.lil_array,
+        scipy.sparse.lil_matrix,
+        scipy.sparse.dok_array,
+        scipy.sparse.dok_matrix,
     ]
 
 class BackendError(RuntimeError):
