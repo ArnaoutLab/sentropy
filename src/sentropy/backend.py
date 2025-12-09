@@ -11,6 +11,19 @@ Usage:
 from typing import Optional
 import numpy as _np
 import torch as _torch
+import scipy.sparse
+
+
+sparse_classes = [
+        scipy.sparse.bsr_array,
+        scipy.sparse.coo_array,
+        scipy.sparse.csc_array,
+        scipy.sparse.csr_array,
+        scipy.sparse.bsr_matrix,
+        scipy.sparse.coo_matrix,
+        scipy.sparse.csc_matrix,
+        scipy.sparse.csr_matrix,
+    ]
 
 class BackendError(RuntimeError):
     pass
@@ -109,7 +122,10 @@ class NumpyBackend(BaseBackend):
         return _np.array(x, dtype=dtype)
 
     def asarray(self, x):
-        return _np.asarray(x)
+        if type(x) not in sparse_classes:
+            return _np.asarray(x)
+        else:
+            return x
 
     def to_numpy(self, x):
         # x already numpy-like

@@ -33,8 +33,6 @@ from sentropy.similarity import (
     SimilarityFromFunction,
     SimilarityFromSymmetricFunction,
     IntersetSimilarityFromFunction,
-    weighted_similarity_chunk_nonsymmetric,
-    weighted_similarity_chunk_symmetric,
 )
 from sentropy import Set
 from sentropy.exceptions import InvalidArgumentError
@@ -418,7 +416,9 @@ def test_sparse_similarity(sparse_class):
     sparse_similarity = sparse_class(
         (spec["data"], (spec["row"], spec["col"])), shape=spec["shape"]
     )
+
     counts = DataFrame({"Medford": [3, 2, 0], "Somerville": [1, 4, 0]})
+
     compare_dense_sparse(counts, dense_similarity, sparse_similarity)
 
 
@@ -832,7 +832,7 @@ def test_dataframe_similarity():
         ],
     ],
 )
-def test_compuation_count(
+def test_computation_count(
     sim, key, expected_count, callcounter, make_similarity_from_file
 ):
     """

@@ -69,7 +69,7 @@ class SimilarityFromArray(Similarity):
         super().__init__(similarities_out=similarities_out, backend=backend)
         self.similarity_raw = similarity
         if similarity is not None:
-            # convert to backend array if backend supports it
+            #convert to backend array if backend supports it
             try:
                 self.similarity = self.backend.asarray(similarity)
             except Exception:

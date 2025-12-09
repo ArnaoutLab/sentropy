@@ -100,6 +100,9 @@ class Set:
                         max_inflight_tasks=max_inflight_tasks, backend=self.backend)
                 else:
                     self.similarity = SimilarityFromFunction(func=similarity, X=X, chunk_size=chunk_size, backend=self.backend)
+        else:
+            self.similarity = similarity
+
         self.components = Components(
             abundance=self.abundance, similarity=self.similarity
         )
