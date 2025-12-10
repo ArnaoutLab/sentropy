@@ -87,3 +87,35 @@ def test_backend_equivalence_of_multiply():
 
 	assert np.allclose(np_result, torch_result)
 	assert np.allclose(np_result_with_where, torch_result_with_where)
+
+def test_backend_equivalence_of_abs():
+	x = np.array([[1,-2,3],[0,5,-6]])
+	assert np.allclose(numpy_bkd.abs(x), torch_bkd.abs(torch.tensor(x)))
+
+def test_backend_equivalence_of_all_and_any():
+	x = np.array([[True, False, True], [False, False, True]])
+	assert np.allclose(numpy_bkd.all(x), torch_bkd.all(torch.tensor(x)))
+	assert np.allclose(numpy_bkd.all(x, axis=0), torch_bkd.all(torch.tensor(x), axis=0))
+	assert np.allclose(numpy_bkd.any(x), torch_bkd.any(torch.tensor(x)))
+	assert np.allclose(numpy_bkd.any(x, axis=0), torch_bkd.any(torch.tensor(x), axis=0))
+
+def test_backend_equivalence_of_log():
+	x = np.array([[1, 2],[3, 4]])
+	assert np.allclose(numpy_bkd.log(x), torch_bkd.log(torch.tensor(x)))
+
+def test_backend_equivalence_of_broadcast_to():
+	x = np.array([1,2,3])
+	assert np.allclose(numpy_bkd.broadcast_to(x, shape=(2,3)), torch_bkd.broadcast_to(torch.tensor(x), shape=(2,3)))
+
+def test_backend_equivalence_of_zeros_and_empty():
+	assert np.allclose(numpy_bkd.zeros(shape=(2,2)),torch_bkd.zeros(shape=(2,2)))
+	assert np.allclose(numpy_bkd.empty(shape=(2,2)),torch_bkd.empty(shape=(2,2)))
+
+def test_backend_equivalence_of_copy():
+	x = np.array([1,2,3])
+	assert np.allclose(numpy_bkd.copy(x),torch_bkd.copy(torch.tensor(x)))
+
+def test_backend_equivalence_of_divide():
+	x = np.array([1,2,3,4,5])
+	y = np.array([3,0,2,0,1])	
+	assert np.allclose(numpy_bkd.divide(x,y), torch_bkd.divide(x,y))
