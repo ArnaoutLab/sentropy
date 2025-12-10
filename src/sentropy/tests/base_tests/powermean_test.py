@@ -303,6 +303,11 @@ def test_power_mean(order, weights, items, atol, expected):
             equal_weights_and_items,
             equal_weights_and_items,
         ),
+        ( #passing a list for weights, which doesn't have a shape attribute
+            2,
+            list(equal_weights_and_items),
+            equal_weights_and_items,
+        ),
     ],
 )
 def test_power_mean_invalid_args(order, weights, items):
