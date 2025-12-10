@@ -217,11 +217,11 @@ class SimilarityFromSymmetricFunction(Similarity):
         rows_result = self.backend.matmul(similarities_chunk, relative_abundance)
         rows_after_count = max(0, relative_abundance.shape[0] - (chunk_index + chunk_size))
         from numpy import vstack, zeros as _zeros
-        rows_result = vstack(
+        rows_result = self.backend.vstack(
             (
-                _zeros(shape=(chunk_index, relative_abundance.shape[1])),
+                self.backend.zeros(shape=(chunk_index, relative_abundance.shape[1])),
                 rows_result,
-                _zeros(
+                self.backend.zeros(
                     shape=(
                         rows_after_count,
                         relative_abundance.shape[1],
@@ -230,7 +230,7 @@ class SimilarityFromSymmetricFunction(Similarity):
             )
         )
         relative_abundance_slice = relative_abundance[chunk_index : chunk_index + chunk_size]
-        cols_result = similarities_chunk.T @ relative_abundance_slice
+        cols_result = self.backend.matmul(similarities_chunk.T, relative_abundance_slice)
         result = rows_result + cols_result
         if return_Z:
             return chunk_index, result, similarities_chunk

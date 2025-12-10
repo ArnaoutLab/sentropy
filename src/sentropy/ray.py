@@ -71,11 +71,11 @@ def weighted_similarity_chunk_symmetric(similarity: Callable,
     rows_result = backend.matmul(similarities_chunk, relative_abundance)
     rows_after_count = max(0, relative_abundance.shape[0] - (chunk_index + chunk_size))
     from numpy import vstack, zeros as _zeros
-    rows_result = vstack(
+    rows_result = backend.vstack(
         (
-            _zeros(shape=(chunk_index, relative_abundance.shape[1])),
+            backend.zeros(shape=(chunk_index, relative_abundance.shape[1])),
             rows_result,
-            _zeros(
+            backend.zeros(
                 shape=(
                     rows_after_count,
                     relative_abundance.shape[1],
