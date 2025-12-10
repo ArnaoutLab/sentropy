@@ -51,10 +51,7 @@ class Abundance:
         # min_count : small nonzero for numerical stability
         total = self.backend.sum(self.counts)
         # guard: total could be scalar tensor -> convert to python float if needed
-        try:
-            total_scalar = float(total)
-        except Exception:
-            total_scalar = total
+        total_scalar = float(total)
         # compute min_count using backend's array semantics
         # fallback to numpy small value
         self.min_count = min(1.0 / (total_scalar if total_scalar != 0 else 1.0), 1e-9)
