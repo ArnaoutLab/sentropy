@@ -27,7 +27,7 @@ class Similarity(ABC):
         self.similarities_out = similarities_out
         self.backend = backend or get_backend("numpy")
 
-    @abstractmethod
+    @abstractmethod #pragma: no cover
     def weighted_abundances(
         self,
         relative_abundances: Union[_np.ndarray, spmatrix],

@@ -30,18 +30,14 @@ def weighted_similarity_chunk_nonsymmetric(similarity: Callable,
     where Z is not given explicitly but rather each entry
     Z[i,j] is calculated by a function.
     """
-
-    def enum_helper(X):
-        if type(X) == DataFrame:
-            return X.itertuples()
-        return X
+    X = _np.array(X)
 
     if Y is None:
         Y = X
     chunk = X[chunk_index : chunk_index + chunk_size]
     similarities_chunk = backend.empty(shape=(chunk.shape[0], Y.shape[0]))
-    for i, row_i in enumerate(enum_helper(chunk)):
-        for j, row_j in enumerate(enum_helper(Y)):
+    for i, row_i in enumerate(chunk):
+        for j, row_j in enumerate(Y):
             similarities_chunk[i, j] = similarity(row_i, row_j)
 
     result = backend.matmul(similarities_chunk, relative_abundance)
@@ -58,15 +54,11 @@ def weighted_similarity_chunk_symmetric(similarity: Callable,
         chunk_index: int,
         return_Z: bool = True,
     ):
-    def enum_helper(X, start_index=0):
-        if type(X) == DataFrame:
-            return X.iloc[start_index:].itertuples()
-        return X[start_index:]
-
+    X = _np.array(X)
     chunk = X[chunk_index : chunk_index + chunk_size]
     similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
-    for i, row_i in enumerate(enum_helper(chunk)):
-        for j, row_j in enumerate(enum_helper(X, chunk_index + i + 1)):
+    for i, row_i in enumerate(chunk):
+        for j, row_j in enumerate(X[chunk_index + i + 1:]):
             similarities_chunk[i, i + j + chunk_index + 1] = similarity(row_i, row_j)
     rows_result = backend.matmul(similarities_chunk, relative_abundance)
     rows_after_count = max(0, relative_abundance.shape[0] - (chunk_index + chunk_size))
