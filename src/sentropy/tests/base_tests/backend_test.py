@@ -50,3 +50,40 @@ def test_backend_equivalence_of_power():
 
 	assert (np_result == torch_result).all()
 	assert (np_result_with_where[:2] == torch_result_with_where[:2]).all()
+
+def test_backend_equivalence_of_prod():
+	x = [[1,2,3],[4,5,6]]
+	where = [[True, True, False], [False, False, True]]
+	assert (numpy_bkd.prod(x, axis=1) == torch_bkd.prod(torch.Tensor(x), axis=1)).all()
+	assert (numpy_bkd.prod(x, where=where) == torch_bkd.prod(torch.tensor(x), where=torch.tensor(where)))
+	assert (numpy_bkd.prod(x, axis=0, where=where) == torch_bkd.prod(torch.tensor(x), axis=0, where=torch.tensor(where))).all()
+
+def test_backend_equivalence_of_amin_and_amax():
+	x = np.array([[1,2,3],[4,5,6]])
+	where = np.array([[False, True, False], [True, False, False]])
+	assert (numpy_bkd.amin(x) == torch_bkd.amin(torch.tensor(x))).all()
+	assert (numpy_bkd.amin(x, where=where, initial=100) == torch_bkd.amin(torch.tensor(x), where=torch.tensor(where), initial=100)).all()
+	assert (numpy_bkd.amin(x, where=where, initial=100, axis=0) == torch_bkd.amin(torch.tensor(x), where=torch.tensor(where), initial=100, axis=0)).all()
+
+	assert (numpy_bkd.amax(x) == torch_bkd.amax(torch.tensor(x))).all()
+	assert (numpy_bkd.amax(x, where=where, initial=-100) == torch_bkd.amax(torch.tensor(x), where=torch.tensor(where), initial=-100)).all()
+	assert (numpy_bkd.amax(x, where=where, initial=-100, axis=0) == torch_bkd.amax(torch.tensor(x), where=torch.tensor(where), initial=-100, axis=0)).all()
+
+def test_backend_equivalence_of_isclose():
+	x = np.array([[1,2,3],[4,5,6]])
+	y = np.array([[1.01,2.005,2.99],[4.001,4.995,5.999]])
+
+	assert (numpy_bkd.isclose(x,y, rtol=1e-2, atol=1e-2) == torch_bkd.isclose(torch.tensor(x), torch.tensor(y), rtol=1e-2, atol=1e-2)).all()
+
+def test_backend_equivalence_of_multiply():
+	x = np.array([[1,2,3],[4,5,6]])
+	y = np.array([[1.01,2.005,2.99],[4.001,4.995,5.999]])
+	where = np.array([[False, False, True],[False, False, False]])
+
+	np_result = numpy_bkd.multiply(x,y)
+	torch_result = torch_bkd.multiply(torch.tensor(x),torch.tensor(y))
+	np_result_with_where = numpy_bkd.multiply(x,y,where=where, out=np.ones_like(y))
+	torch_result_with_where = torch_bkd.multiply(torch.tensor(x),torch.tensor(y),where=torch.tensor(where), out=torch.ones(y.shape))
+
+	assert np.allclose(np_result, torch_result)
+	assert np.allclose(np_result_with_where, torch_result_with_where)
