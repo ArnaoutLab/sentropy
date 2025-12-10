@@ -4,8 +4,8 @@ import pandas as pd
 import torch
 import numpy as np
 
-gpu_device = None
-if torch.cuda.is_available():
+gpu_device = None #pragma: no cover
+if torch.cuda.is_available(): #pragma: no cover
 	gpu_device = "cuda"
 elif torch.backends.mps.is_available():
 	gpu_device = "mps"

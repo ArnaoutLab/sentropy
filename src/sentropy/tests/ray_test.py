@@ -12,6 +12,7 @@ from numpy import (
     empty,
     dot,
 )
+from pandas import DataFrame
 from numpy.linalg import norm
 import ray
 from sentropy.similarity import (
