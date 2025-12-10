@@ -129,7 +129,15 @@ def test_backend_equivalence_of_isclose():
 	x = np.array([[1,2,3],[4,5,6]])
 	y = np.array([[1.01,2.005,2.99],[4.001,4.995,5.999]])
 
-	assert (numpy_bkd.isclose(x,y, rtol=1e-2, atol=1e-2) == torch_bkd.isclose(torch.tensor(x), torch.tensor(y), rtol=1e-2, atol=1e-2)).all()
+	np_result_1 = numpy_bkd.isclose(x,y, rtol=1e-2, atol=1e-2)
+	torch_result_1 = torch_bkd.isclose(torch.tensor(x), torch.tensor(y), rtol=1e-2, atol=1e-2)
+	np_result_2 = numpy_bkd.isclose(y,x, rtol=1e-2, atol=1e-2)
+	torch_result_2 = torch_bkd.isclose(torch.tensor(y), torch.tensor(x), rtol=1e-2, atol=1e-2)
+
+	assert np_result_1.all()
+	assert torch_result_1.all()
+	assert np_result_2.all()
+	assert torch_result_2.all()
 
 def test_backend_equivalence_of_multiply():
 	x = np.array([[1,2,3],[4,5,6]])
@@ -138,11 +146,14 @@ def test_backend_equivalence_of_multiply():
 
 	np_result = numpy_bkd.multiply(x,y)
 	torch_result = torch_bkd.multiply(torch.tensor(x),torch.tensor(y))
-	np_result_with_where = numpy_bkd.multiply(x,y,where=where, out=np.ones_like(y))
-	torch_result_with_where = torch_bkd.multiply(torch.tensor(x),torch.tensor(y),where=torch.tensor(where), out=torch.ones(y.shape))
+	np_result_with_where = numpy_bkd.multiply(x,y,where=where)
+	torch_result_with_where = torch_bkd.multiply(torch.tensor(x),torch.tensor(y),where=torch.tensor(where))
+	np_result_with_where_out = numpy_bkd.multiply(x,y,where=where, out=np.ones_like(y))
+	torch_result_with_where_out = torch_bkd.multiply(torch.tensor(x),torch.tensor(y),where=torch.tensor(where), out=torch.ones(y.shape))
 
 	assert np.allclose(np_result, torch_result)
 	assert np.allclose(np_result_with_where, torch_result_with_where)
+	assert np.allclose(np_result_with_where_out, torch_result_with_where_out)
 
 def test_backend_equivalence_of_abs():
 	x = np.array([[1,-2,3],[0,5,-6]])
@@ -175,3 +186,12 @@ def test_backend_equivalence_of_divide():
 	x = np.array([1,2,3,4,5])
 	y = np.array([3,0,2,0,1])	
 	assert np.allclose(numpy_bkd.divide(x,y), torch_bkd.divide(x,y))
+
+def test_array_if_needed():
+    x = torch.tensor([1,2,3])
+    assert np.allclose(x, torch_bkd.asarray_if_needed(x))
+
+def test_get_backend():
+	assert isinstance(get_backend(), NumpyBackend)
+	assert isinstance(get_backend('numpy'), NumpyBackend)
+	assert isinstance(get_backend('torch'), TorchBackend)
