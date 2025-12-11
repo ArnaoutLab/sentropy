@@ -16,7 +16,10 @@
   - [alpha diversities](#alpha-diversities)
   - [beta diversities](#beta-diversities)
 - [Advanced usage](#advanced-usage)
-- [Calculating ordinariness](#calculating-ordinariness)
+  - [Parallelization using the ray package](#parallelization-with-ray)
+  - [Calculating ordinariness](#calculating-ordinariness)
+  - [Computing relative entropies](#relative-entropies)
+  - [PyTorch and GPU support](#torch-and-GPU)
 - [Command-line usage](#command-line-usage)
 - [Applications](#applications)
 - [Alternatives](#alternatives)
@@ -522,7 +525,6 @@ we need to use the `IntersetSimilarityFromRayFunction` class instead, like so:
 ```
 from sentropy.abundance import Abundance
 from sentropy.ray import IntersetSimilarityFromRayFunction
-import numpy as np
 
 def similarity_function(species_i, species_j):
     return 1 / (1 + np.linalg.norm(species_i - species_j))
@@ -558,7 +560,7 @@ If we do not pass anything to the `similarity` argument, then the function will 
 
 It is also convenient to obtain the actual KL/Renyi divergences without the exponentiation. To do so, we pass `eff_no = False`, just like for LCR diversity indices. Finally, we can also pass `which="set"` or `which="subset"` if we are interested only in the divergence at the set level or at the subset level.
 
-# Pytorch and GPU support
+## Pytorch and GPU support
 For heavier computations, it is possible to use PyTorch instead of numpy to obtain some acceleration. To do so, we pass `backend="torch"` to `relative_sentropy`. (By the fault, the `backend` argument takes value `"numpy"`.) In order to have the computation of the diversity indices run on the GPU, we can additionally pass `device="mps"` or `device="cuda"`, depending on whether the computation runs on a Mac computer with Apple silicon, or a computer with NVIDIA CUDA. (By default, the `device` argument takes value `cpu`, which means the computation runs on the CPU.) For example, consider the following set with 100 subsets and 10000 entities:
 
 ```python
@@ -608,7 +610,12 @@ Then from the command line:
 
 The output is a table with all the diversity indices for q=0, 1, and ∞. Note that while .csv or .tsv are acceptable as input, the output is always tab-delimited. The input filepath (`-i`) and the similarity matrix filepath (`-s`) can be URLs to data files hosted on the web. Also note that values of $q>100$ are all calculated as $q=\infty$.
 
-For further options, consult the help:
+To compute relative entropies in the terminal, we simply pass a second csv file for the other abundance matrix:
+```python
+python -m sentropy -i counts_2b_1.csv counts_2b_2.csv -s S_2b.csv -v 1
+```
+
+The full list of flags is `-i` (for input filepath), `-o` (for output filepath), `-s` (for the filepath to the similarity matrix), `-v` (for the viewpoint parameters), `-m` (for the diversity measures of interest), `-chunk_size` (for the chunk size when reading the file into memory), `-which` (for whether to compute diversities at the set/subset level, or both), `-eff_no` (for whether to compute effective numbers or entropies), `-backend` (for whether to use numpy or torch), `-device` (for whether to use the CPU or the GPU). For further options, consult the help:
 
 `python -m sentropy -h`
 
