@@ -17,7 +17,7 @@ jobs:
     runs-on: ${{ matrix.os}}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
         python-version: ['3.9', '3.10', '3.11'] 
 
     steps:
@@ -30,7 +30,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install .[tests, ray]
+        pip install -e ".[tests, ray]"
     - name: Run tests
       run: |
         pytest src/sentropy/tests/base_tests
@@ -40,7 +40,7 @@ jobs:
     runs-on: ${{ matrix.os}}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
         python-version: ['3.9', '3.10', '3.11', '3.12'] 
 
     steps:
@@ -53,7 +53,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install .[tests,ray]
+        pip install -e ".[tests,ray]"
     - name: Run tests
       run: |
         pytest src/sentropy/tests
