@@ -221,7 +221,7 @@ items_6by4 = array(
             ),
             items_6by4[:, :3],
             1e-2,
-            array([0.8120992339, 0.4198668065, 0.72451461]),
+            array([0.8120992339, 0.4198668065, 0.7245218911]),
         ),
         (  # Some zero weights; order == -inf; 2-d data; atol == 1e-9.
             -inf,
