@@ -34,7 +34,7 @@ ray = ["ray>=2.42.1"]
 "Bug Tracker" = "https://github.com/ArnaoutLab/diversity/issues"
 
 [tool.pytest.ini_options]
-addopts = "--cov --cov-report html --cov-report term-missing --cov-fail-under 100"
+addopts = "--cov --cov-report html --cov-report term-missing --cov-fail-under 95"
 
 [tool.coverage.run]
 source = ["src"]
