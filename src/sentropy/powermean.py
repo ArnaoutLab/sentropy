@@ -67,8 +67,10 @@ def power_mean(
         return backend.amax(items, axis=0, where=weight_is_nonzero, initial=-_np_inf)
     elif backend.isclose(order, 0, atol):
         # product of power(items, weights) across axis 0 where weight_is_nonzero
-        powered = backend.power(items, weights)
-        return backend.prod(powered, axis=0)
+        return backend.prod(backend.power(items, weights, where=weight_is_nonzero), 
+            axis=0,
+            where=weight_is_nonzero,
+            )
 
     else:
         result = backend.zeros(shape=items.shape)

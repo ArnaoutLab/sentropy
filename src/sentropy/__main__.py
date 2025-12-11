@@ -14,9 +14,9 @@ from numpy import int64
 from pandas import read_csv
 
 from sentropy.log import LOG_HANDLER, LOGGER
-from sentropy import Set
-from sentropy.similarity import SimilarityFromFile
+from sentropy import relative_sentropy
 from sentropy.parameters import configure_arguments
+import json
 
 # Ensure warnings are handled properly.
 captureWarnings(True)
@@ -37,17 +37,34 @@ def main(args):
     LOGGER.info(" ".join([f"python{python_version()}", *argv]))
     LOGGER.debug(f"args: {args}")
 
-    counts = read_csv(args.input_filepath, sep=None, engine="python", dtype=int64)
-    LOGGER.debug(f"data: {counts}")
-    similarity = SimilarityFromFile(args.similarity, args.chunk_size)
-    set = Set(
-        counts=counts,
-        similarity=similarity,
-    )
-    community_views = set.to_dataframe(viewpoint=args.viewpoint)
-    community_views.to_csv(
-        args.output_filepath, sep="\t", float_format="%.4f", index=False
-    )
+    if len(args.input_filepath) == 1:
+        counts = read_csv(args.input_filepath[0], sep=None, engine="python", dtype=int64)
+        df = relative_sentropy(counts, similarity=args.similarity,\
+            viewpoint=args.viewpoint, measures=args.measure, chunk_size=args.chunk_size, \
+            return_dataframe=True, which=args.which, eff_no=args.eff_no, \
+            backend=args.backend, device=args.device)
+
+        print(df)
+
+        if args.output_filepath is not None:
+            df.to_csv(args.output_filepath, index=False)
+
+    else:
+        counts_a = read_csv(args.input_filepath[0], sep=None, engine="python", dtype=int64)
+        counts_b = read_csv(args.input_filepath[1], sep=None, engine="python", dtype=int64)
+        result = relative_sentropy(counts_a, counts_b, similarity=args.similarity,\
+            viewpoint=args.viewpoint[0], measures=args.measure, chunk_size=args.chunk_size, \
+            return_dataframe=True, which=args.which, eff_no=args.eff_no, \
+            backend=args.backend, device=args.device)
+
+        print("set-level relative entropy:", result[0])
+        print("subset-level relative entropies:", result[1])
+        
+        if args.output_filepath is not None:
+            with open(args.output_filepath, 'w') as f:
+                json.dump({"set-level relative entropy": result[0], \
+                "subset-level relative entropies": result[1].to_dict(orient='records')}, f, indent=2)
+
     LOGGER.info("Done!")
 
 

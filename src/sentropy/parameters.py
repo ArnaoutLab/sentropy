@@ -50,8 +50,10 @@ def configure_arguments():
     parser.add_argument(
         "-i",
         "--input_filepath",
+        nargs="+",
+        type=str,
         help=(
-            "A csv or tsv file with one column per subset, one "
+            "One or two csv or tsv file(s) with one column per subset, one "
             "row per species, where each element contains the count of "
             "each species in the corresponding subsets."
         ),
@@ -69,7 +71,7 @@ def configure_arguments():
     parser.add_argument(
         "-o",
         "--output_filepath",
-        default=stdout,
+        default=None,
         help="A filepath to where the program's output will be saved",
     )
     parser.add_argument(
@@ -85,6 +87,7 @@ def configure_arguments():
     parser.add_argument(
         "-v",
         "--viewpoint",
+        "--viewpoints",
         nargs="+",
         type=float,
         help=(
@@ -95,10 +98,53 @@ def configure_arguments():
         action=ValidateViewpoint,
     )
     parser.add_argument(
-        "-z",
-        "--chunk_size",
+        "-m",
+        "--measure",
+        "--measures",
+        nargs="+",
+        type=str,
+        help=(
+            "A list of diversity measures to be computed. Must be in 'alpha', 'rho', 'beta',"
+            "'gamma', 'normalized_alpha', 'normalized_rho', 'normalized_beta', 'rho_hat', 'beta_hat'."
+        ),
+        default= ["alpha", "rho", "beta", "gamma", "normalized_alpha", "normalized_rho", \
+        "normalized_beta", "rho_hat", "beta_hat"]
+    )
+
+    parser.add_argument(
+        "-chunk_size",
         type=int,
         help="Number of rows to read at a time from the similarities matrix.",
         default=1,
     )
+
+    parser.add_argument(
+        "-which",
+        type=str,
+        help="whether to compute diversity at the set level ('set'), subset level ('subset') or both ('both').",
+        default='both',
+    )
+
+    parser.add_argument(
+        "-eff_no",
+        type=int,
+        help="whether to compute diversity as effective numbers (1) or as entropies (0).",
+        default=1,
+    )
+
+    parser.add_argument(
+        "-backend",
+        type=str,
+        help="whether to use the numpy backend ('numpy') or the torch one ('torch').",
+        default='numpy',
+    )
+
+    parser.add_argument(
+        "-device",
+        type=str,
+        help="whether to compute the diversity indices on the cpu ('cpu') or the gpu ('mps' or 'cuda').",
+        default='cpu',
+    )
+
+
     return parser
