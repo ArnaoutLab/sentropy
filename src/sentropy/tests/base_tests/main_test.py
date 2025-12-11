@@ -7,16 +7,33 @@ from pytest import mark
 
 from sentropy.__main__ import main
 
+MEASURES = (
+    "alpha",
+    "rho",
+    "beta",
+    "gamma",
+    "normalized_alpha",
+    "normalized_rho",
+    "normalized_beta",
+    "rho_hat",
+    "beta_hat",
+)
+
 MAIN_TEST_CASES = [
     {
         "description": "disjoint communities; uniform counts; uniform inter-community similarities; viewpoint 0.",
         "args": Namespace(
-            input_filepath="counts.tsv",
+            input_filepath=["counts.tsv"],
             output_filepath="diversities.tsv",
             similarity="similarities.tsv",
             viewpoint=[0],
             log_level="WARNING",
             chunk_size=1,
+            measure=MEASURES,
+            which='both',
+            eff_no=1,
+            backend='numpy',
+            device='cpu',
         ),
         "input_filecontents": (
             "subset_1\tsubset_2\n"
@@ -46,12 +63,17 @@ MAIN_TEST_CASES = [
     {
         "description": "overlapping communities; non-uniform counts; non-uniform inter-community similarities; viewpoint 2.",
         "args": Namespace(
-            input_filepath="foo_counts.tsv",
+            input_filepath=["foo_counts.tsv"],
             output_filepath="bar_counts.tsv",
             similarity="baz_similarities.tsv",
             viewpoint=[2, 101, 102, inf],
             log_level="WARNING",
             chunk_size=1,
+            measure=MEASURES,
+            which='both',
+            eff_no=1,
+            backend='numpy',
+            device='cpu',
         ),
         "input_filecontents": (
             "subset_1\tsubset_2\n" "2\t5\n" "3\t0\n" "0\t1\n"
@@ -81,12 +103,17 @@ MAIN_TEST_CASES = [
     {
         "description": "Test chunk_size.",
         "args": Namespace(
-            input_filepath="foo_counts.tsv",
+            input_filepath=["foo_counts.tsv"],
             output_filepath="bar_counts.tsv",
             similarity="baz_similarities.tsv",
             viewpoint=[2, 101, 102, inf],
             log_level="WARNING",
             chunk_size=2,
+            measure=MEASURES,
+            which='both',
+            eff_no=1,
+            backend='numpy',
+            device='cpu',
         ),
         "input_filecontents": (
             "subset_1\tsubset_2\n" "2\t5\n" "3\t0\n" "0\t1\n"
@@ -127,8 +154,8 @@ class TestMain:
     @mark.parametrize("test_case", MAIN_TEST_CASES)
     def test_main(self, test_case, tmp_path):
         """Tests __main__.main."""
-        test_case["args"].input_filepath = (
-            f"{tmp_path}/{test_case['args'].input_filepath}"
+        test_case["args"].input_filepath[0] = (
+            f"{tmp_path}/{test_case['args'].input_filepath[0]}"
         )
         test_case["args"].similarity = f"{tmp_path}/{test_case['args'].similarity}"
         test_case["args"].output_filepath = (
@@ -136,7 +163,7 @@ class TestMain:
         )
 
         self.write_file(
-            test_case["args"].input_filepath,
+            test_case["args"].input_filepath[0],
             test_case["input_filecontents"],
         )
         self.write_file(
