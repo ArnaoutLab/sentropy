@@ -611,9 +611,8 @@ Then from the command line:
 The output is a table with all the diversity indices for q=0, 1, and ∞. Note that while .csv or .tsv are acceptable as input, the output is always tab-delimited. The input filepath (`-i`) and the similarity matrix filepath (`-s`) can be URLs to data files hosted on the web. Also note that values of $q>100$ are all calculated as $q=\infty$.
 
 To compute relative entropies in the terminal, we simply pass a second csv file for the other abundance matrix:
-```python
-python -m sentropy -i counts_2b_1.csv counts_2b_2.csv -s S_2b.csv -v 1
-```
+
+`python -m sentropy -i counts_2b_1.csv counts_2b_2.csv -s S_2b.csv -v 1`
 
 The full list of flags is `-i` (for input filepath), `-o` (for output filepath), `-s` (for the filepath to the similarity matrix), `-v` (for the viewpoint parameters), `-m` (for the diversity measures of interest), `-chunk_size` (for the chunk size when reading the file into memory), `-which` (for whether to compute diversities at the set/subset level, or both), `-eff_no` (for whether to compute effective numbers or entropies), `-backend` (for whether to use numpy or torch), `-device` (for whether to use the CPU or the GPU). For further options, consult the help:
 
