@@ -47,7 +47,7 @@ def main(args):
         print(df)
 
         if args.output_filepath is not None:
-            df.to_csv(args.output_filepath, index=False)
+            df.to_csv(args.output_filepath, sep="\t", float_format="%.4f", index=False)
 
     else:
         counts_a = read_csv(args.input_filepath[0], sep=None, engine="python", dtype=int64)
