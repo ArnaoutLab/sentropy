@@ -176,7 +176,9 @@ def test_backend_equivalence_of_broadcast_to():
 
 def test_backend_equivalence_of_zeros_and_empty():
 	assert np.allclose(numpy_bkd.zeros(shape=(2,2)),torch_bkd.zeros(shape=(2,2)))
-	assert np.allclose(numpy_bkd.empty(shape=(2,2)),torch_bkd.empty(shape=(2,2)))
+	desired_shape = (2,2)
+	assert numpy_bkd.empty(shape=desired_shape).shape == desired_shape
+	assert torch_bkd.empty(shape=desired_shape).shape == desired_shape
 
 def test_backend_equivalence_of_copy():
 	x = np.array([1,2,3])
