@@ -2,10 +2,13 @@
 
 from argparse import Namespace
 
-from numpy import inf
+from numpy import inf, allclose
+from pandas import read_csv
 from pytest import mark
+from pathlib import Path
 
 from sentropy.__main__ import main
+import pickle
 
 MEASURES = (
     "alpha",
@@ -176,3 +179,25 @@ class TestMain:
         print(output_filecontents)
         print(test_case["output_filecontents"])
         assert output_filecontents == test_case["output_filecontents"]
+
+def test_main_with_2_counts(tmp_path):
+    args = Namespace(input_filepath=[Path(__file__).parent / 'test_material/counts_2b_1.csv', Path(__file__).parent / 'test_material/counts_2b_2.csv'],
+        similarity = read_csv(Path(__file__).parent / 'test_material/S_2b.csv'),
+        viewpoint = [1],
+        measure = None,
+        chunk_size = 1,
+        which = 'both',
+        eff_no = True,
+        backend = 'numpy',
+        device = 'cpu',
+        output_filepath = tmp_path/'output.pkl',
+        log_level = 'WARNING',
+        )
+
+    main(args)
+
+    with open(tmp_path/'output.pkl', 'rb') as file:
+        result = pickle.load(file)
+
+    assert result[0]==1
+    assert allclose(result[1], [[1.661012, 1.548891],[1.431594, 1.556117]])

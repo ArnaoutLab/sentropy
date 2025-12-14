@@ -16,7 +16,7 @@ from pandas import read_csv
 from sentropy.log import LOG_HANDLER, LOGGER
 from sentropy import relative_sentropy
 from sentropy.parameters import configure_arguments
-import json
+import json, pickle
 
 # Ensure warnings are handled properly.
 captureWarnings(True)
@@ -61,9 +61,8 @@ def main(args):
         print("subset-level relative entropies:", result[1])
         
         if args.output_filepath is not None:
-            with open(args.output_filepath, 'w') as f:
-                json.dump({"set-level relative entropy": result[0], \
-                "subset-level relative entropies": result[1].to_dict(orient='records')}, f, indent=2)
+            with open(args.output_filepath, 'wb') as f:
+                pickle.dump(result, f)
 
     LOGGER.info("Done!")
 
