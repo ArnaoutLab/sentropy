@@ -13,7 +13,7 @@ on:
       - '**/README.md'
 
 jobs:
-  test-basic:
+  test-basic-and-ray:
     runs-on: ${{ matrix.os}}
     strategy:
       matrix:
@@ -31,29 +31,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -e ".[tests, ray]"
-    - name: Run tests
-      run: |
-        pytest src/sentropy/tests/base_tests
-
-      
-  test-ray:
-    runs-on: ${{ matrix.os}}
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12'] 
-
-    steps:
-    - name: checkout repository
-      uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[tests,ray]"
     - name: Run tests
       run: |
         pytest src/sentropy/tests
