@@ -7,4 +7,4 @@ See sentropy.set.Set
 """
 
 from sentropy.set import Set
-from sentropy.sentropy import relative_sentropy
+from sentropy.sentropy import sentropy

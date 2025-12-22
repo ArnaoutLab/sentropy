@@ -137,7 +137,7 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
 # ----------------------------------------------------------------------
 # Relative‑sentropy dispatcher
 # ----------------------------------------------------------------------
-def relative_sentropy(
+def sentropy(
     counts_a: Union[DataFrame, ndarray],
     counts_b: Optional[Union[DataFrame, ndarray]] = None,
     *,

@@ -14,7 +14,7 @@ from numpy import int64
 from pandas import read_csv
 
 from sentropy.log import LOG_HANDLER, LOGGER
-from sentropy import relative_sentropy
+from sentropy import sentropy
 from sentropy.parameters import configure_arguments
 import json, pickle
 
@@ -39,7 +39,7 @@ def main(args):
 
     if len(args.input_filepath) == 1:
         counts = read_csv(args.input_filepath[0], sep=None, engine="python", dtype=int64)
-        df = relative_sentropy(counts, similarity=args.similarity,\
+        df = sentropy(counts, similarity=args.similarity,\
             viewpoint=args.viewpoint, measures=args.measure, chunk_size=args.chunk_size, \
             return_dataframe=True, which=args.which, eff_no=args.eff_no, \
             backend=args.backend, device=args.device)
@@ -52,7 +52,7 @@ def main(args):
     else:
         counts_a = read_csv(args.input_filepath[0], sep=None, engine="python", dtype=int64)
         counts_b = read_csv(args.input_filepath[1], sep=None, engine="python", dtype=int64)
-        result = relative_sentropy(counts_a, counts_b, similarity=args.similarity,\
+        result = sentropy(counts_a, counts_b, similarity=args.similarity,\
             viewpoint=args.viewpoint[0], measures=args.measure, chunk_size=args.chunk_size, \
             return_dataframe=True, which=args.which, eff_no=args.eff_no, \
             backend=args.backend, device=args.device)
