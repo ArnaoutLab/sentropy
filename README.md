@@ -44,7 +44,7 @@ pytest --pyargs sentropy --cov sentropy
 
 If you use this package, please cite it as:
 
-Nguyen et al., <i>greylock: A Python Package for Measuring The Composition of Complex Datasets</i>. <https://github.com/ArnaoutLab/diversity>
+Nguyen et al., <i>sentropy: A Python Package for Measuring The Composition of Complex Datasets</i>. <https://github.com/ArnaoutLab/diversity>
 
 ## Definitions
 
