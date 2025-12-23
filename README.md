@@ -388,6 +388,8 @@ The optional `chunk_size` argument specifies how many rows of the similarity mat
 Alternatively, to avoid a large footprint on either RAM or disk, the similarity matrix can be constructed and processed on the fly. In this case, we pass an array or `DataFrame` of features to the `X` argument of `sentropy'. Each row of X represents the feature values of a species. Here's an example with a set of 2 amino acid sequences, and a similarity matrix based on the Levenshtein distance between them:
 
 ```python
+from polyleven import levenshtein
+
 def similarity_function(species_i, species_j):
     return 0.3**levenshtein(species_i, species_j)
 
