@@ -609,7 +609,7 @@ or we can have the computation run by torch on CUDA by calling:
 sentropy(big_counts, similarity=big_sim_matrix, viewpoint=[0,1, 1.5, np.inf], backend='torch', device='cuda')
 ```
 
-The latter two commands above result in a 3x speedup compared to the default settings (with numpy and CPU). The first of the 3 commands above might result in a more minor speedup. 
+The latter two commands above result in a 3x speedup compared to the default settings (with numpy and CPU). The first of the 3 commands above might result in a more minor speedup. We only recommend using the torch backend together with the GPU when the similarity matrix has been pre-computed (like in the example above), as opposed to when the similarity is passed as a callable. In this latter case, we expect the repeated Python callbacks to slow down the computation considerably, and it should be more beneficial to use Ray parallelization.
 
 # Command-line usage
 The `sentropy` package can also be used from the command line as a module (via `python -m`). To illustrate using `sentropy` this way, we re-use again the example with counts_2b_1 and S_2b, now with counts_2b_1 also saved as a csv file (note again `index=False`):
