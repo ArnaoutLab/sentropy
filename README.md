@@ -50,13 +50,13 @@ Nguyen et al., <i>greylock: A Python Package for Measuring The Composition of Co
 
 A ***community*** is a collection of elements called ***individuals***, each of which is assigned a label called its ***species***, where multiple individuals may have the same species. An example of a community is all the animals and plants living in a lake. A ***metacommunity*** consists of several communities. An example of a metacommunity is all the animals in a lake split into different depths. Each community that makes up a metacommunity is called a ***subcommunity***.
 
-Even though the terms metacommunity and subcommunity originate in ecology, we use them in a broader sense. If one is interested in analyzing a subset of a dataset, then the subset is a subcommunity and the entire dataset is the metacommunity. Alternatively, if one is interested in how individual datasets (e.g. from individual research subjects) compare to all datasets used in a study, the individual datasets are subcommunities and the set of all datasets is the metacommunity. (When there is only a single dataset under study, we use “subcommunity” and “metacommunity” interchangeably as convenient.)
+More broadly, if one is interested in analyzing a subset of a dataset, then the subset can be viewed as a subcommunity and the entire dataset as the metacommunity. Alternatively, if one is interested in how individual datasets (e.g. from individual research subjects) compare to all datasets used in a study, the individual datasets are subcommunities and the set of all datasets is the metacommunity. We will adopt the terminology ***set*** (or sometimes ***superset***) and ***subset*** for the sake of generality. (When there is only a single dataset under study, we use “subset” and “set” interchangeably as convenient.)
 
 A ***diversity index*** is a statistic associated with a community, which describes how much the species of its individuals vary. For example, a community of many individuals of the same species has a very low diversity whereas a community with multiple species and the same amount of individuals per species has a high diversity.
 
 ## Partitioned diversity
 
-Some diversity indices compare the diversities of the subcommunities with respect to the overall metacommunity. For example, two subcommunities with the same frequency distribution but no shared species each comprise half of the combined metacommunity diversity.
+Some diversity indices compare the diversities of the subsets with respect to the overall set. For example, two subsets with the same frequency distribution but no shared species each comprise half of the combined set diversity.
 
 ## Frequency-sensitive diversity
 
@@ -68,36 +68,36 @@ In addition to being sensitive to frequency, it often makes sense to account for
 
 ## Rescaled diversity indices
 
-In addition to the diversity measures introduced by [Reeve et al.](https://arxiv.org/abs/1404.6520), we also included two new rescaled measures $\hat{\rho}$ and $\hat{\beta}$, as well as their metacommunity counterparts. The motivation for introducing these measures is that $\rho$ can become very large if the number of subcommunities is large. Similarly, $\beta$ can become very small in this case. The rescaled versions are designed so that they remain of order unity even when there are lots of subcommunities.
+In addition to the diversity measures introduced by [Reeve et al.](https://arxiv.org/abs/1404.6520), we also included two new rescaled measures $\hat{\rho}$ and $\hat{\beta}$, as well as their superset counterparts. The motivation for introducing these measures is that $\rho$ can become very large if the number of subcommunities is large. Similarly, $\beta$ can become very small in this case. The rescaled versions are designed so that they remain of order unity even when there are lots of subcommunities.
 
 ## One package to rule them all
 
-The `sentropy` package is able to calculate all of the similarity- and frequency-sensitive subcommunity and metacommunity diversity measures described in [Reeve et al.](https://arxiv.org/abs/1404.6520). See the paper for more in-depth information on their derivation and interpretation.
+The `sentropy` package is able to calculate all of the similarity- and frequency-sensitive subset and set diversity measures described in [Reeve et al.](https://arxiv.org/abs/1404.6520). See the paper for more in-depth information on their derivation and interpretation.
 
 
 **Supported subcommunity diversity measures**:
 
-  - $\alpha$ - diversity of subcommunity $j$ in isolation, per individual
-  - $\bar{\alpha}$ - diversity of subcommunity $j$ in isolation
-  - $\rho$ - redundancy of subcommunity $j$
-  - $\bar{\rho}$ - representativeness of subcommunity $j$
+  - $\alpha$ - diversity of subset $j$ in isolation, per individual
+  - $\bar{\alpha}$ - diversity of subset $j$ in isolation
+  - $\rho$ - redundancy of subset $j$
+  - $\bar{\rho}$ - representativeness of subset $j$
   - $\hat{\rho}$ - rescaled version of redundancy ($\rho$)
-  - $\beta$ - distinctiveness of subcommunity $j$
-  - $\bar{\beta}$ - effective number of distinct subcommunities
+  - $\beta$ - distinctiveness of subset $j$
+  - $\bar{\beta}$ - effective number of distinct subsets
   - $\hat{\beta}$ - rescaled version of distinctiveness ($\beta$) 
-  - $\gamma$ - contribution of subcommunity $j$ toward metacommunity diversity
+  - $\gamma$ - contribution of subset $j$ toward set diversity
 
 
-**Supported metacommunity diversity measures**:
-  - $A$ - naive-community metacommunity diversity
-  - $\bar{A}$ - average diversity of subcommunities
-  - $R$ - average redundancy of subcommunities
-  - $\bar{R}$ - average representativeness of subcommunities
-  - $\hat{R}$ - average rescaled redundancy of subcommunities
-  - $B$ - average distinctiveness of subcommunities
-  - $\bar{B}$ - effective number of distinct subcommunities
-  - $\hat{B}$ - average rescaled distinctiveness of subcommunities
-  - $G$ - metacommunity diversity
+**Supported set diversity measures**:
+  - $A$ - naive-community set diversity
+  - $\bar{A}$ - average diversity of subsets
+  - $R$ - average redundancy of subsets
+  - $\bar{R}$ - average representativeness of subsets
+  - $\hat{R}$ - average rescaled redundancy of subsets
+  - $B$ - average distinctiveness of subsets
+  - $\bar{B}$ - effective number of distinct subsets
+  - $\hat{B}$ - average rescaled distinctiveness of subsets
+  - $G$ - set diversity
 
 The core function is `sentropy`, which can be imported with
 ```python
@@ -367,16 +367,13 @@ sentropy(counts_2b_2, similarity=S_2b, viewpoint=[0], measures=['normalized_rho'
 yielding $[0.93, 0.92]$. We find that the $\bar{\rho}$ of the two subsets are now substantially higher than with counts_2b_1. These high values reflect the fact that the vertebrates and the invertebrates are roughly equally represented, so each subcommunity is more representative of the entire metacommunity than with counts_2b_1.
 
 # Advanced usage
-
-In the examples above, the entire similarity matrix has been created in RAM (as a `numpy.ndarray` or `pandas.DataFrame`) before being passed to the `Metacommunity` constructor. However, this may not be the best tactic for large datasets. The `sentropy` package offers better options in these cases. Given that the
+## Passing the similarity matrix as a path
+In the examples above, the entire similarity matrix has been created in RAM (as a `numpy.ndarray` or `pandas.DataFrame`) before being passed to `sentropy`. This may not be the best tactic for large datasets. The `sentropy` package offers better options in these cases. Given that the
 simillarity matrix is of complexity $O(n^2)$ (where $n$ is the number of species), the creation, storage, and use of the similarity matrix are the most computationally resource-intense aspects of calculating diversity. Careful consideration of how to handle the similarity matrix can extend the range of problems that are tractable by many orders of magnitude.
 
 Any large similarity matrix that is created in Python as a `numpy.ndarray` benefits from being memory-mapped, as NumPy can then use the data without requiring it all to be in memory. See the NumPy [memmap documentation](https://numpy.org/doc/stable/reference/generated/numpy.memmap.html) for guidance. Because `memmap` is a subclass of `ndarray`, using this type of file storage for the similarity matrix requires no modification to your use of the Metacommunity API. This conversion, and the resulting storage of the data on disk, has the advantage that if you revise the downstream analysis, or perform additional analyses, re-calculation of the similarity matrix may be skipped.
 
-The strategy of calculate-once, use-many-times afforded by storage of the similarity matrix to a file allows you to do the work of calculating the similarity matrix in an entirely separate process. You may choose to calculate the similarity matrix in a more performant language, such as C++, and/or inspect the matrix in Excel. In these cases, it is  convenient to store the similarity matrix in a non-Python-specific format, such as a .csv or .tsv file. The entire csv/tsv file need not be read into memory before invoking the `Metacommunity` constructor.
-Rather, one may instantiate `SimilarityFromFile`, whose constructor is given the path of a cvs or tsv file. The `SimilarityFromFile` object will use the file's contents in a memory-efficient way, reading in chunks as they are used. 
-
-To illustrate passing a csv file, we re-use the counts_2b_1 and S_2b from above and save the latter as .csv files (note `index=False`, since the csv files should *not* contain row labels):
+The strategy of calculate-once, use-many-times afforded by storage of the similarity matrix to a file allows you to do the work of calculating the similarity matrix in an entirely separate process. You may choose to calculate the similarity matrix in a more performant language, such as C++, and/or inspect the matrix in Excel. In these cases, it is  convenient to store the similarity matrix in a non-Python-specific format, such as a .csv or .tsv file. The entire csv/tsv file need not be read into memory before invoking the `sentropy` function. As an example, let's re-use the counts_2b_1 and S_2b from above and save the latter as .csv files (note `index=False`, since the csv files should *not* contain row labels):
 ```python
 S_2b_df.to_csv("S_2b.csv", index=False)
 ```
@@ -387,25 +384,45 @@ sentropy(counts_2b_1, similarity='S_2b.csv', chunk_size=5, viewpoint=[0], measur
 ```
 The optional `chunk_size` argument specifies how many rows of the similarity matrix are read from the file at a time.
 
-Alternatively, to avoid a large footprint on either RAM or disk, the similarity matrix can be constructed and processed on the fly. In this case, we pass an array or `DataFrame` of features to the `X` argument of `sentropy'. Each row of X represents the feature values of a species. For example, given numeric features all of the same type:
+## Computing similarities on the fly
+Alternatively, to avoid a large footprint on either RAM or disk, the similarity matrix can be constructed and processed on the fly. In this case, we pass an array or `DataFrame` of features to the `X` argument of `sentropy'. Each row of X represents the feature values of a species. Here's an example with a set of 2 amino acid sequences, and a similarity matrix based on the Levenshtein distance between them:
 
 ```python
-X = np.array([
-  [1, 2], 
-  [3, 4], 
-  [5, 6]
-])
-
 def similarity_function(species_i, species_j):
-  return 1 / (1 + np.linalg.norm(species_i - species_j))
+    return 0.3**levenshtein(species_i, species_j)
 
-sentropy(np.array([[1, 1], [1, 0], [0, 1]]), viewpoint=[1], similarity=similarity_function, X=X, chunk_size=10)
+# data
+test_seqs = ['CARDYW', 'CARDYV']
+test_nos = [10, 1]
+
+# data as DataFrame
+test = pd.DataFrame(
+    {"test_nos": test_nos},
+    index=test_seqs
+    )
+
+# calling sentropy
+sentropy(
+    test, 
+    similarity=similarity_function,
+    X=np.array(test_seqs),
+    viewpoint=[0],
+    measures=['alpha'],
+    return_dataframe=True
+    )
 ```
 
-(The optional `chunk_size` parameter specifies how many rows of the similarity matrix to generate at once; larger values should be faster, as long as the chunks are not too large
-compared to available RAM.)
+We get the result:
 
-If there are features of various types, and it would be convenient to address features by name, features can be supplied in a DataFrame. (Note that, because of the use of named tuples to represent species in the similarity function, it is helpful if the column names are valid Python identifiers.)
+| set/subset|viewpoint |     alpha |
+| :-------- | -------: | --------: |
+| set       |        0 |  1.220874 |
+| test_nos  |        0 |  1.220874 |
+
+
+We can optionally pass a number to the `chunk_size` parameter, which specifies how many rows of the similarity matrix to generate at once; larger values should be faster, as long as the chunks are not too large compared to available RAM.
+
+Here's another example where there are features of various types, and it would be convenient to address features by name. (Note that, because of the use of named tuples to represent species in the similarity function, it is helpful if the column names are valid Python identifiers.)
 
 ```
 X = pd.DataFrame(
@@ -539,7 +556,7 @@ In addition to computing entropies, `sentropy` also computes the relative entrop
 ```
 sentropy(counts_2b_1, counts_2b_2, similarity=S_2b, viewpoint=1, return_dataframe=True)
 ```
-we get a tuple of 2 elements, the first of which is a float representing the metacommunity Renyi divergence at viewpoint 1 (in this case, 1), and the second of which is a DataFrame containing Renyi divergences between pairs of subcommunities, in this case: 
+we get a tuple of 2 elements, the first of which is a float representing the superset Renyi divergence at viewpoint 1 (in this case, 1), and the second of which is a DataFrame containing Renyi divergences between pairs of subcommunities, in this case: 
 
 |                     |        subset_2b_3 |       subset_2b_4 |
 | :------------------ |           -------: |         --------: |
@@ -548,7 +565,7 @@ we get a tuple of 2 elements, the first of which is a float representing the met
 
 Again by default the `return_dataframe` is set to False, in which case the Renyi divergences of the subcommunities will be returned as a numpy array. The rows are the subcommunities of the first counts (in the order in which they occur in the first counts), and the columns are the subcommunities of the second counts (in their native order).
 
-We can also compare subcommunities within a single metacommunity. To do this, we can either pass the same metacommunity to the first two arguments of `relative_sentropy`, or alternatively we can prepare 2 different `counts`, one for each subcommunity (taken to be a metacommunity by itself). Note also that, when comparing subsets from different sets (e.g. the birds of prey from 2a vs. the invertebrates from 2b), the similarity matrix has to be defined for all pairs.
+We can also compare subsets within a single set. To do this, we can either pass the same set to the first two arguments of `relative_sentropy`, or alternatively we can prepare 2 different `counts`, one for each subset (taken to be a set by itself). Note also that, when comparing subsets from different sets (e.g. the birds of prey from 2a vs. the invertebrates from 2b), the similarity matrix has to be defined for all pairs.
 
 If we do not pass anything to the `similarity` argument, then the function will compute the usual (i.e. similarity-insensitive) exponentiated Rényi divergence. We may also optionally pass a similarity function or a string representing a path to a CSV file to `similarity`. In those cases, we may optionally pass values to the arguments `symmetric`, `X`, `chunk_size`, `parallelize`, and `max_inflight_tasks`. These latter arguments have the same meaning as when we compute LCR indices.
 
