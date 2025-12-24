@@ -170,7 +170,7 @@ Here we requested to get diversity indices for 3 different viewpoint parameters.
 |    4 | set           |       inf |  1.17 | 1.00 | 1.00 |  1.17 |             1.17 |           1.00 |            1.00 |    1.00 |     1.00 |
 |    5 | subset 1a     |       inf |  1.17 | 1.00 | 1.00 |  1.17 |             1.17 |           1.00 |            1.00 |    1.00 |     1.00 |
 
-Looking at the alpha column, we see that the value of $D_1$ for this metacommunity is $D_1=1.90$. In this example, the metacommunity indices are the same as the subcommunity ones, since there is only one subcommunity. By default, the argument return_dataframe is False, in which case the function `relative_sentropy' will return a python dictionary containing the requested diversity indices. So for example, if we run
+Looking at the alpha column, we see that the value of $D_1$ for this metacommunity is $D_1=1.90$. In this example, the metacommunity indices are the same as the subcommunity ones, since there is only one subcommunity. By default, the argument return_dataframe is False, in which case the function `sentropy' will return a python dictionary containing the requested diversity indices. So for example, if we run
 
 ```
 sentropy(counts_1a, viewpoint=[0], measures=['alpha'])
@@ -554,7 +554,7 @@ ordinariness = similarity @ abundance
 ```
 
 ## Computing relative entropies
-In addition to computing entropies, `sentropy` also computes the relative entropies between sets, both with and without inter-species similarity. To do so, we can re-use the method `relative_sentropy`, this time passing 2 abundance arrays as the first 2 arguments (with the second abundance playing the role of the ``reference`` probability distribution commonly denoted by $Q$ in the usual notation of the Kullback-Leibler divergence). As an example usage, we come back to the example of vertebrates versus invertebrates. By running:
+In addition to computing entropies, `sentropy` also computes the relative entropies between sets, both with and without inter-species similarity. To do so, we can re-use the method `sentropy`, this time passing 2 abundance arrays as the first 2 arguments (with the second abundance playing the role of the ``reference`` probability distribution commonly denoted by $Q$ in the usual notation of the Kullback-Leibler divergence). As an example usage, we come back to the example of vertebrates versus invertebrates. By running:
 ```
 sentropy(counts_2b_1, counts_2b_2, similarity=S_2b, viewpoint=1, return_dataframe=True)
 ```
@@ -567,14 +567,14 @@ we get a tuple of 2 elements, the first of which is a float representing the sup
 
 Again by default the `return_dataframe` is set to False, in which case the Renyi divergences of the subcommunities will be returned as a numpy array. The rows are the subcommunities of the first counts (in the order in which they occur in the first counts), and the columns are the subcommunities of the second counts (in their native order).
 
-We can also compare subsets within a single set. To do this, we can either pass the same set to the first two arguments of `relative_sentropy`, or alternatively we can prepare 2 different `counts`, one for each subset (taken to be a set by itself). Note also that, when comparing subsets from different sets (e.g. the birds of prey from 2a vs. the invertebrates from 2b), the similarity matrix has to be defined for all pairs.
+We can also compare subsets within a single set. To do this, we can either pass the same set to the first two arguments of `sentropy`, or alternatively we can prepare 2 different `counts`, one for each subset (taken to be a set by itself). Note also that, when comparing subsets from different sets (e.g. the birds of prey from 2a vs. the invertebrates from 2b), the similarity matrix has to be defined for all pairs.
 
 If we do not pass anything to the `similarity` argument, then the function will compute the usual (i.e. similarity-insensitive) exponentiated Rényi divergence. We may also optionally pass a similarity function or a string representing a path to a CSV file to `similarity`. In those cases, we may optionally pass values to the arguments `symmetric`, `X`, `chunk_size`, `parallelize`, and `max_inflight_tasks`. These latter arguments have the same meaning as when we compute LCR indices.
 
 It is also convenient to obtain the actual KL/Renyi divergences without the exponentiation. To do so, we pass `eff_no = False`, just like for LCR diversity indices. Finally, we can also pass `which="set"` or `which="subset"` if we are interested only in the divergence at the set level or at the subset level.
 
 ## Pytorch and GPU support
-For heavier computations, it is possible to use PyTorch instead of numpy to obtain some acceleration. To do so, we pass `backend="torch"` to `relative_sentropy`. (By the fault, the `backend` argument takes value `"numpy"`.) In order to have the computation of the diversity indices run on the GPU, we can additionally pass `device="mps"` or `device="cuda"`, depending on whether the computation runs on a Mac computer with Apple silicon, or a computer with NVIDIA CUDA. (By default, the `device` argument takes value `cpu`, which means the computation runs on the CPU.) For example, consider the following set with 100 subsets and 10000 entities:
+For heavier computations, it is possible to use PyTorch instead of numpy to obtain some acceleration. To do so, we pass `backend="torch"` to `sentropy`. (By the fault, the `backend` argument takes value `"numpy"`.) In order to have the computation of the diversity indices run on the GPU, we can additionally pass `device="mps"` or `device="cuda"`, depending on whether the computation runs on a Mac computer with Apple silicon, or a computer with NVIDIA CUDA. (By default, the `device` argument takes value `cpu`, which means the computation runs on the CPU.) For example, consider the following set with 100 subsets and 10000 entities:
 
 ```python
 big_counts = np.random.randint(101, size=(10000,100))
