@@ -65,7 +65,7 @@ H1Z = np.log(D1Z)                             # traditional form
 print(f"D1Z: {D1Z:.1f}")
 print(f"H1Z: {H1Z:.1f}")
 ```
-Alternatively:
+Alternatively (slightly tighter):
 ```
 from sentropy import sentropy
 import numpy as np
