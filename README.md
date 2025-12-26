@@ -176,7 +176,7 @@ df = sentropy(C1, C2, similarity=S,
 print(df)                                 # S-entropies on the diagonals; relative S-entropies on the off-diagonals
 ```
 
-### Ordinariness
+## Ordinariness
 
 How much each of the elements of one dataset (here, fish and ladybugs) looks like the elements in another dataset (bees, butterflies, and lobsters—all invertegrates). As invertebrates, ladybugs are more "ordinary."
 ```
