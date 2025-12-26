@@ -26,7 +26,80 @@
 
 # About
 
-`sentropy`, short for similarity-sensitive entropy, calculates effective numbers in an extended version of the Hill framework, with extensions due to Leinster and Cobbold and Reeve et al. (the "LCR framework"). 
+`sentropy` calculates similarity-sensitive entropies (S-entropy), plus Shannon entropy and the Rényi entropies as special cases.
+
+- **Shannon entropy** is a weighted sum of the relative probabilities of unique elements in a system (e.g. a dataset).
+- **Rényi entropies** generalize Shannon entropy by allowing for different weightings (viewpoint parameter *q*).
+- **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences.
+
+Exponentiating entropy yields **D-number forms**, which put entropies in the same, natural units---**effective numbers**---among other advantages.
+
+Quick start | Installation | Basic usage | 
+
+# Installation
+
+```
+pip install sentropy
+```
+
+## Basic usage
+
+Calling `sentropy()` returns an object with relevant values.
+
+### Shannon-type (i.e. *q*=1) S-entropy
+```
+from sentropy import sentropy
+import numpy as np
+P = np.array([0.7, 0.3])         # two unique elements, 70% and 30%, respectively
+S = np.array([                   # similarity matrix
+  [1. , 0.2],                    # 20% similar to each other
+  [0.2, 1. ],
+  ])
+DZ = sentropy(P, similarity=S)                # S-entropy with default q (q=1; Shannon-type S-entropy)
+D1Z = DZ(level="set", index="alpha", q=1.0)   # D-number version (preferred)
+H1Z = np.log(D1Z)                             # entropy version
+print("D1Z: {D1Z:.1f}")
+print("H1Z: {H1Z:.1f}")
+```
+
+### Vanilla Shannon entropy (i.e. S-entropy without the "S", at *q*=1)
+```
+from sentropy import sentropy
+import numpy as np
+P = np.array([0.7, 0.3])       # two unique elements, 70% and 30%, respectively
+D = sentropy(P)                              # S-entropy *without* similarity at default q (q=1) = Shannon entropy
+D1 = D(level="set", index="alpha", q=1.0)    # D-number version (preferred)
+H1 = np.log(D1)                              # entropy version
+print("D1: {D1:.1f}")
+print("H1: {H1:.1f}")
+```
+
+### S-entropy with multiple viewpoint parameters *q*
+```
+from sentropy import sentropy
+import numpy as np
+P = np.array([0.7, 0.3])         # two unique elements, 70% and 30%, respectively
+S = np.array([                   # similarity matrix
+  [1. , 0.2],                    # 20% similar to each other
+  [0.2, 1. ],
+  ])
+qs = [0., 1., 2., np.inf]                  # multiple viewpoint parameters
+DZ = sentropy(P, similarity=S, q=qs)       # S-entropy with several q
+for q in qs:
+  DqZ = DZ(level="set", index="alpha", q=q)    # D-number versions (preferred)
+  HqZ = np.log(DqZ)                            # entropy versions
+  print("D{q}Z: {DqZ:.1f}")
+  print("H{q}Z: {HqZ:.1f}")
+```
+
+### Representativeness of each of two classes for the whole dataset
+```
+```
+
+### Relative S-entropies between two classes (similarity-sensitive KL divergence)
+```
+```
+
 
 ## Availability and installation
 `sentropy` is available on GitHub at https://github.com/ArnaoutLab/sentropy. It can be installed by running
