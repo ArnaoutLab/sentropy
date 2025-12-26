@@ -132,7 +132,7 @@ def similarity_function(i, j):                             # i, j members of ele
 sentropy(P, similarity=similarity_function, X=elements)    # X contains arguments needed by the similarity_function
 ```
 
-## Representativeness of each of two classes for the whole dataset
+## How well each class represents the whole dataset
 
 Representativeness ($\rho$) is the reciprocal of beta diversity, which measures distinctiveness. 
 ```
