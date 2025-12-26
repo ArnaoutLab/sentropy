@@ -180,7 +180,7 @@ print(df)                                 # S-entropies on the diagonals; relati
 
 How much one (set of) element(s) look(s) like (an)other(s).
 ```
-
+TBD
 ```
 
 
