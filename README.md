@@ -134,7 +134,7 @@ sentropy(P, similarity=similarity_function, X=elements)    # X contains argument
 
 ## Representativeness of each of two classes for the whole dataset
 
-Representativeness $=\rho$ is the reciprocal of beta diversity, which measures distinctiveness. 
+Representativeness ($\rho$) is the reciprocal of beta diversity, which measures distinctiveness. 
 ```
 from sentropy import sentropy
 import numpy as np
