@@ -154,9 +154,9 @@ print("Normalized representativeness of class 1: {R1:.2f}")
 print("Normalized representativeness of class 2: {R2:.2f}")
 ```
 
-## $q=1$ relative S-entropies between two classes---i.e., similarity-sensitive KL divergences---returned as a pandas DataFrame
+## $q=1$ relative S-entropies between two classes as a pandas DataFrame
 
-Relative entropy at q=1 (a.k.a. Kullback-Leibler divergence, information divergence, KL distance, etc.) has a similarity-aware version.
+The similarity-sensitive version of traditional relative entropy at q=1 (a.k.a. Kullback-Leibler divergence, information divergence, etc.).
 ```
 from sentropy import sentropy
 import numpy as np
