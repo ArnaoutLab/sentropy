@@ -178,7 +178,7 @@ print(df)                                 # S-entropies on the diagonals; relati
 
 ## Ordinariness
 
-How much each of the elements of one dataset (here, fish and ladybugs) looks like the elements in another dataset (bees, butterflies, and lobsters—all invertegrates). As invertebrates, ladybugs are more "ordinary."
+How much each of the elements of one dataset (here, fish and ladybugs; a vertebrate and an invertebrate) looks like the elements in another dataset (bees, butterflies, and lobsters—all invertegrates). As invertebrates, ladybugs are more "ordinary."
 ```
 import numpy as np
 P = np.array([5000, 2000, 3000])             # frequencies of a dataset of bees, butterflies, and lobsters, respectively
