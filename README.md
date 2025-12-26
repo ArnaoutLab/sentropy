@@ -80,9 +80,9 @@ print(f"D1Z: {D1Z:.1f}")
 print(f"H1Z: {H1Z:.1f}")
 ```
 
-## Vanilla Shannon entropy (i.e. S-entropy without the "S"—i.e., when $S=I$—at $q=1$)
+## Vanilla Shannon entropy
 
-Traditional Shannon entropy is the limiting case of S-entropy when there is no similarity between elements $i\neq $j$ ($S=I$) at $q=1$.
+Traditional Shannon entropy is the limiting case of S-entropy when there is no similarity between elements $i\neq j$ ($S=I$) at $q=1$.
 ```
 from sentropy import sentropy
 import numpy as np
@@ -93,9 +93,9 @@ print(f"D1: {D1:.1f}")
 print(f"H1: {H1:.1f}")
 ```
 
-## S-entropy with multiple measures and viewpoint parameters *q*, at both levels
+## S-entropy with multiple measures and viewpoint parameters, at both levels
 
-D-number forms measure diversity. `sentropy` calculates alpha-, beta-, and gamma-diversity measures, at the level of both subsets/classes and the whole (data)set (the $q$ power mean).
+D-number forms measure diversity. `sentropy` calculates alpha-, beta-, and gamma-diversity measures, at any $q$, for both subsets/classes and the whole (data)set.
 ```
 from sentropy import sentropy
 import numpy as np
