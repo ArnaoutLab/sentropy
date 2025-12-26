@@ -87,7 +87,8 @@ Traditional Shannon entropy is the limiting case of S-entropy when there is no s
 from sentropy import sentropy
 import numpy as np
 P = np.array([0.7, 0.3])      # two unique elements, 70% and 30%, respectively
-D1 = sentropy(P)              # S-entropy *without* similarity at default q (q=1) = Shannon entropy. Note defaults: level="set", measure="alpha", q=1.
+D1 = sentropy(P)              # S-entropy *without* similarity at default q (q=1) = Shannon entropy.
+                              # Note defaults: level="set", measure="alpha", q=1.
 H1 = np.log(D1)               # traditional form
 print(f"D1: {D1:.1f}")
 print(f"H1: {H1:.1f}")
