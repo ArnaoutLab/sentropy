@@ -31,7 +31,7 @@
 - **Shannon entropy** is a weighted sum of the relative probabilities of unique elements in a system (e.g. a dataset).
 - **Rényi entropies** generalize Shannon entropy by allowing for different weightings (viewpoint parameter *q*).
 - **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences.
-- Exponentiating entropy yields **D-number forms**, which put entropies in the same, natural units---**effective numbers**---among other advantages.
+- Exponentiating entropy yields **D-number forms**, which put entropies in the same, natural units—**effective numbers**—among other advantages.
 - `sentropy` calculates multiple S-entropic **measures**, including $\alpha, \beta/\rho, \gamma$ at both the subset (classes) **level** and for the overall (data)set
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
@@ -80,9 +80,9 @@ print(f"D1Z: {D1Z:.1f}")
 print(f"H1Z: {H1Z:.1f}")
 ```
 
-## Vanilla Shannon entropy (i.e. S-entropy without the "S"---i.e., when $S=I$---at $q=1$)
+## Vanilla Shannon entropy (i.e. S-entropy without the "S"—i.e., when $S=I$—at $q=1$)
 
-Traditional Shannon entropy is the limiting case of S-entropy when there is no similarity between elements ($S=I$) and $q=1$.
+Traditional Shannon entropy is the limiting case of S-entropy when there is no similarity between elements $i\neq $j$ ($S=I$) at $q=1$.
 ```
 from sentropy import sentropy
 import numpy as np
