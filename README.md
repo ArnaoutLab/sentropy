@@ -98,16 +98,25 @@ for q in qs:
 ```
 from sentropy import sentropy
 import numpy as np
-P = np.array([0.7, 0.3])                      # two unique elements, 70% and 30%, respectively
-S = np.array([                                # similarity matrix
-  [1. , 0.2],                                 # 20% similar to each other
-  [0.2, 1. ],
-  ])
-DZ = sentropy(P, similarity=S)                # S-entropy with default q (q=1; Shannon-type S-entropy)
-D1Z = DZ(level="set", index="alpha", q=1.)    # D-number version (preferred)
-H1Z = np.log(D1Z)                             # entropy version
-print(f"D1Z: {D1Z:.1f}")
-print(f"H1Z: {H1Z:.1f}")
+from polyleven import levenshtein
+
+def similarity_function(i, j):
+    return 0.3**levenshtein(i, j)
+
+elements = ['good', 'food']
+P        = [10, 1]
+test = pd.DataFrame(
+    {"test_nos": test_nos},
+    index=test_seqs
+    )
+sentropy(
+    test, 
+    similarity=similarity_function,
+    X=np.array(test_seqs),
+    viewpoint=[0],
+    measures=['alpha'],
+    return_dataframe=True
+    )
 ```
 
 ### Representativeness of each of two classes for the whole dataset
