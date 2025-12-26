@@ -26,17 +26,17 @@
 
 # About
 
-`sentropy` calculates similarity-sensitive entropies (S-entropy), plus Shannon entropy and the Rényi entropies as special cases.
+`sentropy` calculates similarity-sensitive entropies (S-entropy), plus traditional Shannon entropy and the Rényi entropies as special cases.
 
 - **Shannon entropy** is a weighted sum of the relative probabilities of unique elements in a system (e.g. a dataset).
 - **Rényi entropies** generalize Shannon entropy by allowing for different weightings (viewpoint parameter *q*).
 - **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences.
+- Exponentiating entropy yields **D-number forms**, which put entropies in the same, natural units---**effective numbers**---among other advantages.
+- `sentropy` calculates multiple S-entropic **measures**, including $\alpha, \beta/\rho, \gamma$ at both the subset (classes) **level** and for the overall (data)set
 
-Exponentiating entropy yields **D-number forms**, which put entropies in the same, natural units---**effective numbers**---among other advantages.
+For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
-For more, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
-
-Quick start | Installation | Basic usage | 
+[Installation](#installation) | [Basic usage](#basic-usage) | 
 
 # Installation
 
@@ -49,6 +49,8 @@ pip install sentropy
 Calling `sentropy()` returns an object with relevant values.
 
 ### Shannon-type (i.e. *q*=1) S-entropy
+
+$q=1$ means "Shannon-type" because Shannon entropy is the special case of Rényi entropy when $\alpha=q=1$.
 ```
 from sentropy import sentropy
 import numpy as np
@@ -58,25 +60,42 @@ S = np.array([                                # similarity matrix
   [0.2, 1. ],
   ])
 DZ = sentropy(P, similarity=S)                # S-entropy with default q (q=1; Shannon-type S-entropy)
-D1Z = DZ(level="set", index="alpha", q=1.)    # D-number version (preferred)
-H1Z = np.log(D1Z)                             # entropy version
+D1Z = DZ(level="set", measure="alpha", q=1.)  # D-number form (preferred)
+H1Z = np.log(D1Z)                             # traditional form
 print(f"D1Z: {D1Z:.1f}")
 print(f"H1Z: {H1Z:.1f}")
 ```
-
-### Vanilla Shannon entropy (i.e. S-entropy without the "S", at *q*=1)
+Alternatively:
 ```
 from sentropy import sentropy
 import numpy as np
 P = np.array([0.7, 0.3])                      # two unique elements, 70% and 30%, respectively
-D = sentropy(P)                               # S-entropy *without* similarity at default q (q=1) = Shannon entropy
-D1 = D(level="set", index="alpha", q=1.)      # D-number version (preferred)
-H1 = np.log(D1)                               # entropy version
+S = np.array([                                # similarity matrix
+  [1. , 0.2],                                 # 20% similar to each other
+  [0.2, 1. ],
+  ])
+D1Z = sentropy(P, similarity=S)    # D-number form (preferred). Note defaults: level="set", measure="alpha", q=1.
+H1Z = np.log(D1Z)                  # traditional form
+print(f"D1Z: {D1Z:.1f}")
+print(f"H1Z: {H1Z:.1f}")
+```
+
+### Vanilla Shannon entropy (i.e. S-entropy without the "S"---i.e., when $S=I$---at $q=1$)
+
+Traditional Shannon entropy is the limiting case of S-entropy when there is no similarity between elements ($S=I$) and $q=1$.
+```
+from sentropy import sentropy
+import numpy as np
+P = np.array([0.7, 0.3])      # two unique elements, 70% and 30%, respectively
+D1 = sentropy(P)              # S-entropy *without* similarity at default q (q=1) = Shannon entropy. Note defaults: level="set", measure="alpha", q=1.
+H1 = np.log(D1)               # traditional form
 print(f"D1: {D1:.1f}")
 print(f"H1: {H1:.1f}")
 ```
 
-### S-entropy with multiple viewpoint parameters *q*
+### S-entropy with multiple measures and viewpoint parameters *q*, at both levels
+
+D-number forms measure diversity. `sentropy` calculates alpha-, beta-, and gamma-diversity measures, at the level of both subsets/classes and the whole (data)set (the $q$ power mean).
 ```
 from sentropy import sentropy
 import numpy as np
@@ -86,78 +105,79 @@ S = np.array([                                # similarity matrix
   [0.2, 1. ],
   ])
 qs = [0., 1., 2., np.inf]                     # multiple viewpoint parameters
-DZ = sentropy(P, similarity=S, q=qs)          # S-entropy with several q
+ms = ["alpha", "beta", "gamma"]               # multiple measures
+ls = ["set", "subset"]                        # subset = class
+DZ = sentropy(P, similarity=S, q=qs,          # S-entropy with several q...
+              measures=ms, level=ls)          # ...of several measures, at both levels
 for q in qs:
-  DqZ = DZ(level="set", index="alpha", q=q)   # D-number versions (preferred)
-  HqZ = np.log(DqZ)                           # entropy versions
-  print(f"D{q}Z: {DqZ:.1f}")
-  print(f"H{q}Z: {HqZ:.1f}")
+  for m in ms:
+    DqZ = DZ(level="set", measure=m, q=q)     # D-number form (preferred)
+    HqZ = np.log(DqZ)                         # traditional form
+    print(f"D{q}Z {m}: {DqZ:.1f}")
+    print(f"H{q}Z {m}: {HqZ:.1f}")
 ```
 
-### Calculating similarity on the fly
+### Similarity on the fly
+
+For when the similarity matrix would be too large for memory.
 ```
 from sentropy import sentropy
 import numpy as np
 from polyleven import levenshtein
 
-def similarity_function(i, j):
+P = np.array([10, 1])
+elements = np.array(['good', 'food'])                      # Phuc: if passed a list, sentropy should coerce to a numpy array
+def similarity_function(i, j):                             # i, j members of elements
     return 0.3**levenshtein(i, j)
-
-elements = ['good', 'food']
-P        = [10, 1]
-test = pd.DataFrame(
-    {"test_nos": test_nos},
-    index=test_seqs
-    )
-sentropy(
-    test, 
-    similarity=similarity_function,
-    X=np.array(test_seqs),
-    viewpoint=[0],
-    measures=['alpha'],
-    return_dataframe=True
-    )
+sentropy(P, similarity=similarity_function, X=elements)    # X contains arguments needed by the similarity_function
 ```
 
 ### Representativeness of each of two classes for the whole dataset
+
+Representativeness $=\rho$ is the reciprocal of beta diversity, which measures distinctiveness. 
 ```
 from sentropy import sentropy
 import numpy as np
 P  = np.array([1, 1, 1, 1])                   # dataset with four equally-frequent elements
 C1 = np.array([1, 1, 0, 0])                   # first two elements are in Class 1 (only)
 C2 = np.array([0, 0, 1, 1])                   # second two elements are in Class 2 (only)
-C  = {"1": C1, "2": C2}
+C  = {"1": C1, "2": C2}                       # names and index membership of classes
 S = np.array([                                # similarities of all elements, across both classes
   [1.,  0.8, 0.2, 0.1],
   [0.8, 1.,  0.1, 0.3],
   [0.2, 0.1, 1.,  0.9],
   [0.1, 0.3, 0.9, 1. ],
   ])
-DZ = sentropy(P, similarity=S, classes=C)                       # ?
-R1, R2 = DZ(level="subset", index="normalized_rho", q=1.)
+R1, R2 = sentropy(P, similarity=S, classes=C,           # note, one value for each class
+              level="subset", index="normalized_rho")
 print("Normalized representativeness of class 1: {R1:.2f}")
 print("Normalized representativeness of class 2: {R2:.2f}")
 ```
 
-### Relative S-entropies between two classes (similarity-sensitive KL divergence), returned as a pandas dataframe
+### $q=1$ relative S-entropies between two classes---i.e., similarity-sensitive KL divergences---returned as a pandas DataFrame
+
+Relative entropy at q=1 (a.k.a. Kullback-Leibler divergence, information divergence, KL distance, etc.) has a similarity-aware version.
 ```
 from sentropy import sentropy
 import numpy as np
 P  = np.array([1, 1, 1, 1])                   # dataset with four equally-frequent elements
 C1 = np.array([1, 1, 0, 0])                   # first two elements are in Class 1 (only)
 C2 = np.array([0, 0, 1, 1])                   # second two elements are in Class 2 (only)
-C  = {"1": C1, "2": C2}
+C  = {"1": C1, "2": C2}                       # name and package up the classes
 S = np.array([                                # similarities of all elements, across both classes
   [1.,  0.8, 0.2, 0.1],
   [0.8, 1.,  0.1, 0.3],
   [0.2, 0.1, 1.,  0.9],
   [0.1, 0.3, 0.9, 1. ],
   ])
-df = sentropy(C1, C2, similarity=S, q=1., return_dataframe=True)
+df = sentropy(C1, C2, similarity=S,
+              return_dataframe=True)
 print(df)                                     # S-entropies on the diagonals; relative S-entropies on the off-diagonals
 ```
 
-### Calculating ordinariness
+### Ordinariness
+
+How much one (set of) element(s) look(s) like (an)other(s).
 ```
 
 ```
