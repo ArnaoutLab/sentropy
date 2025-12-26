@@ -44,11 +44,11 @@ For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and r
 pip install sentropy
 ```
 
-## Basic usage
+# Basic usage
 
 Calling `sentropy()` returns an object with relevant values.
 
-### Shannon-type (i.e. *q*=1) S-entropy
+## Shannon-type (i.e. *q*=1) S-entropy
 
 $q=1$ means "Shannon-type" because Shannon entropy is the special case of Rényi entropy when $\alpha=q=1$.
 ```
@@ -80,7 +80,7 @@ print(f"D1Z: {D1Z:.1f}")
 print(f"H1Z: {H1Z:.1f}")
 ```
 
-### Vanilla Shannon entropy (i.e. S-entropy without the "S"---i.e., when $S=I$---at $q=1$)
+## Vanilla Shannon entropy (i.e. S-entropy without the "S"---i.e., when $S=I$---at $q=1$)
 
 Traditional Shannon entropy is the limiting case of S-entropy when there is no similarity between elements ($S=I$) and $q=1$.
 ```
@@ -93,7 +93,7 @@ print(f"D1: {D1:.1f}")
 print(f"H1: {H1:.1f}")
 ```
 
-### S-entropy with multiple measures and viewpoint parameters *q*, at both levels
+## S-entropy with multiple measures and viewpoint parameters *q*, at both levels
 
 D-number forms measure diversity. `sentropy` calculates alpha-, beta-, and gamma-diversity measures, at the level of both subsets/classes and the whole (data)set (the $q$ power mean).
 ```
@@ -117,7 +117,7 @@ for q in qs:
     print(f"H{q}Z {m}: {HqZ:.1f}")
 ```
 
-### Similarity on the fly
+## Similarity on the fly
 
 For when the similarity matrix would be too large for memory.
 ```
@@ -132,7 +132,7 @@ def similarity_function(i, j):                             # i, j members of ele
 sentropy(P, similarity=similarity_function, X=elements)    # X contains arguments needed by the similarity_function
 ```
 
-### Representativeness of each of two classes for the whole dataset
+## Representativeness of each of two classes for the whole dataset
 
 Representativeness $=\rho$ is the reciprocal of beta diversity, which measures distinctiveness. 
 ```
@@ -154,7 +154,7 @@ print("Normalized representativeness of class 1: {R1:.2f}")
 print("Normalized representativeness of class 2: {R2:.2f}")
 ```
 
-### $q=1$ relative S-entropies between two classes---i.e., similarity-sensitive KL divergences---returned as a pandas DataFrame
+## $q=1$ relative S-entropies between two classes---i.e., similarity-sensitive KL divergences---returned as a pandas DataFrame
 
 Relative entropy at q=1 (a.k.a. Kullback-Leibler divergence, information divergence, KL distance, etc.) has a similarity-aware version.
 ```
