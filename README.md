@@ -48,24 +48,14 @@ pip install sentropy
 
 Calling `sentropy()` returns an object with relevant values.
 
+**Phuc: my idea for syntax is:**
+- **if the arguments yield a unique value, it is returned**
+- **If it returns multiple values, these are returned as an object where results can be accessed by argument**
+**Happy to discuss**
+
 ## Shannon-type (i.e. *q*=1) S-entropy
 
 $q=1$ means "Shannon-type" because Shannon entropy is the special case of Rényi entropy when $\alpha=q=1$.
-```
-from sentropy import sentropy
-import numpy as np
-P = np.array([0.7, 0.3])                      # two unique elements, 70% and 30%, respectively
-S = np.array([                                # similarity matrix
-  [1. , 0.2],                                 # 20% similar to each other
-  [0.2, 1. ],
-  ])
-DZ = sentropy(P, similarity=S)                # S-entropy with default q (q=1; Shannon-type S-entropy)
-D1Z = DZ(level="set", measure="alpha", q=1.)  # D-number form (preferred)
-H1Z = np.log(D1Z)                             # traditional form
-print(f"D1Z: {D1Z:.1f}")
-print(f"H1Z: {H1Z:.1f}")
-```
-Alternatively (slightly tighter):
 ```
 from sentropy import sentropy
 import numpy as np
@@ -149,10 +139,13 @@ S = np.array([                                # similarities of all elements, ac
   [0.2, 0.1, 1.,  0.9],
   [0.1, 0.3, 0.9, 1. ],
   ])
-R1, R2 = sentropy(P, similarity=S, classes=C,           # note, one value for each class
-              level="subset", index="normalized_rho")
-print("Normalized representativeness of class 1: {R1:.2f}")
-print("Normalized representativeness of class 2: {R2:.2f}")
+D1Z = sentropy(P, similarity=S, classes=C,             # note, one value for each class
+               level="subset",
+               measure="normalized_rho")
+R1 = D1Z(class="C1", measure="normalized_rho")         # note, q=1. is the default
+R2 = D1Z(class="C2", measure="normalized_rho")
+print("Normalized rho of class 1: {R1:.2f}")
+print("Normalized rho of class 2: {R2:.2f}")
 ```
 
 ## Relative S-entropies between two classes as a pandas DataFrame
