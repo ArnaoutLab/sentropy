@@ -154,11 +154,11 @@ The similarity-sensitive version of traditional relative entropy at q=1 (a.k.a. 
 ```
 from sentropy import sentropy
 import numpy as np
-P  = np.array([1, 1, 1, 1])               # dataset with four equally-frequent elements
-C1 = np.array([1, 1, 0, 0])               # first two elements are in Class 1 (only)
-C2 = np.array([0, 0, 1, 1])               # second two elements are in Class 2 (only)
-C  = {"1": C1, "2": C2}                   # name and package up the classes
-S = np.array([                            # similarities of all elements, across both classes
+P  = np.array([1, 1, 1, 1])            # dataset with four equally-frequent elements
+C1 = np.array([1, 1, 0, 0])            # first two elements are in Class 1 (only)
+C2 = np.array([0, 0, 1, 1])            # second two elements are in Class 2 (only)
+C  = {"1": C1, "2": C2}                # name and package up the classes
+S = np.array([                         # similarities of all elements, across both classes
   [1.,  0.8, 0.2, 0.1],
   [0.8, 1.,  0.1, 0.3],
   [0.2, 0.1, 1.,  0.9],
@@ -166,7 +166,7 @@ S = np.array([                            # similarities of all elements, across
   ])
 df = sentropy(C1, C2, similarity=S,
               return_dataframe=True)
-print(df)                                 # S-entropies on the diagonals; relative S-entropies on the off-diagonals
+print(df)                              # S-entropies on the diagonals; relative S-entropies on the off-diagonals
 ```
 
 ## Ordinariness
