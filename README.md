@@ -51,6 +51,7 @@ Calling `sentropy()` returns an object with relevant values.
 **Phuc: my idea for syntax is:**
 - **if the arguments yield a unique value, it is returned**
 - **If it returns multiple values, these are returned as an object where results can be accessed by argument**
+
 **Happy to discuss**
 
 ## Shannon-type (i.e. *q*=1) S-entropy
