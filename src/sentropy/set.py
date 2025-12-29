@@ -110,7 +110,7 @@ class Set:
         )
         self.subset_diversity_hash = {}
 
-    def subset_diversity(self, viewpoint: float, measure: str, eff_no: bool=True) -> ndarray:
+    def subset_diversity(self, q: float, m: str, eff_no: bool=True) -> ndarray:
         """Calculates subset diversity measures.
 
         Parameters
@@ -126,26 +126,26 @@ class Set:
         -------
         A numpy.ndarray with a diversity measure for each subset.
         """
-        if measure not in self.MEASURES:
+        if m not in self.MEASURES:
             raise (
                 InvalidArgumentError(
-                    f"Invalid measure '{measure}'. "
+                    f"Invalid measure '{m}'. "
                     "Argument 'measure' must be one of: "
                     f"{', '.join(self.MEASURES)}"
                 )
             )
 
-        if f'subset_{measure}_q={viewpoint}' in self.subset_diversity_hash.keys():
-            diversity_measure = self.subset_diversity_hash[f'subset_{measure}_q={viewpoint}']
+        if f'subset_{m}_q={q}' in self.subset_diversity_hash.keys():
+            diversity_measure = self.subset_diversity_hash[f'subset_{m}_q={q}']
             if eff_no == False:
                 return self.backend.log(diversity_measure)
             else:
                 return diversity_measure
 
-        numerator = self.components.numerators[measure]
-        denominator = self.components.denominators[measure]
+        numerator = self.components.numerators[m]
+        denominator = self.components.denominators[m]
 
-        if measure == "gamma":
+        if m == "gamma":
             denominator = self.backend.broadcast_to(
                 denominator,
                 self.abundance.normalized_subset_abundance.shape,
@@ -155,31 +155,31 @@ class Set:
         ratio = self.backend.divide(numerator, denominator)
 
         diversity_measure = power_mean(
-            order=1 - viewpoint,
+            order=1 - q,
             weights=self.abundance.normalized_subset_abundance,
             items=ratio,
             atol=self.abundance.min_count,
             backend=self.backend,
         )
-        if measure in {"beta", "normalized_beta"}:
+        if m in {"beta", "normalized_beta"}:
             return 1 / diversity_measure
 
-        if measure in {"rho_hat"} and self.counts.shape[1] > 1:
+        if m in {"rho_hat"} and self.counts.shape[1] > 1:
             N = self.counts.shape[1]
             return (diversity_measure - 1) / (N - 1)
 
-        if measure in {"beta_hat"} and self.counts.shape[1] > 1:
+        if m in {"beta_hat"} and self.counts.shape[1] > 1:
             N = self.counts.shape[1]
             return ((N / diversity_measure) - 1) / (N - 1)
 
-        self.subset_diversity_hash[f'subset_{measure}_q={viewpoint}'] = diversity_measure
+        self.subset_diversity_hash[f'subset_{m}_q={q}'] = diversity_measure
 
         if eff_no==False:
             return self.backend.log(diversity_measure)
         else:
             return diversity_measure
 
-    def set_diversity(self, viewpoint: float, measure: str, eff_no: bool=True) -> ndarray:
+    def set_diversity(self, q: float, m: str, eff_no: bool=True) -> ndarray:
         """Calculates set diversity measures.
 
         Parameters
@@ -195,9 +195,9 @@ class Set:
         -------
         A numpy.ndarray containing the set diversity measure.
         """
-        subset_diversity = self.subset_diversity(viewpoint, measure, eff_no = True) #note: eff_no must be True here !
+        subset_diversity = self.subset_diversity(q, m, eff_no = True) #note: eff_no must be True here !
         diversity_measure = power_mean(
-            1 - viewpoint,
+            1 - q,
             self.abundance.subset_normalizing_constants,
             subset_diversity,
             backend=self.backend,
@@ -208,7 +208,7 @@ class Set:
         else:
             return diversity_measure.item()
 
-    def subsets_to_dataframe(self, viewpoint: float, measures=MEASURES, eff_no: bool=True):
+    def subsets_to_dataframe(self, q: float, ms=MEASURES, eff_no: bool=True):
         """Table containing all subset diversity values.
 
         Parameters
@@ -226,14 +226,14 @@ class Set:
         """
         df = DataFrame(
         {
-            measure: (self.subset_diversity(viewpoint, measure, eff_no).cpu() if isinstance(self.subset_diversity(viewpoint, measure, eff_no),Tensor) else \
-                self.subset_diversity(viewpoint, measure, eff_no)) for measure in measures
+            m: (self.subset_diversity(q, m, eff_no).cpu() if isinstance(self.subset_diversity(q, m, eff_no),Tensor) else \
+                self.subset_diversity(q, m, eff_no)) for m in ms
         })
-        df.insert(0, "viewpoint", viewpoint)
+        df.insert(0, "viewpoint", q)
         df.insert(0, "set/subset", Series(self.abundance.subsets_names))
         return df
 
-    def set_to_dataframe(self, viewpoint: float, measures=MEASURES, eff_no: bool=True):
+    def set_to_dataframe(self, q: float, ms=MEASURES, eff_no: bool=True):
         """Table containing all set diversity values.
         Parameters
         ----------
@@ -251,16 +251,16 @@ class Set:
 
         df = DataFrame(
         {
-            measure: (self.set_diversity(viewpoint, measure, eff_no).cpu() if isinstance(self.set_diversity(viewpoint, measure, eff_no),Tensor) else \
-                self.set_diversity(viewpoint, measure, eff_no)) for measure in measures
+            m: (self.set_diversity(q, m, eff_no).cpu() if isinstance(self.set_diversity(q, m, eff_no),Tensor) else \
+                self.set_diversity(q, m, eff_no)) for m in ms
         },
         index=Index(["set"], name="set/subset"))
 
-        df.insert(0, "viewpoint", viewpoint)
+        df.insert(0, "viewpoint", q)
         df.reset_index(inplace=True)
         return df
 
-    def to_dataframe(self, viewpoint: Union[float, Iterable[float]], measures=MEASURES, which: str = "both", eff_no: bool = True):
+    def to_dataframe(self, qs: Union[float, Iterable[float]], ms=MEASURES, which: str = "both", eff_no: bool = True):
         """Table containing all set and subset diversity
         values.
 
@@ -278,13 +278,13 @@ class Set:
         diversity measures for a given viewpoint
         """
         dataframes = []
-        for q in viewpoint:
+        for q in qs:
             if which in ["both", "set"]:
                 dataframes.append(
-                self.set_to_dataframe(viewpoint=q, measures=measures, eff_no=eff_no))
+                self.set_to_dataframe(q=q, ms=ms, eff_no=eff_no))
             if which in ["both", "subset"]:
                 dataframes.append(
-                self.subsets_to_dataframe(viewpoint=q, measures=measures, eff_no=eff_no))
+                self.subsets_to_dataframe(q=q, ms=ms, eff_no=eff_no))
         return concat(dataframes).reset_index(drop=True)
 
 

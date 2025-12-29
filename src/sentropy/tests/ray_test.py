@@ -267,7 +267,7 @@ def test_comparisons():
         else:
             similarity = simclass(func=similarity_function, X=X_large, chunk_size=4)
         m = Set(abundances_large, similarity)
-        df = m.to_dataframe(viewpoint=[0, 1, 2, 200], measures=MEASURES)
+        df = m.to_dataframe(qs=[0, 1, 2, 200], ms=MEASURES)
         results.append(df.drop(columns="set/subset"))
     for result in results[1:]:
         assert allclose(results[0].to_numpy(), result.to_numpy())

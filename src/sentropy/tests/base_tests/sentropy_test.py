@@ -12,7 +12,7 @@ def test_LCR_no_similarity():
     N, S = counts.shape[1], counts.shape[0]
     weights = np.sum(counts, axis=0).astype(float)
     weights /= np.sum(weights)
-    diversity_indices = sentropy(counts,viewpoint=[1], similarity=similarity)
+    diversity_indices = sentropy(counts,qs=[1], similarity=similarity)
 
     assert 1 <= diversity_indices['set_alpha_q=1'] <= N*S
     assert (1/weights <= diversity_indices['subset_alpha_q=1']).all() & (diversity_indices['subset_alpha_q=1'] <= S/weights).all()
@@ -37,7 +37,7 @@ def test_LCR_return_dataframe():
     N, S = counts.shape[1], counts.shape[0]
     weights = np.sum(counts, axis=0).astype(float)
     weights /= np.sum(weights)
-    df = sentropy(counts,viewpoint=[1], return_dataframe=True)
+    df = sentropy(counts,qs=[1], return_dataframe=True)
 
     assert (df['rho'][1:].to_numpy() <= 1/weights).all()
     assert df['rho'][0] <= N
@@ -59,16 +59,16 @@ def test_arguments_symmetric_and_parallelize_of_LCR():
     def similarity_function(species_i, species_j):
         return 1 / (1 + np.linalg.norm(species_i - species_j))
 
-    results_1 = sentropy(np.array([[1, 1], [1, 0], [0, 1]]), viewpoint=[1],similarity=similarity_function,
+    results_1 = sentropy(np.array([[1, 1], [1, 0], [0, 1]]), qs=[1],similarity=similarity_function,
                                                                X=X, chunk_size=10, return_dataframe=True)
 
-    results_2 = sentropy(np.array([[1, 1], [1, 0], [0, 1]]), viewpoint=[1],similarity=similarity_function,
+    results_2 = sentropy(np.array([[1, 1], [1, 0], [0, 1]]), qs=[1],similarity=similarity_function,
                                                                X=X, chunk_size=10, parallelize=True, return_dataframe=True)
 
-    results_3 = sentropy(np.array([[1, 1], [1, 0], [0, 1]]), viewpoint=[1],similarity=similarity_function,
+    results_3 = sentropy(np.array([[1, 1], [1, 0], [0, 1]]), qs=[1],similarity=similarity_function,
                                                                X=X, chunk_size=10, symmetric=True, return_dataframe=True)
 
-    results_4 = sentropy(np.array([[1, 1], [1, 0], [0, 1]]), viewpoint=[1],similarity=similarity_function,
+    results_4 = sentropy(np.array([[1, 1], [1, 0], [0, 1]]), qs=[1],similarity=similarity_function,
                                             X=X, chunk_size=10, symmetric=True, parallelize=True, return_dataframe=True)
 
     assert results_1.equals(results_2)
@@ -79,8 +79,8 @@ def test_kl_div_no_similarity():
     counts_1 = np.array([[9/25], [12/25], [4/25]])
     counts_2 = np.array([[1/3], [1/3], [1/3]])
 
-    results_default_viewpoint = sentropy(counts_2, counts_1, return_dataframe=True)
-    results_viewpoint_2 = sentropy(counts_2, counts_1, viewpoint=2, return_dataframe=True)
+    results_default_viewpoint = sentropy(counts_2, counts_1, qs=[1], return_dataframe=True)
+    results_viewpoint_2 = sentropy(counts_2, counts_1, qs=[2], return_dataframe=True)
 
     assert np.allclose(results_default_viewpoint[0], 1.1023618416445828, atol=1e-8)
     assert np.allclose(results_default_viewpoint[0], results_default_viewpoint[1].iloc[0,0], rtol=1e-5)
@@ -118,7 +118,7 @@ def test_kl_div_with_similarity_from_array():
     S = np.maximum(S, S.transpose() )
     counts_1 = pd.DataFrame({"Community": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=labels)
     counts_2 = pd.DataFrame({"Community": [1, 2, 1, 1, 1, 1, 1, 2, 1]}, index=labels)
-    result_default_viewpoint = sentropy(counts_1, counts_2, similarity=S, viewpoint=1, return_dataframe=True)
+    result_default_viewpoint = sentropy(counts_1, counts_2, similarity=S, qs=1, return_dataframe=True)
     assert np.allclose(result_default_viewpoint[0], 1.0004668803029282)
 
 

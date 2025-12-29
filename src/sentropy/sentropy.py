@@ -1,5 +1,6 @@
 from typing import Union, Optional, Callable, Iterable, Tuple
-from numpy import inf as np_inf, ndarray, minimum, prod, power, zeros as np_zeros, log as np_log, sum as np_sum
+from numpy import inf as np_inf, array, ndarray, minimum, prod, power, zeros as np_zeros, log as np_log, sum as np_sum,\
+atleast_1d
 from pandas import DataFrame
 
 from sentropy.similarity import (
@@ -32,8 +33,8 @@ MEASURES = (
 
 def LCR_sentropy(counts: Union[DataFrame, ndarray],
     similarity: Optional[Union[ndarray, DataFrame, str, Callable]] = None,
-    viewpoint: Union[float, Iterable[float]] = [0,1,np_inf],
-    measures: Iterable[str] = MEASURES,
+    qs: Union[float, int, Iterable[float], Iterable[int]] = 1,
+    ms: Iterable[str] = MEASURES,
     symmetric: Optional[bool] = False,
     X: Optional[Union[ndarray, DataFrame]] = None,
     chunk_size: Optional[int] = 10,
@@ -46,21 +47,27 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
     device: str = 'cpu',
     ):
 
+    if len(counts.shape)==1:
+        counts = counts.reshape(-1,1)
+
+    qs = atleast_1d(qs)
+    ms = atleast_1d(ms)
+
     superset = Set(counts, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks, backend, device)
     
     if return_dataframe:
-        sentropies = superset.to_dataframe(viewpoint, measures, which=which, eff_no=eff_no)
+        sentropies = superset.to_dataframe(qs, ms, which=which, eff_no=eff_no)
     else:
         sentropies = {}
-        for q in viewpoint:
-            for measure in measures:
+        for q in qs:
+            for m in ms:
                 if which in ["both", "set"]:
-                    sentropies[f'set_{measure}_q={q}'] = superset.set_diversity(viewpoint=q, measure=measure, eff_no=eff_no)
+                    sentropies[f'set_{m}_q={q}'] = superset.set_diversity(q=q, m=m, eff_no=eff_no)
                 if which in ["both", "subset"]:
-                    sentropies[f'subset_{measure}_q={q}'] = superset.subset_diversity(viewpoint=q, measure=measure, eff_no=eff_no)
+                    sentropies[f'subset_{m}_q={q}'] = superset.subset_diversity(q=q, m=m, eff_no=eff_no)
     return sentropies
 
-def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetric=False, X=None, chunk_size=10, \
+def kl_div_effno(P_abundance, Q_abundance, similarity=None, q=1, symmetric=False, X=None, chunk_size=10, \
     parallelize=False, max_inflight_tasks=64, return_dataframe=False, which='both', eff_no=True, backend='numpy', device='cpu'):
     P_superset = Set(P_abundance, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks, backend, device)
     Q_superset = Set(Q_abundance, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks, backend, device)
@@ -90,11 +97,11 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
 
     min_count = minimum(1 / P_abundance.sum(), 1e-9)
 
-    def get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, atol, backend):
+    def get_exp_renyi_div_from_ords(P, P_ord, Q_ord, q, atol, backend):
         ord_ratio = P_ord/Q_ord
-        if viewpoint != 1:
+        if q != 1:
             exp_renyi_div = power_mean(
-                order=viewpoint-1,
+                order=q-1,
                 weights=P,
                 items=ord_ratio,
                 atol=atol,
@@ -105,7 +112,7 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
         return exp_renyi_div
 
     if which in ["both", "set"]:
-        exp_renyi_div_set = get_exp_renyi_div_from_ords(P_set_ab, P_set_ord, Q_set_ord, viewpoint, min_count, backend)
+        exp_renyi_div_set = get_exp_renyi_div_from_ords(P_set_ab, P_set_ord, Q_set_ord, q, min_count, backend)
         if eff_no == False:
             exp_renyi_div_set = P_superset.backend.log(exp_renyi_div_set)
 
@@ -116,7 +123,7 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, viewpoint=1, symmetr
                 P = P_norm_subset_ab[:,i]
                 P_ord = P_norm_subset_ord[:,i]
                 Q_ord = Q_norm_subset_ord[:,j]
-                exp_renyi_div = get_exp_renyi_div_from_ords(P, P_ord, Q_ord, viewpoint, min_count, backend)
+                exp_renyi_div = get_exp_renyi_div_from_ords(P, P_ord, Q_ord, q, min_count, backend)
                 exp_renyi_divs_subset[i,j] = exp_renyi_div
 
         if return_dataframe:
@@ -142,8 +149,8 @@ def sentropy(
     counts_b: Optional[Union[DataFrame, ndarray]] = None,
     *,
     similarity: Optional[Union[ndarray, DataFrame, str, Callable]] = None,
-    viewpoint: float = 1,
-    measures: Iterable[str] = MEASURES,
+    qs: Union[float, int, Iterable[float], Iterable[int]] = 1,
+    ms: Iterable[str] = MEASURES,
     symmetric: bool = False,
     X: Optional[Union[ndarray, DataFrame]] = None,
     chunk_size: int = 10,
@@ -188,8 +195,8 @@ def sentropy(
         return LCR_sentropy(
             counts=counts_a,
             similarity=similarity,
-            viewpoint=viewpoint,
-            measures=measures,
+            qs=qs,
+            ms=ms,
             symmetric=symmetric,
             X=X,
             chunk_size=chunk_size,
@@ -203,11 +210,15 @@ def sentropy(
         )
 
     else:
+        if type(qs) in [int, float]:
+            q = qs
+        else:
+            q = qs[0]
         return kl_div_effno(
             P_abundance=counts_a,
             Q_abundance=counts_b,
             similarity=similarity,
-            viewpoint=viewpoint,
+            q=q,
             symmetric=symmetric,
             X=X,
             chunk_size=chunk_size,

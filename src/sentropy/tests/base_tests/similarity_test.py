@@ -239,7 +239,7 @@ def test_nonsquare_from_file(make_similarity_from_file):
     sim = make_similarity_from_file(similarity_class=IntersetSimilarityFromFile)
     counts = array([[1], [1], [1]])
     with raises(InvalidArgumentError):
-        Set(counts, sim).to_dataframe(viewpoint=0)
+        Set(counts, sim).to_dataframe(q=0)
 
 
 def test_interset_from_file(make_similarity_from_file):
@@ -377,8 +377,8 @@ def make_array(spec, array_class=zeros):
 
 
 def compare_dense_sparse(counts, dense_similarity, sparse_similarity):
-    viewpoints = [0, 1, 2, inf]
-    measures = (
+    qs = [0, 1, 2, inf]
+    ms = (
         "alpha",
         "rho",
         "beta",
@@ -388,11 +388,11 @@ def compare_dense_sparse(counts, dense_similarity, sparse_similarity):
         "normalized_beta",
     )
     meta_dense = Set(counts, similarity=dense_similarity)
-    meta_dense_df = meta_dense.to_dataframe(viewpoint=viewpoints, measures=measures)
+    meta_dense_df = meta_dense.to_dataframe(qs=qs, ms= ms)
     meta_sparse = Set(
         counts, similarity=SimilarityFromArray(sparse_similarity)
     )
-    meta_sparse_df = meta_sparse.to_dataframe(viewpoint=viewpoints, measures=measures)
+    meta_sparse_df = meta_sparse.to_dataframe(qs=qs, ms=ms)
     for col in meta_dense_df:
         if col != "set/subset":
             assert allclose(meta_dense_df[col], meta_sparse_df[col])
@@ -683,7 +683,7 @@ def animal_similarity_matrix():
 
 
 def test_feature_similarity():
-    measures = [
+    ms = [
         "alpha",
         "rho",
         "beta",
@@ -693,12 +693,12 @@ def test_feature_similarity():
         "normalized_beta",
         "rho_hat",
     ]
-    viewpoints = [0, 1, 2, inf]
+    qs = [0, 1, 2, inf]
     m = Set(
         animal_communities,
         similarity=SimilarityFromDataFrame(animal_similarity_matrix()),
     )
-    df1 = m.to_dataframe(viewpoint=viewpoints, measures=measures).set_index(
+    df1 = m.to_dataframe(qs=qs, ms=ms).set_index(
         ["set/subset", "viewpoint"]
     )
     m = Set(
@@ -709,7 +709,7 @@ def test_feature_similarity():
             chunk_size=4,
         ),
     )
-    df2 = m.to_dataframe(viewpoint=viewpoints, measures=measures).set_index(
+    df2 = m.to_dataframe(qs=qs, ms=ms).set_index(
         ["set/subset", "viewpoint"]
     )
     assert allclose(df1.to_numpy(), df2.to_numpy())
@@ -721,7 +721,7 @@ def test_feature_similarity():
             chunk_size=4,
         ),
     )
-    df3 = m.to_dataframe(viewpoint=viewpoints, measures=measures).set_index(
+    df3 = m.to_dataframe(qs=qs, ms=ms).set_index(
         ["set/subset", "viewpoint"]
     )
     assert allclose(df1.to_numpy(), df3.to_numpy())
@@ -860,8 +860,8 @@ def test_computation_count(
 
     sim.weighted_abundances = count_decorator(sim.weighted_abundances, callcounter, key)
     m = Set(abundances, sim)
-    m.set_diversity(viewpoint=1, measure="alpha")
-    m.to_dataframe(viewpoint=[0])
+    m.set_diversity(q=1, m="alpha")
+    m.to_dataframe(qs=[0])
 
     assert callcounter[key] == expected_count
 
@@ -900,7 +900,7 @@ def test_interset_diversity_forbidden():
     )
     counts = array([[1, 1, 1, 1, 1]])
     with raises(InvalidArgumentError):
-        Set(counts, sim).to_dataframe(viewpoint=0)
+        Set(counts, sim).to_dataframe(qs=[0])
 
 
 def test_matmul():

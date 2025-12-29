@@ -318,40 +318,40 @@ def test_set(data, expected):
     assert isinstance(set.similarity, expected)
 
 
-@mark.parametrize("measure", MEASURES)
+@mark.parametrize("m", MEASURES)
 @mark.parametrize("data", set_data)
-def test_set_diversity(data, measure):
+def test_set_diversity(data, m):
     set = Set(counts=data.counts, similarity=data.similarity)
     set_diversity = set.set_diversity(
-        measure=measure, viewpoint=data.viewpoint
+        m=m, q=data.viewpoint
     )
-    assert allclose(set_diversity, data.set_results[measure])
+    assert allclose(set_diversity, data.set_results[m])
 
 def test_effno_argument_in_set_diversity():
     superset_1 = Set(counts=array([[1],[0],[0],[0]]))
-    set_diversity_1 = superset_1.set_diversity(measure='alpha', viewpoint=1, eff_no=False)
+    set_diversity_1 = superset_1.set_diversity(m='alpha', q=1, eff_no=False)
 
     superset_2 = Set(counts=array([[1],[1],[1],[1]]))
-    set_diversity_2 = superset_2.set_diversity(measure='alpha', viewpoint=1, eff_no=False)
+    set_diversity_2 = superset_2.set_diversity(m='alpha', q=1, eff_no=False)
 
     assert set_diversity_1 == 0
     assert allclose(set_diversity_2, 1.38629)
 
-@mark.parametrize("measure", MEASURES)
+@mark.parametrize("m", MEASURES)
 @mark.parametrize("data", set_data)
-def test_subset_diversity(data, measure):
-    set = Set(counts=data.counts, similarity=data.similarity)
-    subset_diversity = set.subset_diversity(
-        measure=measure, viewpoint=data.viewpoint
+def test_subset_diversity(data, m):
+    superset = Set(counts=data.counts, similarity=data.similarity)
+    subset_diversity = superset.subset_diversity(
+        m=m, q=data.viewpoint
     )
-    assert allclose(subset_diversity, data.subset_results[measure])
+    assert allclose(subset_diversity, data.subset_results[m])
 
 def test_effno_argument_in_subset_diversity():
     superset_1 = Set(counts=array([[1],[0],[0],[0]]))
-    subset_diversity_1 = superset_1.subset_diversity(measure='alpha', viewpoint=1, eff_no=False)
+    subset_diversity_1 = superset_1.subset_diversity(m='alpha', q=1, eff_no=False)
 
     superset_2 = Set(counts=array([[1],[1],[1],[1]]))
-    subset_diversity_2 = superset_2.subset_diversity(measure='alpha', viewpoint=1, eff_no=False)
+    subset_diversity_2 = superset_2.subset_diversity(m='alpha', q=1, eff_no=False)
 
     assert subset_diversity_1 == 0
     assert allclose(subset_diversity_2, 1.38629)
@@ -362,9 +362,9 @@ def test_effno_argument_in_subset_diversity_2():
     #the previously stored values.
 
     superset = Set(counts=array([[1,1],[0,1],[0,1],[0,1]]))
-    superset.set_diversity(measure='normalized_alpha', viewpoint=1)
+    superset.set_diversity(m='normalized_alpha', q=1)
 
-    subset_diversity = superset.subset_diversity(measure='normalized_alpha', viewpoint=1, eff_no=False)
+    subset_diversity = superset.subset_diversity(m='normalized_alpha', q=1, eff_no=False)
 
     assert allclose(subset_diversity, [0, 1.38629])
 
@@ -372,46 +372,46 @@ def test_effno_argument_in_subset_diversity_2():
 def test_subset_diversity_invalid_measure():
     with raises(InvalidArgumentError):
         Set(counts=counts_3by2).subset_diversity(
-            measure="omega", viewpoint=0
+            m="omega", q=0
         )
 
 
 @mark.parametrize("data", set_data)
 def test_subsets_to_dataframe(data):
-    set = Set(counts=data.counts, similarity=data.similarity)
-    subsets_df = set.subsets_to_dataframe(data.viewpoint)
+    superset = Set(counts=data.counts, similarity=data.similarity)
+    subsets_df = superset.subsets_to_dataframe(data.viewpoint)
     assert_frame_equal(subsets_df, data.subset_results)
 
 
 @mark.parametrize("data", set_data)
 def test_metacommunities_to_dataframe(data):
-    set = Set(counts=data.counts, similarity=data.similarity)
-    set_df = set.set_to_dataframe(
-        viewpoint=data.viewpoint
+    superset = Set(counts=data.counts, similarity=data.similarity)
+    set_df = superset.set_to_dataframe(
+        q=data.viewpoint
     )
     assert_frame_equal(set_df, data.set_results)
 
 
 @mark.parametrize("data", set_data)
 def test_to_dataframe(data):
-    set = Set(counts=data.counts, similarity=data.similarity)
+    superset = Set(counts=data.counts, similarity=data.similarity)
     expected = concat(
         [data.set_results, data.subset_results]
     ).reset_index(drop=True)
-    assert_frame_equal(set.to_dataframe(viewpoint=[data.viewpoint]), expected)
+    assert_frame_equal(superset.to_dataframe(qs=[data.viewpoint]), expected)
 
 
 @mark.parametrize("data", set_data)
 def test_select_measures(data):
-    set = Set(counts=data.counts, similarity=data.similarity)
+    superset = Set(counts=data.counts, similarity=data.similarity)
     selected_measures = [
         "alpha",
         "gamma",
         "normalized_rho",
     ]
     expected_columns = selected_measures + ["set/subset", "viewpoint"]
-    df = set.to_dataframe(
-        viewpoint=[data.viewpoint], measures=selected_measures
+    df = superset.to_dataframe(
+        qs=[data.viewpoint], ms=selected_measures
     )
     for col in df:
         assert col in expected_columns
@@ -438,7 +438,7 @@ def test_effective_counts():
     for sim in [None, SimilarityIdentity(), identity(5)]:
         m = Set(counts, sim)
         df = m.to_dataframe(
-            measures=["alpha", "normalized_alpha"], viewpoint=viewpoints
+            ms=["alpha", "normalized_alpha"], qs=viewpoints
         )
         df.set_index(["set/subset", "viewpoint"], inplace=True)
         if first_df is None:
@@ -466,7 +466,7 @@ def test_effective_counts():
     ]:
         sim[i, j] = sim[j, i] = val
     m = Set(counts, sim)
-    df = m.to_dataframe(viewpoint=viewpoints)
+    df = m.to_dataframe(qs=viewpoints)
     df.set_index(["set/subset", "viewpoint"], inplace=True)
     for col in first_df:
         for ind in first_df.index:
@@ -490,8 +490,8 @@ def test_symmetric_similarity_function():
     set2 = Set(array([[1, 1], [1, 0], [0, 1]]), \
         similarity=similarity_function, X=X, chunk_size=10, symmetric=True)
 
-    assert set1.to_dataframe(viewpoint=[0,1,inf]).equals(\
-        set2.to_dataframe(viewpoint=[0,1,inf]))
+    assert set1.to_dataframe(qs=[0,1,inf]).equals(\
+        set2.to_dataframe(qs=[0,1,inf]))
 
 
 def test_property1():
@@ -531,10 +531,10 @@ def test_property1():
     ]
 
     def get_result():
-        set = Set(communities,
+        superset = Set(communities,
             similarity=similarity_function, X=X.to_numpy(), symmetric=True)
-        return set.to_dataframe(
-            viewpoint=viewpoints, measures=measures
+        return superset.to_dataframe(
+            qs=viewpoints, ms=measures
         ).set_index(["set/subset", "viewpoint"])
 
     df1 = get_result()
@@ -580,16 +580,16 @@ def test_property2():
 
     counts = DataFrame({"Community 2b": [1, 1, 1, 1, 1, 1, 1, 1, 0]}, index=labels_2b)
     viewpoints = [0, 1, 2, 3, 4, 5, inf]
-    set = Set(counts, similarity=S_2b_df)
-    df1 = set.to_dataframe(viewpoint=viewpoints).set_index(
+    superset = Set(counts, similarity=S_2b_df)
+    df1 = superset.to_dataframe(qs=viewpoints).set_index(
         ["set/subset", "viewpoint"]
     )
     counts = counts[counts["Community 2b"] > 0]
     S_2b = S_2b[:-1, :-1]
     S_2b_df = DataFrame({labels_2b[i]: S_2b[i] for i in range(no_species_2b-1)}, index=labels_2b[:-1])
     S_2b_df.to_csv('S_2b_df_after_removing_zero_abundance_species.csv', index=False)
-    set = Set(counts, similarity='S_2b_df_after_removing_zero_abundance_species.csv')
-    df2 = set.to_dataframe(viewpoint=viewpoints).set_index(
+    superset = Set(counts, similarity='S_2b_df_after_removing_zero_abundance_species.csv')
+    df2 = superset.to_dataframe(qs=viewpoints).set_index(
         ["set/subset", "viewpoint"]
     )
     assert allclose(df1.to_numpy(), df2.to_numpy())
@@ -623,15 +623,15 @@ def test_property3():
         "normalized_beta",
         "rho_hat",
     ]
-    set = Set(counts, sim)
-    df1 = set.to_dataframe(viewpoint=viewpoints, measures=measures).set_index(
+    superset = Set(counts, sim)
+    df1 = superset.to_dataframe(qs=viewpoints, ms=measures).set_index(
         ["set/subset", "viewpoint"]
     )
     labels = labels[:-1]
     sim = sim[:-1, :-1]
     counts = DataFrame({"A": [3, 2, 4], "B": [0, 4, 5], "C": [1, 1, 2]}, index=labels)
-    set = Set(counts, sim)
-    df2 = set.to_dataframe(viewpoint=viewpoints, measures=measures).set_index(
+    superset = Set(counts, sim)
+    df2 = superset.to_dataframe(qs=viewpoints, ms=measures).set_index(
         ["set/subset", "viewpoint"]
     )
     assert allclose(df1.to_numpy(), df2.to_numpy(), equal_nan=True)
@@ -651,9 +651,9 @@ def test_figure_1():
     naive = Set(naive_counts, naive_sim)
     nonnaive = Set(nonnaive_counts, nonnaive_sim)
     for q in [0, 1, 2, 3, 4, 5, inf]:
-        before_alpha = before.set_diversity(viewpoint=q, measure="alpha")
-        naive_alpha = naive.set_diversity(viewpoint=q, measure="alpha")
-        nonnaive_alpha = nonnaive.set_diversity(viewpoint=q, measure="alpha")
+        before_alpha = before.set_diversity(q=q, m="alpha")
+        naive_alpha = naive.set_diversity(q=q, m="alpha")
+        nonnaive_alpha = nonnaive.set_diversity(q=q, m="alpha")
         assert (naive_alpha - before_alpha) >= 1.0
         assert (naive_alpha - nonnaive_alpha) > 0.9
         assert naive_alpha <= 4.0
