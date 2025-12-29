@@ -26,12 +26,12 @@
 
 # About
 
-`sentropy` calculates similarity-sensitive entropies (S-entropy), plus traditional Shannon entropy and the Rényi entropies as special cases.
+`sentropy` calculates similarity-sensitive entropies (S-entropy), plus traditional Shannon entropy and the other Rényi entropies (of which Shannon entropy is the best known) as special cases.
 
 - **Shannon entropy** is a weighted sum of the relative probabilities of unique elements in a system (e.g. a dataset).
 - **Rényi entropies** generalize Shannon entropy by allowing for different weightings (viewpoint parameter *q*).
-- **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences.
-- Exponentiating entropy yields **D-number forms**, which put entropies in the same, natural units—**effective numbers**—among other advantages.
+- **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences via a **similarity matrix** (often constructed using a **similarity function**).
+- Exponentiating entropy yields **effective-number/D-number forms**, which put entropies in the same, natural units—**effective numbers**—among other advantages.
 - `sentropy` calculates multiple S-entropic **measures**, including $\alpha, \beta/\rho, \gamma$ at both the subset (classes) **level** and for the overall (data)set
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
@@ -46,21 +46,44 @@ pip install sentropy
 
 # Basic usage
 
-Calling `sentropy()` returns an object with relevant values.
+The workhorse function is `sentropy.sentropy`:
 
-**Phuc: my idea for syntax is:**
-- **if the arguments yield a unique value, it is returned**
-- **If it returns multiple values, these are returned as an object where results can be accessed by argument**
+```
+from sentropy import sentropy
+```
 
-**Happy to discuss**
+`sentropy`'s only required argument is a list-like object (e.g. a list, a numpy array) of relative frequencies `P`. 
 
-## Shannon-type (i.e. *q*=1) S-entropy
+The most important optional arguments are:
 
-$q=1$ means "Shannon-type" because Shannon entropy is the special case of Rényi entropy when $\alpha=q=1$.
+- `similarity`, which can be passed as a matrix or a function; the default is the identity matrix $I$
+- `q`, the viewpoint parameter; default is `q=1.`
+- `measure`, which can be `alpha`, `beta`, `gamma`, or others in the Leinster-Cobbold-Reeve (LCR) framework; the default is `alpha`
+- `level`, which can be `overall` (a.k.a. `dataset`) or `subset` (a.k.a. `class`); the default is `overall`
+
+## Vanilla Shannon entropy
+
+When the similarity matrix is the identity matrix---`sentropy`'s default for `similarity`---there is no similarity between elements $i\neq j$ and S-entropy reduces to traditional (Rényi) entropy. At the default `q=1`, this is Shannon entropy. Therefore passing `sentropy` only a `P` yields Shannon entropy, in effective-number form.
 ```
 from sentropy import sentropy
 import numpy as np
-P = np.array([0.7, 0.3])                      # two unique elements, 70% and 30%, respectively
+
+P = np.array([0.7, 0.3])      # two unique elements comprising 70% and 30% of the dataset, respectively
+D1 = sentropy(P)              # S-entropy *without* similarity at default q (q=1) = Shannon entropy.
+                              # Note defaults: level="set", measure="alpha", q=1.
+H1 = np.log(D1)               # traditional form
+print(f"D1: {D1:.1f}")
+print(f"H1: {H1:.1f}")
+```
+
+## Shannon-type (i.e. *q*=1) S-entropy
+
+Passing a non-$I$ similarity results in S-entropy.
+```
+from sentropy import sentropy
+import numpy as np
+
+P = np.array([0.7, 0.3])                      # same dataset as above
 S = np.array([                                # similarity matrix
   [1. , 0.2],                                 # 20% similar to each other
   [0.2, 1. ],
@@ -71,39 +94,26 @@ print(f"D1Z: {D1Z:.1f}")
 print(f"H1Z: {H1Z:.1f}")
 ```
 
-## Vanilla Shannon entropy
+## S-entropy with multiple measures and viewpoint parameters
 
-Traditional Shannon entropy is the limiting case of S-entropy when there is no similarity between elements $i\neq j$ ($S=I$) at $q=1$.
+To get results for multiple `q` (e.g. 0, 1, and $\infty$), multiple measures (e.g. alpha and beta), and/or both levels (overall and subset), pass a list-like object to the relevant argument; `sentropy()` returns an object with relevant values.
 ```
 from sentropy import sentropy
 import numpy as np
-P = np.array([0.7, 0.3])      # two unique elements, 70% and 30%, respectively
-D1 = sentropy(P)              # S-entropy *without* similarity at default q (q=1) = Shannon entropy.
-                              # Note defaults: level="set", measure="alpha", q=1.
-H1 = np.log(D1)               # traditional form
-print(f"D1: {D1:.1f}")
-print(f"H1: {H1:.1f}")
-```
 
-## S-entropy with multiple measures and viewpoint parameters, at both levels
-
-D-number forms measure diversity. `sentropy` calculates alpha-, beta-, and gamma-diversity measures, at any $q$, for both subsets/classes and the whole (data)set.
-```
-from sentropy import sentropy
-import numpy as np
-P = np.array([0.7, 0.3])                      # two unique elements, 70% and 30%, respectively
-S = np.array([                                # similarity matrix
-  [1. , 0.2],                                 # 20% similar to each other
+P = np.array([0.7, 0.3])                      # same dataset as above
+S = np.array([                                # same similarity matrix as above
+  [1. , 0.2],
   [0.2, 1. ],
   ])
 qs = [0., 1., 2., np.inf]                     # multiple viewpoint parameters
-ms = ["alpha", "beta", "gamma"]               # multiple measures
-ls = ["set", "subset"]                        # subset = class
-DZ = sentropy(P, similarity=S, q=qs,          # S-entropy with several q...
-              measures=ms, level=ls)          # ...of several measures, at both levels
+measuress = ["alpha", "beta", "gamma"]        # multiple measures
+DZ = sentropy(P, similarity=S,                # S-entropy...
+              q=qs,                           #   ...at multple qs...
+              measures=measures)              #   ...for multiple measures
 for q in qs:
-  for m in ms:
-    DqZ = DZ(level="set", measure=m, q=q)     # D-number form (preferred)
+  for measure in measures:
+    DqZ = DZ(q=q, measure=measure)            # D-number form (preferred)
     HqZ = np.log(DqZ)                         # traditional form
     print(f"D{q}Z {m}: {DqZ:.1f}")
     print(f"H{q}Z {m}: {HqZ:.1f}")
@@ -111,17 +121,26 @@ for q in qs:
 
 ## Similarity on the fly
 
-For when the similarity matrix would be too large for memory.
+When the similarity matrix would be too large to hold in memory, a function can be passed to `similarity`.
 ```
 from sentropy import sentropy
 import numpy as np
-from polyleven import levenshtein
 
-P = np.array([10, 1])
-elements = np.array(['good', 'food'])                      # Phuc: if passed a list, sentropy should coerce to a numpy array
-def similarity_function(i, j):                             # i, j members of elements
-    return 0.3**levenshtein(i, j)
-sentropy(P, similarity=similarity_function, X=elements)    # X contains arguments needed by the similarity_function
+# define a dataset consisting of two amino-acid sequences
+elements = np.array(['CARDYW', 'CTRDYW'])
+P = np.array([10, 1])                                   # the first is present 10 times; the second is present once
+
+# define a similarity function where similarity decreases with edit distance between the sequences
+from polyleven import levenshtein as edit_distance
+def similarity_function(i, j):                          # i, j members of elements
+    return 0.3**edit_distance(i, j)
+
+# calculate datset sentropy (at the defaults meausure="alpha" and q=1.)
+D1Z = sentropy(P, similarity=similarity_function,
+               sfargs=elements)                         # sfargs contains arguments needed by the similarity_function
+H1Z = np.log(D1Z)                                       # traditional form
+print(f"D1Z: {D1Z:.1f}")
+print(f"H1Z: {H1Z:.1f}")
 ```
 
 ## How well each class represents the whole dataset
