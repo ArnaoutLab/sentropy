@@ -249,7 +249,7 @@ def test_interset_from_file(make_similarity_from_file):
         similarity_class=IntersetSimilarityFromFile,
     )
     counts = array([[50], [25], [25]])
-    abundance_object = make_abundance(counts, False)
+    abundance_object = make_abundance(counts, None, False)
     # fmt: off
     expected = array([[0.65, 0.55, 0.35,
                       0.65, 0.55, 0.35,
@@ -887,7 +887,7 @@ def test_interset_similarity(X, Y, abundance, expected):
     sim = IntersetSimilarityFromFunction(similarity_from_distance, X, Y)
     result = sim.weighted_abundances(abundance)
     assert allclose(result, expected)
-    abundance_obj = make_abundance(abundance, False)
+    abundance_obj = make_abundance(abundance, None, False)
     result = sim @ abundance_obj
     assert allclose(result, expected)
 

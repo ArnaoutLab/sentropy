@@ -29,7 +29,7 @@ class Abundance:
     def __init__(
         self,
         counts,
-        subset_names: Iterable[Union[str, int]],
+        subsets_names: Iterable[Union[str, int]],
         backend=None,
     ) -> None:
         """
@@ -46,7 +46,7 @@ class Abundance:
         self.backend = backend if backend is not None else get_backend("numpy")
         # convert counts to backend array
         self.counts = self.backend.asarray(counts) if hasattr(self.backend, "asarray") else self.backend.array(counts)
-        self.subsets_names = subset_names
+        self.subsets_names = subsets_names
         self.num_subsets = self.counts.shape[1]
         # min_count : small nonzero for numerical stability
         total = self.backend.sum(self.counts)
@@ -90,9 +90,9 @@ class AbundanceForDiversity(Abundance):
     """
 
     def __init__(
-        self, counts, subset_names: Iterable[Union[str, int]], backend=None
+        self, counts, subsets_names: Iterable[Union[str, int]], backend=None
     ) -> None:
-        super().__init__(counts, subset_names, backend=backend)
+        super().__init__(counts, subsets_names, backend=backend)
         self.set_abundance = self.make_set_abundance()
         self.unified_abundance_array = None
 
@@ -158,27 +158,13 @@ class AbundanceForDiversity(Abundance):
         return self.backend.sum(self.subset_abundance, axis=1, keepdims=True)
 
 
-def make_abundance(counts, for_diversity=True, backend=None):
+def make_abundance(counts, subsets_names=None, for_diversity=True, backend=None):
     """Initializes a concrete subclass of Abundance."""
     if not for_diversity:
         specific_class = Abundance
     else:
         specific_class = AbundanceForDiversity
-    if isinstance(counts, DataFrame):
-        arr = counts.to_numpy()
-        return specific_class(
-            counts=arr, subset_names=counts.columns.to_list(), backend=backend
-        )
-    elif hasattr(counts, "shape"):
-        if issparse(counts):
-            raise TypeError("sparse abundance matrix not yet implemented")
-        else:
-            return specific_class(
-                counts=counts, subset_names=arange(counts.shape[1]), backend=backend
-            )
-    else:
-        raise NotImplementedError(
-            f"Type {type(counts)} is not supported for argument "
-            "'counts'. Valid types include pandas.DataFrame or"
-            "numpy.ndarray"
+
+    return specific_class(
+            counts=counts, subsets_names=subsets_names, backend=backend
         )

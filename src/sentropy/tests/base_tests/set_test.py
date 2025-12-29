@@ -33,11 +33,11 @@ MEASURES = (
     "beta_hat",
 )
 
-subset_names = ["subset_1", "subset_2"]
-counts_3by2 = DataFrame([[1, 5], [3, 0], [0, 1]], columns=subset_names)
+subsets_names = ["subset_1", "subset_2"]
+counts_3by2 = DataFrame([[1, 5], [3, 0], [0, 1]], columns=subsets_names)
 counts_6by2 = DataFrame(
     [[1, 0], [1, 0], [1, 0], [0, 1], [0, 1], [0, 1]],
-    columns=subset_names,
+    columns=subsets_names,
 )
 
 
@@ -53,7 +53,7 @@ class FrequencySet6by2:
     subset_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "set/subset": subset_names,
+                "set/subset": subsets_names,
                 "viewpoint": [0.0, 0.0],
                 "alpha": [6.0, 6.0],
                 "rho": [1.0, 1.0],
@@ -99,7 +99,7 @@ class FrequencySet3by2:
     subset_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "set/subset": subset_names,
+                "set/subset": subsets_names,
                 "viewpoint": [2.0, 2.0],
                 "alpha": [4.0, 2.30769231],
                 "rho": [1.26315789, 1.16129032],
@@ -191,7 +191,7 @@ class SimilaritySet6by2:
     subset_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "set/subset": subset_names,
+                "set/subset": subsets_names,
                 "viewpoint": [0.0, 0.0],
                 "alpha": [3.0, 3.0],
                 "rho": [2.05, 2.05],
@@ -257,7 +257,7 @@ class SimilaritySet3by2:
     subset_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "set/subset": subset_names,
+                "set/subset": subsets_names,
                 "viewpoint": [2.0, 2.0],
                 "alpha": [3.07692308, 2.22222222],
                 "rho": [1.97775446, 1.48622222],
@@ -378,7 +378,7 @@ def test_subset_diversity_invalid_measure():
 
 @mark.parametrize("data", set_data)
 def test_subsets_to_dataframe(data):
-    superset = Set(counts=data.counts, similarity=data.similarity)
+    superset = Set(counts=data.counts, similarity=data.similarity, subsets_names=subsets_names)
     subsets_df = superset.subsets_to_dataframe(data.viewpoint)
     assert_frame_equal(subsets_df, data.subset_results)
 
@@ -394,7 +394,7 @@ def test_metacommunities_to_dataframe(data):
 
 @mark.parametrize("data", set_data)
 def test_to_dataframe(data):
-    superset = Set(counts=data.counts, similarity=data.similarity)
+    superset = Set(counts=data.counts, similarity=data.similarity, subsets_names=subsets_names)
     expected = concat(
         [data.set_results, data.subset_results]
     ).reset_index(drop=True)
@@ -436,7 +436,7 @@ def test_effective_counts():
     viewpoints = [0, 1, 2, 3, 4, 99, inf]
     first_df = None
     for sim in [None, SimilarityIdentity(), identity(5)]:
-        m = Set(counts, sim)
+        m = Set(counts, sim, subsets_names=['A','B'])
         df = m.to_dataframe(
             ms=["alpha", "normalized_alpha"], qs=viewpoints
         )
@@ -465,7 +465,7 @@ def test_effective_counts():
         (3, 4, 0.1),
     ]:
         sim[i, j] = sim[j, i] = val
-    m = Set(counts, sim)
+    m = Set(counts, sim, subsets_names=['A', 'B'])
     df = m.to_dataframe(qs=viewpoints)
     df.set_index(["set/subset", "viewpoint"], inplace=True)
     for col in first_df:

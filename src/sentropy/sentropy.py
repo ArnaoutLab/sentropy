@@ -1,6 +1,6 @@
 from typing import Union, Optional, Callable, Iterable, Tuple
 from numpy import inf as np_inf, array, ndarray, minimum, prod, power, zeros as np_zeros, log as np_log, sum as np_sum,\
-atleast_1d
+atleast_1d, arange, column_stack
 from pandas import DataFrame
 
 from sentropy.similarity import (
@@ -47,13 +47,22 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
     device: str = 'cpu',
     ):
 
-    if len(counts.shape)==1:
-        counts = counts.reshape(-1,1)
+    if isinstance(counts, DataFrame):
+        subset_names = counts.columns.to_list()
+        counts = counts.to_numpy()
+    elif isinstance(counts, dict):
+        subset_names = list(counts.keys())
+        counts = column_stack(list(counts.values()))
+    elif isinstance(counts, ndarray):
+        if len(counts.shape)==1:
+            counts = counts.reshape(-1,1)
+        subset_names = arange(counts.shape[1])
 
     qs = atleast_1d(qs)
     ms = atleast_1d(ms)
 
-    superset = Set(counts, similarity, symmetric, sfargs, chunk_size, parallelize, max_inflight_tasks, backend, device)
+    superset = Set(counts, similarity, symmetric, sfargs, chunk_size, parallelize, max_inflight_tasks, \
+        backend, device, subset_names)
     
     if return_dataframe:
         sentropies = superset.to_dataframe(qs, ms, level=level, eff_no=eff_no)

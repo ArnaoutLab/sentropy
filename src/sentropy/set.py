@@ -1,6 +1,6 @@
 """Module for set and subset diversity measures."""
 
-from typing import Callable, Iterable, Optional, Union
+from typing import Callable, Iterable, Optional, Union, List
 
 from pandas import DataFrame, Index, Series, concat
 from numpy import array, atleast_1d, broadcast_to, zeros as np_zeros, ndarray
@@ -44,6 +44,7 @@ class Set:
         max_inflight_tasks: Optional[int] = 64,
         backend: str = "numpy",
         device: Optional[str] = None,
+        subsets_names: List[str] = None,
     ) -> None:
         """
         Parameters
@@ -80,7 +81,7 @@ class Set:
         # store backend instance
         self.backend = get_backend(backend, device)
         self.counts = counts
-        self.abundance = make_abundance(counts=counts, backend=self.backend)
+        self.abundance = make_abundance(counts=counts, subsets_names=subsets_names, backend=self.backend)
         if similarity is None:
             self.similarity = SimilarityIdentity(backend=self.backend)
         elif isinstance(similarity, ndarray):

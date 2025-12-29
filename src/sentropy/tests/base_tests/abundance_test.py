@@ -211,11 +211,6 @@ def test_make_abundance(counts, expected):
     assert isinstance(abundance, expected)
 
 
-def test_make_abundance_not_implemented():
-    with raises(NotImplementedError):
-        make_abundance(counts=1)
-
-
 @mark.parametrize(
     "test_case",
     [
