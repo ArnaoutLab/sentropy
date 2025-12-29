@@ -50,7 +50,7 @@ def test_LCR_return_dataframe():
     assert df['normalized_alpha'][0] <= df['gamma'][0]
 
 def test_arguments_symmetric_and_parallelize_of_LCR():
-    X = np.array([
+    sfargs = np.array([
       [1, 2], 
       [3, 4], 
       [5, 6]
@@ -60,16 +60,16 @@ def test_arguments_symmetric_and_parallelize_of_LCR():
         return 1 / (1 + np.linalg.norm(species_i - species_j))
 
     results_1 = sentropy(np.array([[1, 1], [1, 0], [0, 1]]), qs=[1],similarity=similarity_function,
-                                                               X=X, chunk_size=10, return_dataframe=True)
+                                            sfargs=sfargs, chunk_size=10, return_dataframe=True)
 
     results_2 = sentropy(np.array([[1, 1], [1, 0], [0, 1]]), qs=[1],similarity=similarity_function,
-                                                               X=X, chunk_size=10, parallelize=True, return_dataframe=True)
+                                sfargs=sfargs, chunk_size=10, parallelize=True, return_dataframe=True)
 
     results_3 = sentropy(np.array([[1, 1], [1, 0], [0, 1]]), qs=[1],similarity=similarity_function,
-                                                               X=X, chunk_size=10, symmetric=True, return_dataframe=True)
+                                sfargs=sfargs, chunk_size=10, symmetric=True, return_dataframe=True)
 
     results_4 = sentropy(np.array([[1, 1], [1, 0], [0, 1]]), qs=[1],similarity=similarity_function,
-                                            X=X, chunk_size=10, symmetric=True, parallelize=True, return_dataframe=True)
+            sfargs=sfargs, chunk_size=10, symmetric=True, parallelize=True, return_dataframe=True)
 
     assert results_1.equals(results_2)
     assert results_1.equals(results_3)
@@ -123,7 +123,7 @@ def test_kl_div_with_similarity_from_array():
 
 
 def test_kl_div_with_similarity_from_function():
-    X = np.array([[1, 2], [3, 4], [5, 6]])
+    sfargs = np.array([[1, 2], [3, 4], [5, 6]])
 
     def similarity_function(species_i, species_j):
         return np.exp(-np.linalg.norm(species_i - species_j))
@@ -131,6 +131,6 @@ def test_kl_div_with_similarity_from_function():
     counts_1 = pd.DataFrame({'community_1': [1,1,0], 'community_2': [1,0,1]})
     counts_2 = pd.DataFrame({'community_1': [2,1,0], 'community_2': [2,0,1]})
 
-    results = sentropy(counts_2, counts_1, similarity=similarity_function, X=X)
+    results = sentropy(counts_2, counts_1, similarity=similarity_function, sfargs=sfargs)
 
     assert np.allclose(results[0], 1.0655322169685402, atol=1e-8)

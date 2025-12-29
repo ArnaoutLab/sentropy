@@ -36,7 +36,7 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
     qs: Union[float, int, Iterable[float], Iterable[int]] = 1,
     ms: Iterable[str] = MEASURES,
     symmetric: Optional[bool] = False,
-    X: Optional[Union[ndarray, DataFrame]] = None,
+    sfargs: Optional[Union[ndarray, DataFrame]] = None,
     chunk_size: Optional[int] = 10,
     parallelize: Optional[bool] = False,
     max_inflight_tasks: Optional[int] = 64,
@@ -53,7 +53,7 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
     qs = atleast_1d(qs)
     ms = atleast_1d(ms)
 
-    superset = Set(counts, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks, backend, device)
+    superset = Set(counts, similarity, symmetric, sfargs, chunk_size, parallelize, max_inflight_tasks, backend, device)
     
     if return_dataframe:
         sentropies = superset.to_dataframe(qs, ms, which=which, eff_no=eff_no)
@@ -67,10 +67,10 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
                     sentropies[f'subset_{m}_q={q}'] = superset.subset_diversity(q=q, m=m, eff_no=eff_no)
     return sentropies
 
-def kl_div_effno(P_abundance, Q_abundance, similarity=None, q=1, symmetric=False, X=None, chunk_size=10, \
+def kl_div_effno(P_abundance, Q_abundance, similarity=None, q=1, symmetric=False, sfargs=None, chunk_size=10, \
     parallelize=False, max_inflight_tasks=64, return_dataframe=False, which='both', eff_no=True, backend='numpy', device='cpu'):
-    P_superset = Set(P_abundance, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks, backend, device)
-    Q_superset = Set(Q_abundance, similarity, symmetric, X, chunk_size, parallelize, max_inflight_tasks, backend, device)
+    P_superset = Set(P_abundance, similarity, symmetric, sfargs, chunk_size, parallelize, max_inflight_tasks, backend, device)
+    Q_superset = Set(Q_abundance, similarity, symmetric, sfargs, chunk_size, parallelize, max_inflight_tasks, backend, device)
     P_set_ab = P_superset.abundance.set_abundance
     Q_set_ab = Q_superset.abundance.set_abundance
     P_norm_subset_ab =  P_superset.abundance.normalized_subset_abundance
@@ -152,7 +152,7 @@ def sentropy(
     qs: Union[float, int, Iterable[float], Iterable[int]] = 1,
     ms: Iterable[str] = MEASURES,
     symmetric: bool = False,
-    X: Optional[Union[ndarray, DataFrame]] = None,
+    sfargs: Optional[Union[ndarray, DataFrame]] = None,
     chunk_size: int = 10,
     parallelize: bool = False,
     max_inflight_tasks: int = 64,
@@ -198,7 +198,7 @@ def sentropy(
             qs=qs,
             ms=ms,
             symmetric=symmetric,
-            X=X,
+            sfargs=sfargs,
             chunk_size=chunk_size,
             parallelize=parallelize,
             max_inflight_tasks=max_inflight_tasks,
@@ -220,7 +220,7 @@ def sentropy(
             similarity=similarity,
             q=q,
             symmetric=symmetric,
-            X=X,
+            sfargs=sfargs,
             chunk_size=chunk_size,
             parallelize=parallelize,
             max_inflight_tasks=max_inflight_tasks,

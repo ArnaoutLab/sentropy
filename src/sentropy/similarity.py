@@ -314,4 +314,3 @@ class IntersetSimilarityFromFunction(SimilarityFromFunction):
         raise InvalidArgumentError(
             "Inappropriate similarity class for diversity measures"
         )
-
