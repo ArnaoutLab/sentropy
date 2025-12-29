@@ -31,6 +31,20 @@ MEASURES = (
     "beta_hat",
 )
 
+class SentropyResult:
+    def __init__(self, raw_dict, subsets_names):
+        self.raw_dict = raw_dict
+        self.subsets_names = subsets_names
+
+    def get(self, which, m, q):
+        if which=='set':
+            key = f"set_{m}_q={q}"
+            return self.raw_dict[key]
+        else:
+            key = f"subset_{m}_q={q}"
+            idx = list(self.subsets_names).index(which)
+            return self.raw_dict[key][idx]
+
 def LCR_sentropy(counts: Union[DataFrame, ndarray],
     similarity: Optional[Union[ndarray, DataFrame, str, Callable]] = None,
     qs: Union[float, int, Iterable[float], Iterable[int]] = 1,
@@ -48,33 +62,34 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
     ):
 
     if isinstance(counts, DataFrame):
-        subset_names = counts.columns.to_list()
+        subsets_names = counts.columns.to_list()
         counts = counts.to_numpy()
     elif isinstance(counts, dict):
-        subset_names = list(counts.keys())
+        subsets_names = list(counts.keys())
         counts = column_stack(list(counts.values()))
     elif isinstance(counts, ndarray):
         if len(counts.shape)==1:
             counts = counts.reshape(-1,1)
-        subset_names = arange(counts.shape[1])
+        subsets_names = arange(counts.shape[1])
 
     qs = atleast_1d(qs)
     ms = atleast_1d(ms)
 
     superset = Set(counts, similarity, symmetric, sfargs, chunk_size, parallelize, max_inflight_tasks, \
-        backend, device, subset_names)
+        backend, device, subsets_names)
     
     if return_dataframe:
-        sentropies = superset.to_dataframe(qs, ms, level=level, eff_no=eff_no)
+        return superset.to_dataframe(qs, ms, level=level, eff_no=eff_no)
     else:
-        sentropies = {}
+        sentropies_dict = {}
         for q in qs:
             for m in ms:
                 if level in ["both", "set"]:
-                    sentropies[f'set_{m}_q={q}'] = superset.set_diversity(q=q, m=m, eff_no=eff_no)
+                    sentropies_dict[f'set_{m}_q={q}'] = superset.set_diversity(q=q, m=m, eff_no=eff_no)
                 if level in ["both", "subset"]:
-                    sentropies[f'subset_{m}_q={q}'] = superset.subset_diversity(q=q, m=m, eff_no=eff_no)
-    return sentropies
+                    sentropies_dict[f'subset_{m}_q={q}'] = superset.subset_diversity(q=q, m=m, eff_no=eff_no)
+
+        return SentropyResult(sentropies_dict, subsets_names)
 
 def kl_div_effno(P_abundance, Q_abundance, similarity=None, q=1, symmetric=False, sfargs=None, chunk_size=10, \
     parallelize=False, max_inflight_tasks=64, return_dataframe=False, level='both', eff_no=True, backend='numpy', device='cpu'):

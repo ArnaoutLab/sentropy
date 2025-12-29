@@ -12,7 +12,7 @@ def test_LCR_no_similarity():
     N, S = counts.shape[1], counts.shape[0]
     weights = np.sum(counts, axis=0).astype(float)
     weights /= np.sum(weights)
-    diversity_indices = sentropy(counts,qs=[1], similarity=similarity)
+    diversity_indices = sentropy(counts,qs=[1], similarity=similarity).raw_dict
 
     assert 1 <= diversity_indices['set_alpha_q=1'] <= N*S
     assert (1/weights <= diversity_indices['subset_alpha_q=1']).all() & (diversity_indices['subset_alpha_q=1'] <= S/weights).all()
