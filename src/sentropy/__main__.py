@@ -41,7 +41,7 @@ def main(args):
         counts = read_csv(args.input_filepath[0], sep=None, engine="python", dtype=int64)
         df = sentropy(counts, similarity=args.similarity,\
             qs=args.qs, ms=args.ms, chunk_size=args.chunk_size, \
-            return_dataframe=True, which=args.which, eff_no=args.eff_no, \
+            return_dataframe=True, level=args.level, eff_no=args.eff_no, \
             backend=args.backend, device=args.device)
 
         print(df)
@@ -54,7 +54,7 @@ def main(args):
         counts_b = read_csv(args.input_filepath[1], sep=None, engine="python", dtype=int64)
         result = sentropy(counts_a, counts_b, similarity=args.similarity,\
             qs=args.qs, ms=args.ms, chunk_size=args.chunk_size, \
-            return_dataframe=True, which=args.which, eff_no=args.eff_no, \
+            return_dataframe=True, level=args.level, eff_no=args.eff_no, \
             backend=args.backend, device=args.device)
 
         print("set-level relative entropy:", result[0])

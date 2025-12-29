@@ -260,7 +260,7 @@ class Set:
         df.reset_index(inplace=True)
         return df
 
-    def to_dataframe(self, qs: Union[float, Iterable[float]], ms=MEASURES, which: str = "both", eff_no: bool = True):
+    def to_dataframe(self, qs: Union[float, Iterable[float]], ms=MEASURES, level: str = "both", eff_no: bool = True):
         """Table containing all set and subset diversity
         values.
 
@@ -279,10 +279,10 @@ class Set:
         """
         dataframes = []
         for q in qs:
-            if which in ["both", "set"]:
+            if level in ["both", "set"]:
                 dataframes.append(
                 self.set_to_dataframe(q=q, ms=ms, eff_no=eff_no))
-            if which in ["both", "subset"]:
+            if level in ["both", "subset"]:
                 dataframes.append(
                 self.subsets_to_dataframe(q=q, ms=ms, eff_no=eff_no))
         return concat(dataframes).reset_index(drop=True)

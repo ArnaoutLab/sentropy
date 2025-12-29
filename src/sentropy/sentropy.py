@@ -41,7 +41,7 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
     parallelize: Optional[bool] = False,
     max_inflight_tasks: Optional[int] = 64,
     return_dataframe: bool = False,
-    which: str = 'both',
+    level: str = 'both',
     eff_no: bool = True,
     backend: str = 'numpy',
     device: str = 'cpu',
@@ -56,19 +56,19 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
     superset = Set(counts, similarity, symmetric, sfargs, chunk_size, parallelize, max_inflight_tasks, backend, device)
     
     if return_dataframe:
-        sentropies = superset.to_dataframe(qs, ms, which=which, eff_no=eff_no)
+        sentropies = superset.to_dataframe(qs, ms, level=level, eff_no=eff_no)
     else:
         sentropies = {}
         for q in qs:
             for m in ms:
-                if which in ["both", "set"]:
+                if level in ["both", "set"]:
                     sentropies[f'set_{m}_q={q}'] = superset.set_diversity(q=q, m=m, eff_no=eff_no)
-                if which in ["both", "subset"]:
+                if level in ["both", "subset"]:
                     sentropies[f'subset_{m}_q={q}'] = superset.subset_diversity(q=q, m=m, eff_no=eff_no)
     return sentropies
 
 def kl_div_effno(P_abundance, Q_abundance, similarity=None, q=1, symmetric=False, sfargs=None, chunk_size=10, \
-    parallelize=False, max_inflight_tasks=64, return_dataframe=False, which='both', eff_no=True, backend='numpy', device='cpu'):
+    parallelize=False, max_inflight_tasks=64, return_dataframe=False, level='both', eff_no=True, backend='numpy', device='cpu'):
     P_superset = Set(P_abundance, similarity, symmetric, sfargs, chunk_size, parallelize, max_inflight_tasks, backend, device)
     Q_superset = Set(Q_abundance, similarity, symmetric, sfargs, chunk_size, parallelize, max_inflight_tasks, backend, device)
     P_set_ab = P_superset.abundance.set_abundance
@@ -111,12 +111,12 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, q=1, symmetric=False
             exp_renyi_div = P_superset.backend.prod(P_superset.backend.power(ord_ratio, P))
         return exp_renyi_div
 
-    if which in ["both", "set"]:
+    if level in ["both", "set"]:
         exp_renyi_div_set = get_exp_renyi_div_from_ords(P_set_ab, P_set_ord, Q_set_ord, q, min_count, backend)
         if eff_no == False:
             exp_renyi_div_set = P_superset.backend.log(exp_renyi_div_set)
 
-    if which in ["both", "subset"]:
+    if level in ["both", "subset"]:
         exp_renyi_divs_subset = np_zeros(shape=(P_num_subsets, Q_num_subsets))
         for i in range(P_num_subsets):
             for j in range(Q_num_subsets):
@@ -133,11 +133,11 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, q=1, symmetric=False
         if eff_no == False:
             exp_renyi_divs_subset = P_superset.backend.log(exp_renyi_divs_subset)
 
-    if which=="both":
+    if level=="both":
         return exp_renyi_div_set, exp_renyi_divs_subset
-    elif which=="set":
+    elif level=="set":
         return exp_renyi_div_set
-    elif which=="subset":
+    elif level=="subset":
         return exp_renyi_divs_subset
 
 
@@ -157,7 +157,7 @@ def sentropy(
     parallelize: bool = False,
     max_inflight_tasks: int = 64,
     return_dataframe: bool = False,
-    which: str = 'both',
+    level: str = 'both',
     eff_no: bool = True,
     backend: str = 'numpy',
     device: str = 'cpu',
@@ -203,7 +203,7 @@ def sentropy(
             parallelize=parallelize,
             max_inflight_tasks=max_inflight_tasks,
             return_dataframe=return_dataframe,
-            which=which,
+            level=level,
             eff_no = eff_no,
             backend = backend,
             device = device,
@@ -225,7 +225,7 @@ def sentropy(
             parallelize=parallelize,
             max_inflight_tasks=max_inflight_tasks,
             return_dataframe=return_dataframe,
-            which=which,
+            level=level,
             eff_no = eff_no,
             backend = backend,
             device = device,
