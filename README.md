@@ -143,55 +143,62 @@ print(f"D1Z: {D1Z:.1f}")
 print(f"H1Z: {H1Z:.1f}")
 ```
 
-## How well each class represents the whole dataset
+## How well each of two classes represents the whole dataset
 
-Representativeness ($\rho$) is the reciprocal of beta diversity, which measures distinctiveness. 
+Suppose you have a dataset of fruits that has two classes, apples and oranges, and you want to know how representative each class is of the whole dataset. Representativeness ($\rho$) is the reciprocal of beta diversity, which measures distinctiveness. 
 ```
 from sentropy import sentropy
 import numpy as np
-P  = np.array([1, 1, 1, 1])                   # dataset with four equally-frequent elements
-C1 = np.array([1, 1, 0, 0])                   # first two elements are in Class 1 (only)
-C2 = np.array([0, 0, 1, 1])                   # second two elements are in Class 2 (only)
-C  = {"1": C1, "2": C2}                       # names and index membership of classes
-S = np.array([                                # similarities of all elements, across both classes
-  [1.,  0.8, 0.2, 0.1],
+
+# a dataset with two classes, "apples" and "oranges"
+C1 = np.array([5, 3, 0, 0])                   # apples; e.g. 5 McIntosh and 3 gala
+C2 = np.array([0, 0, 6, 2])                   # oranges; e.g. 6 navel and 2 cara cara
+P  = {"apples": C1, "oranges": C2}            # package the classes as P
+S = np.array([                                # similarities of all elements, including between classes
+  [1.,  0.8, 0.2, 0.1],                       #    note here the non-zero similarity between apples and oranges
   [0.8, 1.,  0.1, 0.3],
   [0.2, 0.1, 1.,  0.9],
   [0.1, 0.3, 0.9, 1. ],
   ])
-D1Z = sentropy(P, similarity=S, classes=C,             # note, one value for each class
-               level="subset",
+
+D1Z = sentropy(P, similarity=S, level="subset",            # level="class" is identical; an alias/synonym
                measure="normalized_rho")
-R1 = D1Z(class="C1", measure="normalized_rho")         # note, q=1. is the default
-R2 = D1Z(class="C2", measure="normalized_rho")
+R1 = D1Z(class="apples", measure="normalized_rho")         # note, q=1. is the default
+R2 = D1Z(class="oranges", measure="normalized_rho")
 print("Normalized rho of class 1: {R1:.2f}")
 print("Normalized rho of class 2: {R2:.2f}")
 ```
 
 ## Relative S-entropies between two classes as a pandas DataFrame
 
-The similarity-sensitive version of traditional relative entropy at q=1 (a.k.a. Kullback-Leibler divergence, information divergence, etc.).
+**PHUC: When there are classes passed, are subset values returned as a default? What should be the behavior in this example?**
+
+Same dataset as above, except now results are returned as a dataframe. The similarity-sensitive version of traditional relative entropy at q=1 (a.k.a. Kullback-Leibler divergence, information divergence, etc.).
 ```
 from sentropy import sentropy
 import numpy as np
-P  = np.array([1, 1, 1, 1])            # dataset with four equally-frequent elements
-C1 = np.array([1, 1, 0, 0])            # first two elements are in Class 1 (only)
-C2 = np.array([0, 0, 1, 1])            # second two elements are in Class 2 (only)
-C  = {"1": C1, "2": C2}                # name and package up the classes
-S = np.array([                         # similarities of all elements, across both classes
-  [1.,  0.8, 0.2, 0.1],
+
+# a dataset with two classes, "apples" and "oranges"
+C1 = np.array([5, 3, 0, 0])                   # apples; e.g. 5 McIntosh and 3 gala
+C2 = np.array([0, 0, 6, 2])                   # oranges; e.g. 6 navel and 2 cara cara
+P  = {"apples": C1, "oranges": C2}            # package the classes as P
+S = np.array([                                # similarities of all elements, including between classes
+  [1.,  0.8, 0.2, 0.1],                       #    note here the non-zero similarity between apples and oranges
   [0.8, 1.,  0.1, 0.3],
   [0.2, 0.1, 1.,  0.9],
   [0.1, 0.3, 0.9, 1. ],
   ])
-df = sentropy(C1, C2, similarity=S,
-              return_dataframe=True)
+
+D1Z = sentropy(P, similarity=S,
+               return_dataframe-True)
+
 print(df)                              # S-entropies on the diagonals; relative S-entropies on the off-diagonals
 ```
 
 ## Ordinariness
 
-How much each of the elements of one dataset (here, fish and ladybugs; a vertebrate and an invertebrate) looks like the elements in another dataset (bees, butterflies, and lobsters—all invertegrates). As invertebrates, ladybugs are more "ordinary."
+Suppose you have two datasets of animals. The first dataset consists of fish (a vertebrate) and ladybugs (an invertebrate). The second dataset consists of bees, butterflies, and lobsters—all invertebrates. The two datasets are disjoint—there are no fish or ladybugs in the second dataset—but  genetically speaking, there are similarities. Suppose you want some measure of how similar each element of the first dataset is, to the second dataset: how much would each element "belong" in the second dataset. This is measured by *ordinariness*: ladybugs would be more "ordinary" in the second dataset, since it is an invertebrate. Strictly speaking this can be calculated without `sentropy`, but `sentropy` provides speedups (see documentation).
+
 ```
 import numpy as np
 P = np.array([5000, 2000, 3000])             # frequencies of a dataset of bees, butterflies, and lobsters, respectively
