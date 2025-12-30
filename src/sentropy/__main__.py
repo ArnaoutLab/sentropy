@@ -57,8 +57,7 @@ def main(args):
             return_dataframe=True, level=args.level, eff_no=args.eff_no, \
             backend=args.backend, device=args.device)
 
-        print("set-level relative entropy:", result[0])
-        print("subset-level relative entropies:", result[1])
+        print("result:", result)
         
         if args.output_filepath is not None:
             with open(args.output_filepath, 'wb') as f:

@@ -8,12 +8,12 @@ from sentropy.exceptions import ArgumentWarning
 CONFIGURE_ARGUMENTS_TEST_CASES = [
     {
         "description": "Warn viewpoint > 100",
-        "args": ["-v", "1", "2", "0", "inf", "101"],
+        "args": ["-qs", "1", "2", "0", "inf", "101"],
         "expect_warning": True,
     },
     {
         "description": "Do not warn valid viewpoint",
-        "args": ["-v", "0", "100", "inf"],
+        "args": ["-qs", "0", "100", "inf"],
         "expect_warning": False,
     },
 ]

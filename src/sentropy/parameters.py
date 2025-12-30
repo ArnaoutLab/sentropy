@@ -85,9 +85,7 @@ def configure_arguments():
         ),
     )
     parser.add_argument(
-        "-v",
-        "--viewpoint",
-        "--viewpoints",
+        "-qs",
         nargs="+",
         type=float,
         help=(
@@ -98,9 +96,7 @@ def configure_arguments():
         action=ValidateViewpoint,
     )
     parser.add_argument(
-        "-m",
-        "--measure",
-        "--measures",
+        "-ms",
         nargs="+",
         type=str,
         help=(
@@ -119,9 +115,9 @@ def configure_arguments():
     )
 
     parser.add_argument(
-        "-which",
+        "-level",
         type=str,
-        help="whether to compute diversity at the set level ('set'), subset level ('subset') or both ('both').",
+        help="whether to compute diversity at the set level ('overall'), subset level ('subset') or both ('both').",
         default='both',
     )
 
