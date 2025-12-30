@@ -85,15 +85,17 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
     if return_dataframe:
         return superset.to_dataframe(qs, ms, level=level, eff_no=eff_no)
     else:
-        sentropies_dict = {}
-        for q in qs:
-            for m in ms:
-                if level in ["both", "overall"]:
-                    sentropies_dict[f'set_{m}_q={q}'] = superset.set_diversity(q=q, m=m, eff_no=eff_no)
-                if level in ["both", "subset"]:
-                    sentropies_dict[f'subset_{m}_q={q}'] = superset.subset_diversity(q=q, m=m, eff_no=eff_no)
-
-        return SentropyResult(sentropies_dict, subsets_names)
+        if len(qs)==1 and len(ms)==1 and counts.shape[1]==1:
+            return superset.set_diversity(q=qs[0], m=ms[0], eff_no=eff_no)
+        else:
+            sentropies_dict = {}
+            for q in qs:
+                for m in ms:
+                    if level in ["both", "overall"]:
+                        sentropies_dict[f'set_{m}_q={q}'] = superset.set_diversity(q=q, m=m, eff_no=eff_no)
+                    if level in ["both", "subset"]:
+                        sentropies_dict[f'subset_{m}_q={q}'] = superset.subset_diversity(q=q, m=m, eff_no=eff_no)
+            return SentropyResult(sentropies_dict, subsets_names)
 
 def kl_div_effno(P_abundance, Q_abundance, similarity=None, q=1, symmetric=False, sfargs=None, chunk_size=10, \
     parallelize=False, max_inflight_tasks=64, return_dataframe=False, level='both', eff_no=True, backend='numpy', device='cpu'):
@@ -178,7 +180,7 @@ def sentropy(
     *,
     similarity: Optional[Union[ndarray, DataFrame, str, Callable]] = None,
     qs: Union[float, int, Iterable[float], Iterable[int]] = 1,
-    ms: Iterable[str] = MEASURES,
+    ms: Iterable[str] = 'alpha',
     symmetric: bool = False,
     sfargs: Optional[Union[ndarray, DataFrame]] = None,
     chunk_size: int = 10,

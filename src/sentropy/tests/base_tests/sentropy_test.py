@@ -4,6 +4,18 @@ SimilarityFromFile, SimilarityFromDataFrame
 import numpy as np
 import pandas as pd
 
+MEASURES = (
+    "alpha",
+    "rho",
+    "beta",
+    "gamma",
+    "normalized_alpha",
+    "normalized_rho",
+    "normalized_beta",
+    "rho_hat",
+    "beta_hat",
+)
+
 def test_LCR_no_similarity():
     #Check most inequalities in Table S2.1 of Reeve's paper "how to partition diversity" https://arxiv.org/pdf/1404.6520.
     
@@ -12,7 +24,7 @@ def test_LCR_no_similarity():
     N, S = counts.shape[1], counts.shape[0]
     weights = np.sum(counts, axis=0).astype(float)
     weights /= np.sum(weights)
-    diversity_indices = sentropy(counts,qs=[1], similarity=similarity).raw_dict
+    diversity_indices = sentropy(counts,qs=[1], ms=MEASURES, similarity=similarity).raw_dict
 
     assert 1 <= diversity_indices['set_alpha_q=1'] <= N*S
     assert (1/weights <= diversity_indices['subset_alpha_q=1']).all() & (diversity_indices['subset_alpha_q=1'] <= S/weights).all()
@@ -37,7 +49,7 @@ def test_LCR_return_dataframe():
     N, S = counts.shape[1], counts.shape[0]
     weights = np.sum(counts, axis=0).astype(float)
     weights /= np.sum(weights)
-    df = sentropy(counts,qs=[1], return_dataframe=True)
+    df = sentropy(counts,qs=[1], ms=MEASURES, return_dataframe=True)
 
     assert (df['rho'][1:].to_numpy() <= 1/weights).all()
     assert df['rho'][0] <= N
