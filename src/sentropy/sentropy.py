@@ -39,12 +39,12 @@ class SentropyResult:
         self.ms = ms 
         self.level = level
 
-    def __call__(self, which=None, m=None, q=None):
-        if self.level == 'overall':
+    def __call__(self, which=None, q=None, m=None):
+        if which is None and self.level == 'overall':
             which='overall'
-        if len(self.qs) == 1:
+        if q is None and len(self.qs) == 1:
             q = self.qs[0]
-        if len(self.ms) == 1:
+        if m is None and len(self.ms) == 1:
             m = self.ms[0]
 
         if which=='overall':
