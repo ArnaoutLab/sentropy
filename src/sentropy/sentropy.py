@@ -36,7 +36,7 @@ class SentropyResult:
         self.raw_dict = raw_dict
         self.subsets_names = subsets_names
 
-    def get(self, which, m, q):
+    def __call__(self, which, m, q):
         if which=='set':
             key = f"set_{m}_q={q}"
             return self.raw_dict[key]
