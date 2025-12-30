@@ -45,15 +45,16 @@ The most important optional arguments are:
 ## Vanilla Shannon entropy
 
 When the similarity matrix is the identity matrix---`sentropy`'s default for `similarity`---there is no similarity between elements $i\neq j$ and S-entropy reduces to traditional (Rényi) entropy. At the default `q=1`, this is Shannon entropy. Therefore passing `sentropy` only a `P` yields Shannon entropy, in effective-number form.
+
 ```
 from sentropy import sentropy
 import numpy as np
 
 P = np.array([0.7, 0.3])      # two unique elements comprising 70% and 30% of the dataset, respectively
 D1 = sentropy(P)              # S-entropy *without* similarity at default q (q=1) = Shannon entropy.
-                              # Note defaults: level="set", measure="alpha", q=1.
-H1 = np.log(D1)               # traditional form
-print(f"D1: {D1:.1f}")
+print(f"D1: {D1:.1f}")        # Note defaults: level="both", measure="alpha", q=1.
+
+H1 = sentropy(P, eff_no=False)# traditional form (as an entropy, not an effective number)
 print(f"H1: {H1:.1f}")
 ```
 
@@ -69,9 +70,10 @@ S = np.array([                                # similarity matrix
   [1. , 0.2],                                 # 20% similar to each other
   [0.2, 1. ],
   ])
-D1Z = sentropy(P, similarity=S)    # D-number form (preferred). Note defaults: level="set", measure="alpha", q=1.
-H1Z = np.log(D1Z)                  # traditional form
-print(f"D1Z: {D1Z:.1f}")
+D1Z = sentropy(P, similarity=S)               # D-number form (preferred). Note defaults: level="both", measure="alpha", q=1.
+print(f"D1Z: {D1Z:.1f}")              
+
+H1Z = sentropy(P, similarity=S, eff_no=False) # traditional form
 print(f"H1Z: {H1Z:.1f}")
 ```
 
@@ -88,13 +90,13 @@ S = np.array([                                # same similarity matrix as above
   [0.2, 1. ],
   ])
 qs = [0., 1., 2., np.inf]                     # multiple viewpoint parameters
-measuress = ["alpha", "beta", "gamma"]        # multiple measures
+ms = ["alpha", "beta", "gamma"]               # multiple measures
 DZ = sentropy(P, similarity=S,                # S-entropy...
-              q=qs,                           #   ...at multple qs...
-              measures=measures)              #   ...for multiple measures
+              qs=qs,                          #   ...at multple qs...
+              ms=ms)                          #   ...for multiple measures
 for q in qs:
-  for measure in measures:
-    DqZ = DZ(q=q, measure=measure)            # D-number form (preferred)
+  for m in ms:
+    DqZ = DZ(q=q, m=m, which='overall')       # D-number form (preferred)
     HqZ = np.log(DqZ)                         # traditional form
     print(f"D{q}Z {m}: {DqZ:.1f}")
     print(f"H{q}Z {m}: {HqZ:.1f}")
@@ -142,17 +144,15 @@ S = np.array([                                # similarities of all elements, in
   [0.1, 0.3, 0.9, 1. ],
   ])
 
-D1Z = sentropy(P, similarity=S, level="subset",            # level="class" is identical; an alias/synonym
-               measure="normalized_rho")
-R1 = D1Z(class="apples", measure="normalized_rho")         # note, q=1. is the default
-R2 = D1Z(class="oranges", measure="normalized_rho")
-print("Normalized rho of class 1: {R1:.2f}")
-print("Normalized rho of class 2: {R2:.2f}")
+D1Z = sentropy(P, similarity=S, level="subset",            # level="subset" is identical; an alias/synonym
+               ms="normalized_rho")
+R1 = D1Z(which="apples")                                   # note, no need to pass a measure to "m" or a viewpoint to "q"
+R2 = D1Z(which="oranges")                                  # because D1Z only computed 1 measure and 1 viewpoint anyway
+print(f"Normalized rho of class 1: {R1:.2f}")
+print(f"Normalized rho of class 2: {R2:.2f}")
 ```
 
 ## Relative S-entropies between two classes as a pandas DataFrame
-
-**PHUC: When there are classes passed, are subset values returned as a default? What should be the behavior in this example?**
 
 Same dataset as above, except now results are returned as a dataframe. The similarity-sensitive version of traditional relative entropy at q=1 (a.k.a. Kullback-Leibler divergence, information divergence, etc.).
 ```
@@ -171,9 +171,9 @@ S = np.array([                                # similarities of all elements, in
   ])
 
 D1Z = sentropy(P, similarity=S,
-               return_dataframe-True)
+               return_dataframe=True)
 
-print(df)                              # S-entropies on the diagonals; relative S-entropies on the off-diagonals
+display(D1Z)                              # S-entropies on the diagonals; relative S-entropies on the off-diagonals
 ```
 
 ## Ordinariness
