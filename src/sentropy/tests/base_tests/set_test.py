@@ -53,7 +53,7 @@ class FrequencySet6by2:
     subset_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "set/subset": subsets_names,
+                "level": subsets_names,
                 "viewpoint": [0.0, 0.0],
                 "alpha": [6.0, 6.0],
                 "rho": [1.0, 1.0],
@@ -70,7 +70,7 @@ class FrequencySet6by2:
     set_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "set/subset": ["set"],
+                "level": ["overall"],
                 "viewpoint": [0.0],
                 "alpha": [6.0],
                 "rho": [1.0],
@@ -99,7 +99,7 @@ class FrequencySet3by2:
     subset_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "set/subset": subsets_names,
+                "level": subsets_names,
                 "viewpoint": [2.0, 2.0],
                 "alpha": [4.0, 2.30769231],
                 "rho": [1.26315789, 1.16129032],
@@ -116,7 +116,7 @@ class FrequencySet3by2:
     set_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "set/subset": ["set"],
+                "level": ["overall"],
                 "viewpoint": [2.0],
                 "alpha": [2.7777777777777777],
                 "rho": [1.2],
@@ -191,7 +191,7 @@ class SimilaritySet6by2:
     subset_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "set/subset": subsets_names,
+                "level": subsets_names,
                 "viewpoint": [0.0, 0.0],
                 "alpha": [3.0, 3.0],
                 "rho": [2.05, 2.05],
@@ -208,7 +208,7 @@ class SimilaritySet6by2:
     set_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "set/subset": ["set"],
+                "level": ["overall"],
                 "viewpoint": [0.0],
                 "alpha": [3.0],
                 "rho": [2.05],
@@ -257,7 +257,7 @@ class SimilaritySet3by2:
     subset_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "set/subset": subsets_names,
+                "level": subsets_names,
                 "viewpoint": [2.0, 2.0],
                 "alpha": [3.07692308, 2.22222222],
                 "rho": [1.97775446, 1.48622222],
@@ -274,7 +274,7 @@ class SimilaritySet3by2:
     set_results: DataFrame = field(
         default_factory=lambda: DataFrame(
             {
-                "set/subset": ["set"],
+                "level": ["overall"],
                 "viewpoint": [2.0],
                 "alpha": [2.5],
                 "rho": [1.6502801833927663],
@@ -409,7 +409,7 @@ def test_select_measures(data):
         "gamma",
         "normalized_rho",
     ]
-    expected_columns = selected_measures + ["set/subset", "viewpoint"]
+    expected_columns = selected_measures + ["level", "viewpoint"]
     df = superset.to_dataframe(
         qs=[data.viewpoint], ms=selected_measures
     )
@@ -440,7 +440,7 @@ def test_effective_counts():
         df = m.to_dataframe(
             ms=["alpha", "normalized_alpha"], qs=viewpoints
         )
-        df.set_index(["set/subset", "viewpoint"], inplace=True)
+        df.set_index(["level", "viewpoint"], inplace=True)
         if first_df is None:
             first_df = df
         else:
@@ -467,7 +467,7 @@ def test_effective_counts():
         sim[i, j] = sim[j, i] = val
     m = Set(counts, sim, subsets_names=['A', 'B'])
     df = m.to_dataframe(qs=viewpoints)
-    df.set_index(["set/subset", "viewpoint"], inplace=True)
+    df.set_index(["level", "viewpoint"], inplace=True)
     for col in first_df:
         for ind in first_df.index:
             assert df.loc[ind][col] < first_df.loc[ind][col]
@@ -535,7 +535,7 @@ def test_property1():
             similarity=similarity_function, X=X.to_numpy(), symmetric=True)
         return superset.to_dataframe(
             qs=viewpoints, ms=measures
-        ).set_index(["set/subset", "viewpoint"])
+        ).set_index(["level", "viewpoint"])
 
     df1 = get_result()
     X = X.sort_index()
@@ -582,7 +582,7 @@ def test_property2():
     viewpoints = [0, 1, 2, 3, 4, 5, inf]
     superset = Set(counts, similarity=S_2b_df)
     df1 = superset.to_dataframe(qs=viewpoints).set_index(
-        ["set/subset", "viewpoint"]
+        ["level", "viewpoint"]
     )
     counts = counts[counts["Community 2b"] > 0]
     S_2b = S_2b[:-1, :-1]
@@ -590,7 +590,7 @@ def test_property2():
     S_2b_df.to_csv('S_2b_df_after_removing_zero_abundance_species.csv', index=False)
     superset = Set(counts, similarity='S_2b_df_after_removing_zero_abundance_species.csv')
     df2 = superset.to_dataframe(qs=viewpoints).set_index(
-        ["set/subset", "viewpoint"]
+        ["level", "viewpoint"]
     )
     assert allclose(df1.to_numpy(), df2.to_numpy())
 
@@ -625,14 +625,14 @@ def test_property3():
     ]
     superset = Set(counts, sim)
     df1 = superset.to_dataframe(qs=viewpoints, ms=measures).set_index(
-        ["set/subset", "viewpoint"]
+        ["level", "viewpoint"]
     )
     labels = labels[:-1]
     sim = sim[:-1, :-1]
     counts = DataFrame({"A": [3, 2, 4], "B": [0, 4, 5], "C": [1, 1, 2]}, index=labels)
     superset = Set(counts, sim)
     df2 = superset.to_dataframe(qs=viewpoints, ms=measures).set_index(
-        ["set/subset", "viewpoint"]
+        ["level", "viewpoint"]
     )
     assert allclose(df1.to_numpy(), df2.to_numpy(), equal_nan=True)
 

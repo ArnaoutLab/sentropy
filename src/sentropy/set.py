@@ -231,7 +231,7 @@ class Set:
                 self.subset_diversity(q, m, eff_no)) for m in ms
         })
         df.insert(0, "viewpoint", q)
-        df.insert(0, "set/subset", Series(self.abundance.subsets_names))
+        df.insert(0, "level", Series(self.abundance.subsets_names))
         return df
 
     def set_to_dataframe(self, q: float, ms=MEASURES, eff_no: bool=True):
@@ -255,7 +255,7 @@ class Set:
             m: (self.set_diversity(q, m, eff_no).cpu() if isinstance(self.set_diversity(q, m, eff_no),Tensor) else \
                 self.set_diversity(q, m, eff_no)) for m in ms
         },
-        index=Index(["set"], name="set/subset"))
+        index=Index(["overall"], name="level"))
 
         df.insert(0, "viewpoint", q)
         df.reset_index(inplace=True)
