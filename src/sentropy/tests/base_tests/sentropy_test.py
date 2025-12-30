@@ -90,7 +90,7 @@ def test_arguments_eff_no_and_which_in_kl_div():
     counts_1 = np.array([[9/25], [12/25], [4/25]])
     counts_2 = np.array([[1/3], [1/3], [1/3]])
     results_1 = sentropy(counts_1, counts_2)
-    results_2 = sentropy(counts_1, counts_2, level='set')
+    results_2 = sentropy(counts_1, counts_2, level='overall')
     results_3 = sentropy(counts_1, counts_2, level='subset')
     results_4 = sentropy(counts_1, counts_2, eff_no=False)
 

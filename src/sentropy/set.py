@@ -280,7 +280,7 @@ class Set:
         """
         dataframes = []
         for q in qs:
-            if level in ["both", "set"]:
+            if level in ["both", "overall"]:
                 dataframes.append(
                 self.set_to_dataframe(q=q, ms=ms, eff_no=eff_no))
             if level in ["both", "subset"]:

@@ -88,7 +88,7 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
         sentropies_dict = {}
         for q in qs:
             for m in ms:
-                if level in ["both", "set"]:
+                if level in ["both", "overall"]:
                     sentropies_dict[f'set_{m}_q={q}'] = superset.set_diversity(q=q, m=m, eff_no=eff_no)
                 if level in ["both", "subset"]:
                     sentropies_dict[f'subset_{m}_q={q}'] = superset.subset_diversity(q=q, m=m, eff_no=eff_no)
@@ -139,7 +139,7 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, q=1, symmetric=False
             exp_renyi_div = P_superset.backend.prod(P_superset.backend.power(ord_ratio, P))
         return exp_renyi_div
 
-    if level in ["both", "set"]:
+    if level in ["both", "overall"]:
         exp_renyi_div_set = get_exp_renyi_div_from_ords(P_set_ab, P_set_ord, Q_set_ord, q, min_count, backend)
         if eff_no == False:
             exp_renyi_div_set = P_superset.backend.log(exp_renyi_div_set)
@@ -163,7 +163,7 @@ def kl_div_effno(P_abundance, Q_abundance, similarity=None, q=1, symmetric=False
 
     if level=="both":
         return exp_renyi_div_set, exp_renyi_divs_subset
-    elif level=="set":
+    elif level=="overall":
         return exp_renyi_div_set
     elif level=="subset":
         return exp_renyi_divs_subset
