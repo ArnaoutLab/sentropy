@@ -16,7 +16,40 @@ MEASURES = (
     "beta_hat",
 )
 
-def test_LCR_no_similarity():
+def test_single_output():
+    P = np.array([0.7, 0.3])
+    D1 = sentropy(P)
+    assert np.allclose(D1, 1.84202)
+    H1 = sentropy(P, eff_no=False)
+    assert np.allclose(H1, np.log(D1))
+
+def test_abundance_as_dict():
+    # a dataset with two classes, "apples" and "oranges"
+    C1 = np.array([5, 3, 0, 0])                   # apples; e.g. 5 McIntosh and 3 gala
+    C2 = np.array([0, 0, 6, 2])                   # oranges; e.g. 6 navel and 2 cara cara
+    P  = {"apples": C1, "oranges": C2}            # package the classes as P
+    S = np.array([                                # similarities of all elements, including between classes
+      [1.,  0.8, 0.2, 0.1],                       #    note here the non-zero similarity between apples and oranges
+      [0.8, 1.,  0.1, 0.3],
+      [0.2, 0.1, 1.,  0.9],
+      [0.1, 0.3, 0.9, 1. ],
+      ])
+
+    D1Z = sentropy(P, similarity=S, ms="normalized_rho")
+    R1 = D1Z(which="apples")         # note, q=1. is the default
+    R2 = D1Z(which="oranges")
+    R3 = D1Z(which="overall")
+    assert np.allclose(R1, 0.59125)
+    assert np.allclose(R2, 0.58613)
+    assert np.allclose(R3, 0.58868)
+    D1Z = sentropy(P, similarity=S, level="overall", qs=[0,1,np.inf], ms="normalized_rho")
+    R4 = D1Z(q=1)
+    assert np.allclose(R4, R3)
+    D1Z = sentropy(P, similarity=S, level="subset", qs=[0,1,np.inf], ms="normalized_rho")
+    R5 = D1Z(q=1, which="oranges")
+    assert np.allclose(R5, R2)
+
+def test_no_similarity():
     #Check most inequalities in Table S2.1 of Reeve's paper "how to partition diversity" https://arxiv.org/pdf/1404.6520.
     
     counts = np.array([[1,0], [0,1], [1,1], [2,3]])
@@ -43,7 +76,7 @@ def test_LCR_no_similarity():
     assert (diversity_indices['subset_gamma_q=1'] <= diversity_indices['subset_alpha_q=1']).all()
     assert (diversity_indices['set_gamma_q=1'] <= diversity_indices['set_alpha_q=1'])
 
-def test_LCR_return_dataframe():
+def test_return_dataframe():
     #Check the inequalities in Table S2.1 of Reeve's paper that hold in the naive type model (the ones marked with asterisks)
     counts = np.array([[1,3], [3,1], [1,1], [2,3]])
     N, S = counts.shape[1], counts.shape[0]
@@ -61,7 +94,7 @@ def test_LCR_return_dataframe():
     assert df['alpha'][0] <= N*df['gamma'][0]
     assert df['normalized_alpha'][0] <= df['gamma'][0]
 
-def test_arguments_symmetric_and_parallelize_of_LCR():
+def test_arguments_symmetric_and_parallelize():
     sfargs = np.array([
       [1, 2], 
       [3, 4], 

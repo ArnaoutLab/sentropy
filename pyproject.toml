@@ -34,7 +34,7 @@ ray = ["ray>=2.42.1"]
 "Bug Tracker" = "https://github.com/ArnaoutLab/sentropy/issues"
 
 [tool.pytest.ini_options]
-addopts = "--cov --cov-report html --cov-report term-missing --cov-fail-under 98"
+addopts = "--cov --cov-report html --cov-report term-missing --cov-fail-under 99"
 
 [tool.coverage.run]
 source = ["src"]
