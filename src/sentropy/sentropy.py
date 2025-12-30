@@ -32,11 +32,21 @@ MEASURES = (
 )
 
 class SentropyResult:
-    def __init__(self, raw_dict, subsets_names):
+    def __init__(self, raw_dict, subsets_names, qs, ms, level):
         self.raw_dict = raw_dict
         self.subsets_names = subsets_names
+        self.qs = qs 
+        self.ms = ms 
+        self.level = level
 
-    def __call__(self, which='overall', m='alpha', q=1):
+    def __call__(self, which=None, m=None, q=None):
+        if self.level == 'overall':
+            which='overall'
+        if len(self.qs) == 1:
+            q = self.qs[0]
+        if len(self.ms) == 1:
+            m = self.ms[0]
+
         if which=='overall':
             key = f"set_{m}_q={q}"
             if key not in self.raw_dict.keys():
@@ -95,7 +105,7 @@ def LCR_sentropy(counts: Union[DataFrame, ndarray],
                         sentropies_dict[f'set_{m}_q={q}'] = superset.set_diversity(q=q, m=m, eff_no=eff_no)
                     if level in ["both", "subset"]:
                         sentropies_dict[f'subset_{m}_q={q}'] = superset.subset_diversity(q=q, m=m, eff_no=eff_no)
-            return SentropyResult(sentropies_dict, subsets_names)
+            return SentropyResult(sentropies_dict, subsets_names, qs, ms, level)
 
 def kl_div_effno(P_abundance, Q_abundance, similarity=None, q=1, symmetric=False, sfargs=None, chunk_size=10, \
     parallelize=False, max_inflight_tasks=64, return_dataframe=False, level='both', eff_no=True, backend='numpy', device='cpu'):
