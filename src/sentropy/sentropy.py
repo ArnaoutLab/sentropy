@@ -39,9 +39,13 @@ class SentropyResult:
     def __call__(self, which, m, q):
         if which=='set':
             key = f"set_{m}_q={q}"
+            if key not in self.raw_dict.keys():
+                key = f"set_{m}_q={float(q)}"
             return self.raw_dict[key]
         else:
             key = f"subset_{m}_q={q}"
+            if key not in self.raw_dict.keys():
+                key = f"subset_{m}_q={float(q)}"
             idx = list(self.subsets_names).index(which)
             return self.raw_dict[key][idx]
 
