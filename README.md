@@ -119,6 +119,8 @@ measures = ["alpha", "beta", "gamma"]         # multiple measures
 DZ = sentropy(P, similarity=S,                # S-entropy...
               qs=qs,                          #   ...at multple qs...
               ms=measures)                    #   ...for multiple measures
+                                              # note when the result of the sentropy() call contains
+                                              # multiple values, it returns a function
 for measure in measures:
   for q in qs:
     DqZ = DZ(q=q, m=measure, which='overall') # D-number form (preferred)
@@ -192,10 +194,11 @@ S = np.array([                                # similarities of all elements, re
   [0.0, 0.3, 0.9, 1. ],
   ])
 
-D1Z = sentropy(P, similarity=S, level="subset",            # level="class" is identical; an alias/synonym
+D1Z = sentropy(P, similarity=S,
+               level="subset",                # level="class" is identical; an alias/synonym
                ms="normalized_rho")
-R1 = D1Z(which="apples")                                   # note, no need to pass a measure to "m" or a viewpoint to "q"
-R2 = D1Z(which="oranges")                                  # because D1Z only computed 1 measure and 1 viewpoint anyway
+R1 = D1Z(which="apples")                      # note, no need to pass a measure to "m" or a viewpoint to "q"
+R2 = D1Z(which="oranges")                     # because D1Z only computed 1 measure and 1 viewpoint anyway
 print(f"Normalized rho of class 1 (apples):\t{R1:.2f}")
 print(f"Normalized rho of class 2 (oranges):\t{R2:.2f}")
 ```
