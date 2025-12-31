@@ -279,7 +279,7 @@ In this bee-butterfly-lobster dataset, with genetics-based similarity, how ordin
 
 # More applications
 
-[This preprint](https://arxiv.org/abs/2401.00102) appled `sentropy` to various fields, including immunomics, metagenomics, medical imaging, and digital pathology. The code for each of these applications is in the following Jupyter notebooks. Please follow along with the paper:
+In [this preprint](https://arxiv.org/abs/2401.00102) of ours, we appled `sentropy` to various fields, including immunomics, metagenomics, medical imaging, and digital pathology. The code for each of these applications is in the following Jupyter notebooks. Please follow along with the paper:
 
 - [Additional basic-usage examples](https://github.com/ArnaoutLab/diversity_notebooks_and_data/blob/main/fruits_and_animals/fruits_and_animals_fig1_2.ipynb)
 - [Immunomics](https://github.com/ArnaoutLab/diversity_notebooks_and_data/blob/main/immunomics/immunomics_fig3.ipynb)
