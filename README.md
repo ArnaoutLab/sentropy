@@ -17,7 +17,7 @@
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
-[Availability, installation, and testing](#Availability,-installation,-and-testing) | [Basic usage](#basic-usage) | 
+[Availability, installation, and testing](#availability-installation-and-testing) | [Basic usage](#basic-usage) | [Shannon entropy](vanilla-shannon-entropy) | Shannon-type S-entropy | ɑ, β, ɣ, and q | Similarity functions | Representativeness | Relative S-entropy | Ordinariness | How to cite
 
 # Availability, installation, and testing
 
