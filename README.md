@@ -141,7 +141,7 @@ D1Z gamma:	1.55 elements
 D2Z gamma:	1.51 elements
 DinfZ gamma:	1.32 elements
 ```
-Values fall with increasing *q*. *ɑ*=*ɣ* in this example because there is only one class (see [Leinster 2020](https://arxiv.org/abs/2012.02113)).
+Values fall with increasing *q*. *q*=0, 1, 2, and ∞ can be thought of as "counting-", "Shannon-", "Simpson-", and "Berger-Parker-type" S-entropy. *ɑ*=*ɣ* in this example because there is only one class (see [Leinster 2020](https://arxiv.org/abs/2012.02113)).
 
 ## Calculating similarity on the fly
 
