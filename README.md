@@ -176,14 +176,14 @@ The strings in this example are amino acid sequences, such as might exist in a n
 
 ## How well each of two classes represents the whole dataset
 
-Suppose you have a dataset of fruits that has two classes, apples and oranges, and you want to know how representative each class is of the whole dataset. `sentropy` lets you do this by measuring representativeness (*𝜌*), which is the reciprocal of *β* diversity (which measures distinctiveness):
+Suppose you have a dataset of fruits that has two classes, apples and oranges, and you want to know how representative each class is of the whole dataset. `sentropy` lets you do this by measuring the representativeness of each class (*𝜌*, "rho"), which is the reciprocal of *β* diversity (which measures distinctiveness):
 ```
 from sentropy import sentropy
 import numpy as np
 
 # a dataset with two classes, "apples" and "oranges"
-C1 = np.array([12, 3, 0, 0])                  # apples; e.g. 5 granny smith and 3 gala
-C2 = np.array([0,  0, 4, 4])                  # oranges; e.g. 6 navel and 2 cara cara
+C1 = np.array([12, 3, 0, 0])                  # apples; e.g. 12 granny smith and 3 gala
+C2 = np.array([0,  0, 4, 4])                  # oranges; e.g. 4 navel and 4 cara cara
 P  = {"apples": C1, "oranges": C2}            # package the classes as P
 S = np.array([                                # similarities of all elements, including between classes
   [1.,  0.7, 0.0, 0.0],                       #    note here the non-zero similarity between apples and oranges
