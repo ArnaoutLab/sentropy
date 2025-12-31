@@ -113,7 +113,7 @@ for q in qs:
     print(f"H{q}Z {m}: {HqZ:.1f}")
 ```
 
-## Similarity on the fly
+## Calculating similarity on the fly
 
 When the similarity matrix would be too large to hold in memory, a function can be passed to `similarity`.
 ```
