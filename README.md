@@ -17,7 +17,7 @@
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
-[Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#s-entropy) | [ɑ, β, ɣ, and multiple *q*](Multiple measures and viewpoint parameters) | [Passing similarity functions](#calculating-similarity-on-the-fly) | [Representativeness](#how-well-each-of-two-classes-represents-the-whole-dataset) | [Relative S-entropy](#relative-s-entropies-between-two-classes-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [Cite this work](#how-to-cite-this-work)
+[Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#s-entropy) | [ɑ, β, ɣ, and multiple *q*](ɑ-β-ɣ-and-multiple-q) | [Passing similarity functions](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Relative S-entropy and pandas](#relative-s-entropies-between-two-classes-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [Cite this work](#how-to-cite-this-work)
 
 # Installation
 
