@@ -60,18 +60,25 @@ When the similarity matrix is the identity matrix---`sentropy`'s default for `si
 from sentropy import sentropy
 import numpy as np
 
-P = np.array([0.7, 0.3])        # two unique elements comprising 70% and 30% of the dataset, respectively
-D1 = sentropy(P)                # S-entropy *without* similarity at default q (q=1) = Shannon entropy,
-                                # returned in default effective-number (D-number) form (preferred)
-print(f"D1: {D1:.2f}")          # Note defaults: level="both", measure="alpha", q=1.
+P = np.array([0.7, 0.3])          # two unique elements comprising 70% and 30% of the dataset, respectively
+D1 = sentropy(P)                  # S-entropy *without* similarity at default q (q=1) = Shannon entropy,
+                                  # returned in default effective-number (D-number) form (preferred)
+                                  # Equivalent to also including the argument similarity=np.eye(2)
+print(f"D1: {D1:.2f} elements")   # Note defaults: level="both", measure="alpha", q=1.
 
-H1 = sentropy(P, eff_no=False)  # traditional, non-effective-number form (eff_no=False)
-print(f"H1: {H1:.2f}")
+H1 = sentropy(P, eff_no=False)    # traditional, non-effective-number form (eff_no=False)
+print(f"H1: {H1:.2f} nats (= {np.log2(D1):.2f} bits)")
 ```
+Expected output:
+```
+D1: 1.84 elements
+H1: 0.61 nats (= 0.88 bits)
+```
+Intuition behind effective numbers: suppose instead of the frequencies being `(0.7, 0.3)` they were `(0.999999, 0.000001)`, meaning the population was almost completely make up of element 1; the effective-number form would be `1.00001...` (and the traditional form almost 0 at `1e-5` nats/`2e-5` bits). In contrast, in the above example the frequencies are less skewed, and so the effective number is closer to 2 (at `1.84`). The effective number would *equal* 2 if the frequencies were equal: `(0.5, 0.5)`.
 
 ## Shannon-type (i.e. *q*=1) S-entropy
 
-Passing a non-*I* similarity results in S-entropy.
+Passing a non-*I* similarity matrix results in S-entropy.
 ```
 from sentropy import sentropy
 import numpy as np
@@ -82,10 +89,15 @@ S = np.array([                                # similarity matrix
   [0.2, 1. ],
   ])
 D1Z = sentropy(P, similarity=S)               # D-number form (preferred). Note defaults: level="both", measure="alpha", q=1.
-print(f"D1Z: {D1Z:.2f}")              
+print(f"D1Z: {D1Z:.2f} elements")              
 
 H1Z = sentropy(P, similarity=S, eff_no=False) # traditional form
-print(f"H1Z: {H1Z:.2f}")
+print(f"H1Z: {H1Z:.2f} nats")
+```
+Expected output:
+```
+D1Z: 1.55 elements
+H1Z: 0.44 nats
 ```
 
 ## S-entropy with multiple measures and viewpoint parameters
