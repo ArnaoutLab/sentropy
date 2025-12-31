@@ -74,7 +74,7 @@ Expected output:
 D1: 1.84 elements
 H1: 0.61 nats (= 0.88 bits)
 ```
-**Intuition behind effective numbers:** suppose instead of the frequencies being `(0.7, 0.3)` they were `(0.999999, 0.000001)`, meaning the population was almost completely make up of element 1; the effective-number form would be `1.00001...` (and the traditional form almost 0 at `1e-5` nats/`2e-5` bits). In contrast, in the above example the frequencies are less skewed, and so the effective number is closer to 2 (at `1.84`). The effective number would *equal* 2 if the frequencies were equal: `(0.5, 0.5)`.
+**Intuition behind effective numbers.** Suppose instead of the frequencies being `(0.7, 0.3)` they were `(0.999999, 0.000001)`. The population would consist almost completely of element 1. In an intuitive sense, element 2 "shouldn't count" as much. In this case, the effective-number form would be `sentropy(np.array([0.999999, 0.000001]))` = `1.00001...`. (The traditional form would be ~0, at `1e-5` nats or `2e-5` bits.) In contrast, `(0.7, 0.3)` is far less skewed, and so the effective number is far closer to 2, at `1.84`. The effective number would be *equal* to 2 if the frequencies were equal: `(0.5, 0.5)`.
 
 ## Shannon-type (i.e. *q*=1) S-entropy
 
