@@ -7,12 +7,12 @@
 
 # About
 
-`sentropy` calculates similarity-sensitive entropies (S-entropy), plus traditional Shannon entropy and the other Rényi entropies (of which Shannon entropy is the best known) as special cases.
+`sentropy` calculates similarity-sensitive entropies (S-entropy), plus Shannon entropy and the other traditional Rényi entropies (of which Shannon entropy is the best known).
 
-- **Shannon entropy** is a weighted sum of the relative probabilities of unique elements in a system (e.g. a dataset).
-- **Rényi entropies** generalize Shannon entropy by allowing for different weightings (viewpoint parameter *q*).
-- **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences via a **similarity matrix** (often constructed using a **similarity function**).
-- Exponentiating entropy yields **effective-number/D-number forms**, which put entropies in the same, natural units—**effective numbers**—among other advantages.
+- **Shannon entropy** is a weighted sum of the relative probabilities of unique elements in a system (e.g. a dataset)
+- **Rényi entropies** generalize Shannon entropy by allowing for different weightings (viewpoint parameter *q*)
+- **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences via a **similarity matrix** (often constructed using a **similarity function**)
+- Exponentiating entropy yields **effective-number/D-number forms**, which put entropies in the same, natural units—**effective numbers**—among other advantages
 - `sentropy` calculates multiple S-entropic **measures**, including *ɑ*, *β/𝜌*, *ɣ*, at both the subset (classes) **level** and for the overall (data)set
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
@@ -23,7 +23,7 @@ For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and r
 
 `sentropy` is available via the Python Package Index (PyPI) and on GitHub at [https://github.com/ArnaoutLab/sentropy](https://github.com/ArnaoutLab/sentropy)
 
-To install it:
+To install:
 ```
 pip install sentropy
 ```
