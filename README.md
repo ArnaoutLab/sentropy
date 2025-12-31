@@ -232,6 +232,13 @@ D1Z = sentropy(P, similarity=S,
 
 display(D1Z)                              # S-entropies on the diagonals; relative S-entropies on the off-diagonals
 ```
+Expected output:
+```
+     level  viewpoint     alpha
+0  overall          1  2.142100
+1   apples          1  2.207692
+2  oranges          1  2.078457
+```
 
 ## Ordinariness
 
