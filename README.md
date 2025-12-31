@@ -101,7 +101,7 @@ S = np.array([                                # similarity matrix
   [1. , 0.2],                                 # 20% similar to each other
   [0.2, 1. ],
   ])
-D1Z = sentropy(P, similarity=S)               # D-number form (preferred). Note defaults: level="both", measure="alpha", q=1.
+D1Z = sentropy(P, similarity=S)               # D-number form (preferred). Note defaults: level="overall", measure="alpha", q=1.
 H1Z = sentropy(P, similarity=S, eff_no=False) # traditional form
 
 print(f"D1Z = {D1Z:.2f} elements, which corresponds to H1Z = {H1Z:.2f} nats")
@@ -127,8 +127,8 @@ S = np.array([                                # same similarity matrix as above
 qs = [0., 1., 2., np.inf]                     # multiple viewpoint parameters
 measures = ["alpha", "beta", "gamma"]         # multiple measures
 DZ = sentropy(P, similarity=S,                # S-entropy...
-              qs=qs,                          #   ...at multple qs...
-              ms=measures)                    #   ...for multiple measures
+              q=qs,                          #   ...at multple qs...
+              measure=measures)                    #   ...for multiple measures
                                               # note when the result of the sentropy() call contains
                                               # multiple values, it returns a function
 for measure in measures:
@@ -204,8 +204,8 @@ S = np.array([                                # similarities of all elements, re
 
 D1Z = sentropy(P, similarity=S,
                level="subset",                # level="class" is identical; an alias/synonym
-               ms="normalized_rho")
-R1 = D1Z(which="apples")                      # note, no need to pass a measure to "m" or a viewpoint to "q"
+               measure="normalized_rho")
+R1 = D1Z(which="apples")                      # note, no need to pass a measure or a viewpoint
 R2 = D1Z(which="oranges")                     # because D1Z only computed 1 measure and 1 viewpoint anyway
 print(f"Normalized rho of Class 1 (apples):  {R1:.2f}")
 print(f"Normalized rho of Class 2 (oranges): {R2:.2f}")
@@ -238,12 +238,12 @@ S = np.array([                                # similarities of all elements, in
 KL = sentropy(P, P, similarity=S, level="both",
                return_dataframe=True, eff_no=False)
 
-display(KL)                              # (ipython) S-entropies on the diagonals; relative S-entropies on the off-diagonals
+display(KL)                              # (ipython) relative S-entropies on the off-diagonals
 
-KL2 = sentropy(C1, C2, similarity=S, eff_no=False)
+KL2 = sentropy(C1, C2, similarity=S, eff_no=False) # the same answer can be obtained by passing C1 and C2 as the 2 counts
 print(KL2)
 
-KL3 = sentropy(C2, C1, similarity=S, eff_no=False)
+KL3 = sentropy(C2, C1, similarity=S, eff_no=False) # note the directionality: passing C2 first then C1 gives a different answer
 print(KL3)
 ```
 Expected output:
