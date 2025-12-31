@@ -51,7 +51,7 @@ Main arguments:
 - `measure`, which can be `alpha`, `beta`, `gamma`, or others in the Leinster-Cobbold-Reeve (LCR) framework; the default is `alpha`
 - `level`, which can be `overall` (a.k.a. `dataset`) or `subset` (a.k.a. `class`); the default is `overall`
 
-We recommend running the below tests in [ipython](https://ipython.org/).
+We recommend running the below in [ipython](https://ipython.org/).
 
 ## Vanilla Shannon entropy
 
