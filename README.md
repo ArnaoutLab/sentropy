@@ -19,11 +19,21 @@ For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and r
 
 [Installation](#installation) | [Basic usage](#basic-usage) | 
 
-# Installation
+# Availability, installation, and testing
 
+`sentropy` is available via the Python Package Index (PyPI) and on GitHub at [https://github.com/ArnaoutLab/sentropy](https://github.com/ArnaoutLab/sentropy)
+
+To install it:
 ```
 pip install sentropy
 ```
+
+For unit tests (including a coverage report), run:
+```
+pip install 'sentropy[tests]'
+pytest --pyargs sentropy --cov sentropy
+```
+from the command line. The test suite runs successfully on Macintosh, Windows, and Unix systems.
 
 # Basic usage
 
@@ -188,19 +198,6 @@ S_fish    = np.array([0.22, 0.27, 0.28])     # fish's genetic similarities to be
 S_ladybug = np.array([0.60, 0.55, 0.45])     # ladybug's genetic similarities to each of these
 S = np.stack([S_fish, S_ladybug])
 S @ (P/P.sum())                              # ordinariness of fish and ladybugs in the bees/butterflies/lobsters dataset
-```
-
-
-## Availability and installation
-`sentropy` is available on GitHub at https://github.com/ArnaoutLab/sentropy. It can be installed by running
-
-`pip install sentropy`
-
-from the command-line interface. The test suite runs successfully on Macintosh, Windows, and Unix systems. The unit tests (including a coverage report) can be run after installation by
-
-```
-pip install 'sentropy[tests]'
-pytest --pyargs sentropy --cov sentropy
 ```
 
 ## How to cite this work
