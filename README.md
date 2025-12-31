@@ -252,13 +252,13 @@ S_ladybug = np.array([0.60, 0.55, 0.45])     # ladybug's genetic similarities to
 S = np.stack([S_fish, S_ladybug])            # note, a non-square similarity matrix: (ladybug, fish) x (bee, butterfly, lobset)
 O_fish, O_ladybug = S @ (P/P.sum())          # ordinariness of fish and ladybugs in the bees/butterflies/lobsters dataset
 
-print("In this bee-butterfly-lobster dataset, genetically speaking, how ordinary would we consider:")
+print("In this bee-butterfly-lobster dataset, with genetics-based similarity, how ordinary would we consider:")
 print(f"  a fish?    {O_fish:.2f}")
 print(f"  a ladybug? {O_ladybug:.2f}")
 ```
 Expected output:
 ```
-In this bee-butterfly-lobster dataset, genetically speaking, how ordinary would we consider:
+In this bee-butterfly-lobster dataset, with genetics-based similarity, how ordinary would we consider:
   a fish?    0.25
   a ladybug? 0.55
 ```
