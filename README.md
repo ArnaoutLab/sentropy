@@ -21,6 +21,7 @@ For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and r
 
 ## How to cite this work
 
+```
 @misc{nguyen2023textitgreylockpythonpackagemeasuring,
       title={$\textit{greylock}$: A Python Package for Measuring The Composition of Complex Datasets}, 
       author={Phuc Nguyen and Rohit Arora and Elliot D. Hill and Jasper Braun and Alexandra Morgan and Liza M. Quintana and Gabrielle Mazzoni and Ghee Rye Lee and Rima Arnaout and Ramy Arnaout},
@@ -30,6 +31,8 @@ For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and r
       primaryClass={q-bio.QM},
       url={https://arxiv.org/abs/2401.00102}, 
 }
+```
+
 # Installation
 
 `sentropy` is available via the Python Package Index (PyPI) and on GitHub at [https://github.com/ArnaoutLab/sentropy](https://github.com/ArnaoutLab/sentropy)
