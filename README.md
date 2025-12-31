@@ -44,23 +44,24 @@ The most important optional arguments are:
 
 ## Vanilla Shannon entropy
 
-When the similarity matrix is the identity matrix---`sentropy`'s default for `similarity`---there is no similarity between elements $i\neq j$ and S-entropy reduces to traditional (Rényi) entropy. At the default `q=1`, this is Shannon entropy. Therefore passing `sentropy` only a `P` yields Shannon entropy, in effective-number form.
+When the similarity matrix is the identity matrix---`sentropy`'s default for `similarity`---there is no similarity between elements *i*≠*j* and S-entropy reduces to traditional (Rényi) entropy. At the default `q=1`, this is Shannon entropy. Therefore passing `sentropy` only a `P` yields Shannon entropy, in effective-number form.
 
 ```
 from sentropy import sentropy
 import numpy as np
 
-P = np.array([0.7, 0.3])      # two unique elements comprising 70% and 30% of the dataset, respectively
-D1 = sentropy(P)              # S-entropy *without* similarity at default q (q=1) = Shannon entropy.
-print(f"D1: {D1:.1f}")        # Note defaults: level="both", measure="alpha", q=1.
+P = np.array([0.7, 0.3])        # two unique elements comprising 70% and 30% of the dataset, respectively
+D1 = sentropy(P)                # S-entropy *without* similarity at default q (q=1) = Shannon entropy,
+                                # returned in default effective-number (D-number) form (preferred)
+print(f"D1: {D1:.1f}")          # Note defaults: level="both", measure="alpha", q=1.
 
-H1 = sentropy(P, eff_no=False)# traditional form (as an entropy, not an effective number)
+H1 = sentropy(P, eff_no=False)  # traditional, non-effective-number form (eff_no=False)
 print(f"H1: {H1:.1f}")
 ```
 
 ## Shannon-type (i.e. *q*=1) S-entropy
 
-Passing a non-$I$ similarity results in S-entropy.
+Passing a non-*I* similarity results in S-entropy.
 ```
 from sentropy import sentropy
 import numpy as np
@@ -79,7 +80,7 @@ print(f"H1Z: {H1Z:.1f}")
 
 ## S-entropy with multiple measures and viewpoint parameters
 
-To get results for multiple `q` (e.g. 0, 1, and $\infty$), multiple measures (e.g. alpha and beta), and/or both levels (overall and subset), pass a list-like object to the relevant argument; `sentropy()` returns an object with relevant values.
+To get results for multiple `q` (e.g. 0, 1, and ∞), multiple measures (e.g. alpha and beta), and/or both levels (overall and subset), pass a list-like object to the relevant argument; `sentropy()` returns an object with relevant values.
 ```
 from sentropy import sentropy
 import numpy as np
