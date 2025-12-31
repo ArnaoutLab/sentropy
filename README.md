@@ -17,7 +17,7 @@
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
-[Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#s-entropy) | [ɑ, β, ɣ, and multiple *q*](ɑ-β-ɣ-and-multiple-q) | [Passing similarity functions](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Relative S-entropy and pandas](#relative-s-entropies-between-two-classes-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [Cite this work](#how-to-cite-this-work)
+[Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#s-entropy) | [ɑ, β, ɣ, and multiple *q*](ɑ-β-ɣ-and-multiple-q) | [Passing similarity functions](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Relative S-entropy](#relative-s-entropy) | [Ordinariness](#ordinariness) | [Cite this work](#how-to-cite-this-work)
 
 # Installation
 
@@ -209,7 +209,7 @@ Normalized rho of Class 2 (oranges):	0.38
 ```
 The dataset has more apples, and so the "apples" class (Class 1) is more representative of the dataset.
 
-## Relative S-entropy and pandas dataframes
+## Relative S-entropy
 
 Same dataset as above, except now results are returned as a dataframe. The below calculates the similarity-sensitive version of traditional relative entropy at q=1 (a.k.a. Kullback-Leibler divergence, information divergence, etc.).
 ```
