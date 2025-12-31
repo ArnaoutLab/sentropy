@@ -319,8 +319,15 @@ print(KLZ_arr)
 ```
 Expected output:
 ```
-```
+As a dataframe:
+           apples   oranges
+apples   1.000000  7.842581
+oranges  8.028965  1.000000
 
+As a numpy array:
+[[1.         7.84258081]
+ [8.02896542 1.        ]]
+```
 
 ## Ordinariness
 
