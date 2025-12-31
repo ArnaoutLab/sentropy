@@ -43,7 +43,7 @@ The workhorse function is `sentropy.sentropy`:
 from sentropy import sentropy
 ```
 
-`sentropy`'s only required argument is a list-like object (e.g. a list, a numpy array) of relative frequencies `P` (or a dictionary of these, one per subset or class; see [below](#how-well-each-of-two-classes-represents-the-whole-dataset)). 
+`sentropy`'s only required argument is `P`, a list-like object (e.g. a list, a numpy array) of relative frequencies (or a dictionary of these, one per subset or class; see [below](#how-well-each-of-two-classes-represents-the-whole-dataset)). 
 
 The most important optional arguments are:
 
