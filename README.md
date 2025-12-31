@@ -155,7 +155,7 @@ print(f"Normalized rho of class 2: {R2:.2f}")
 
 ## Relative S-entropies between two classes as a pandas DataFrame
 
-Same dataset as above, except now results are returned as a dataframe. The similarity-sensitive version of traditional relative entropy at q=1 (a.k.a. Kullback-Leibler divergence, information divergence, etc.).
+Same dataset as above, except now results are returned as a dataframe. The below calculates the similarity-sensitive version of traditional relative entropy at q=1 (a.k.a. Kullback-Leibler divergence, information divergence, etc.).
 ```
 from sentropy import sentropy
 import numpy as np
