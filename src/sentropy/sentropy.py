@@ -340,6 +340,8 @@ def sentropy(
     backend="numpy",
     device="cpu",
 ):
+    if level=="class":
+        level="subset"
 
     if counts_b is None:
         return sentropy_single_abundance(

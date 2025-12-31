@@ -136,7 +136,7 @@ def test_arguments_eff_no_and_which_in_kl_div():
     counts_2 = np.array([[1/3], [1/3], [1/3]])
     results_1 = sentropy(counts_1, counts_2, level="both")
     results_2 = sentropy(counts_1, counts_2)
-    results_3 = sentropy(counts_1, counts_2, level='subset')
+    results_3 = sentropy(counts_1, counts_2, level='class')
     results_4 = sentropy(counts_1, counts_2, eff_no=False, level="both")
 
     assert results_2 == results_1[0]
