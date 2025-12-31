@@ -59,7 +59,7 @@ When the similarity matrix is the identity matrix—`sentropy`'s default for `si
 from sentropy import sentropy
 import numpy as np
 
-P = np.array([0.7, 0.3])          # two unique elements comprising 70% and 30% of the dataset, respectively
+P = np.array([0.7, 0.3])          # two unique elements comprising 70% and 30% of this single-class dataset, respectively
 D1 = sentropy(P)                  # S-entropy *without* similarity at default q (q=1) = Shannon entropy,
                                   #   returned in default effective-number (D-number) form (preferred)
                                   # Equivalent to also including the arguments similarity=np.eye(2), measure="alpha", level="both"
@@ -82,7 +82,7 @@ Passing a non-identity similarity matrix (similarity≠*I*) results in S-entropy
 from sentropy import sentropy
 import numpy as np
 
-P = np.array([0.7, 0.3])                      # same dataset as above
+P = np.array([0.7, 0.3])                      # same dataset as above (two elements, one class)
 S = np.array([                                # similarity matrix
   [1. , 0.2],                                 # 20% similar to each other
   [0.2, 1. ],
