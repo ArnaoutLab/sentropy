@@ -54,7 +54,7 @@ The most important optional arguments are:
 
 ## Vanilla Shannon entropy
 
-When the similarity matrix is the identity matrix---`sentropy`'s default for `similarity`---there is no similarity between elements *i*≠*j* and S-entropy reduces to traditional (Rényi) entropy. At the default `q=1`, this is Shannon entropy. Therefore passing `sentropy` only a `P` yields Shannon entropy, in effective-number form.
+When the similarity matrix is the identity matrix---`sentropy`'s default for `similarity`---there is no similarity between elements *i*≠*j* and S-entropy reduces to traditional (Rényi) entropy. At the default `q=1`, this is Shannon entropy. Therefore passing `sentropy` only a `P` yields Shannon entropy, in effective-number form:
 
 ```
 from sentropy import sentropy
@@ -78,7 +78,7 @@ H1: 0.61 nats (= 0.88 bits)
 
 ## Shannon-type (i.e. *q*=1) S-entropy
 
-Passing a non-*I* similarity matrix results in S-entropy.
+Passing a non-*I* similarity matrix results in S-entropy:
 ```
 from sentropy import sentropy
 import numpy as np
@@ -103,7 +103,7 @@ Non-zero similarity between elements 1 and 2 reduces the overall entropy of the 
 
 ## S-entropy with multiple measures and viewpoint parameters
 
-To get results for multiple `q` (e.g. 0, 1, and ∞), multiple measures (e.g. alpha and beta), and/or both levels (overall and subset), pass a list-like object to the relevant argument; `sentropy()` returns an object with relevant values.
+To get results for multiple `q` (e.g. 0, 1, and ∞), multiple measures (e.g. alpha and beta), and/or both levels (overall and subset), pass a list-like object to the relevant argument; `sentropy()` returns an object with relevant values:
 ```
 from sentropy import sentropy
 import numpy as np
@@ -145,7 +145,7 @@ Values fall with increasing *q*. *q*=0, 1, 2, and ∞ can be thought of as "coun
 
 ## Calculating similarity on the fly
 
-When the similarity matrix would be too large to hold in memory, a function can be passed to `similarity`.
+When the similarity matrix would be too large to hold in memory, a function can be passed to `similarity`:
 ```
 from sentropy import sentropy
 import numpy as np
@@ -163,13 +163,18 @@ def similarity_function(i, j):                          # i, j members of elemen
 D1Z = sentropy(P, similarity=similarity_function,
                sfargs=elements)                         # sfargs contains arguments needed by the similarity_function
 H1Z = np.log(D1Z)                                       # traditional form
-print(f"D1Z: {D1Z:.2f}")
-print(f"H1Z: {H1Z:.2f}")
+print(f"D1Z: {D1Z:.2f} elements")
+print(f"H1Z: {H1Z:.2f} nats")
+```
+Expected output:
+```
+D1Z: 1.16 elements
+H1Z: 0.15 nats
 ```
 
 ## How well each of two classes represents the whole dataset
 
-Suppose you have a dataset of fruits that has two classes, apples and oranges, and you want to know how representative each class is of the whole dataset. Representativeness (𝜌) is the reciprocal of beta diversity, which measures distinctiveness. 
+Suppose you have a dataset of fruits that has two classes, apples and oranges, and you want to know how representative each class is of the whole dataset. Representativeness (𝜌) is the reciprocal of beta diversity, which measures distinctiveness:
 ```
 from sentropy import sentropy
 import numpy as np
