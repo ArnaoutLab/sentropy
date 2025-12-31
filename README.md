@@ -63,10 +63,10 @@ import numpy as np
 P = np.array([0.7, 0.3])        # two unique elements comprising 70% and 30% of the dataset, respectively
 D1 = sentropy(P)                # S-entropy *without* similarity at default q (q=1) = Shannon entropy,
                                 # returned in default effective-number (D-number) form (preferred)
-print(f"D1: {D1:.1f}")          # Note defaults: level="both", measure="alpha", q=1.
+print(f"D1: {D1:.2f}")          # Note defaults: level="both", measure="alpha", q=1.
 
 H1 = sentropy(P, eff_no=False)  # traditional, non-effective-number form (eff_no=False)
-print(f"H1: {H1:.1f}")
+print(f"H1: {H1:.2f}")
 ```
 
 ## Shannon-type (i.e. *q*=1) S-entropy
@@ -82,10 +82,10 @@ S = np.array([                                # similarity matrix
   [0.2, 1. ],
   ])
 D1Z = sentropy(P, similarity=S)               # D-number form (preferred). Note defaults: level="both", measure="alpha", q=1.
-print(f"D1Z: {D1Z:.1f}")              
+print(f"D1Z: {D1Z:.2f}")              
 
 H1Z = sentropy(P, similarity=S, eff_no=False) # traditional form
-print(f"H1Z: {H1Z:.1f}")
+print(f"H1Z: {H1Z:.2f}")
 ```
 
 ## S-entropy with multiple measures and viewpoint parameters
@@ -109,8 +109,8 @@ for q in qs:
   for m in ms:
     DqZ = DZ(q=q, m=m, which='overall')       # D-number form (preferred)
     HqZ = np.log(DqZ)                         # traditional form
-    print(f"D{q}Z {m}: {DqZ:.1f}")
-    print(f"H{q}Z {m}: {HqZ:.1f}")
+    print(f"D{q}Z {m}: {DqZ:.2f}")
+    print(f"H{q}Z {m}: {HqZ:.2f}")
 ```
 
 ## Calculating similarity on the fly
@@ -133,8 +133,8 @@ def similarity_function(i, j):                          # i, j members of elemen
 D1Z = sentropy(P, similarity=similarity_function,
                sfargs=elements)                         # sfargs contains arguments needed by the similarity_function
 H1Z = np.log(D1Z)                                       # traditional form
-print(f"D1Z: {D1Z:.1f}")
-print(f"H1Z: {H1Z:.1f}")
+print(f"D1Z: {D1Z:.2f}")
+print(f"H1Z: {H1Z:.2f}")
 ```
 
 ## How well each of two classes represents the whole dataset
