@@ -17,7 +17,7 @@
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
-[How to cite this work](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures and multiple *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Relative S-entropy](#relative-s-entropy) | [Ordinariness](#ordinariness) | [Applications from our paper](#applications-from-our-paper) | [Alternatives](#alternatives)
+[How to cite this work](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures and multiple *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Relative S-entropy](#relative-s-entropy) | [Ordinariness](#ordinariness) | [More applications](#more-applications) | [Alternatives](#alternatives)
 
 # How to cite this work
 
@@ -277,16 +277,15 @@ In this bee-butterfly-lobster dataset, with genetics-based similarity, how ordin
   a ladybug? 0.55
 ```
 
-# Applications from our paper
+# More applications
 
-For applications of the `sentropy` package to various fields (immunomics, metagenomics, medical imaging and pathology), we refer to the Jupyter notebooks below:
+[This preprint](https://arxiv.org/abs/2401.00102) appled `sentropy` to various fields, including immunomics, metagenomics, medical imaging, and digital pathology. The code for each of these applications is in the following Jupyter notebooks. Please follow along with the paper:
 
+- [Additional basic-usage examples](https://github.com/ArnaoutLab/diversity_notebooks_and_data/blob/main/fruits_and_animals/fruits_and_animals_fig1_2.ipynb)
 - [Immunomics](https://github.com/ArnaoutLab/diversity_notebooks_and_data/blob/main/immunomics/immunomics_fig3.ipynb)
 - [Metagenomics](https://github.com/ArnaoutLab/diversity_notebooks_and_data/blob/main/metagenomics/metagenomics_figs4-5.ipynb)
 - [Medical imaging](https://github.com/ArnaoutLab/diversity_notebooks_and_data/blob/main/medical_imaging/medical_imaging_fig6-7.ipynb)
 - [Pathology](https://github.com/ArnaoutLab/diversity_notebooks_and_data/blob/main/pathology/pathology_fig8.ipynb)
-
-The examples in the Basic usage section are also made available as a notebook [here](https://github.com/ArnaoutLab/diversity_notebooks_and_data/blob/main/fruits_and_animals/fruits_and_animals_fig1_2.ipynb). For more information, please see our [preprint](https://arxiv.org/abs/2401.00102).
 
 # Alternatives
 
