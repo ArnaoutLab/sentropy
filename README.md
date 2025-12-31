@@ -1,4 +1,4 @@
-![alt text](images/diversity_logo.png)
+![alt text](https://github.com/ArnaoutLab/sentropy/blob/main/images/diversity_logo.png)
 
 # <h1> <i>sentropy</i>: A Python package for measuring the composition of complex datasets</h1>
 
