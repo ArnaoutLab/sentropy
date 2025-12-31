@@ -51,6 +51,8 @@ Main arguments:
 - `measure`, which can be `alpha`, `beta`, `gamma`, or others in the Leinster-Cobbold-Reeve (LCR) framework; the default is `alpha`
 - `level`, which can be `overall` (a.k.a. `dataset`) or `subset` (a.k.a. `class`); the default is `overall`
 
+We recommend running the below tests in [ipython](https://ipython.org/).
+
 ## Vanilla Shannon entropy
 
 When the similarity matrix is the identity matrix—`sentropy`'s default for `similarity`—there is no similarity between elements *i*≠*j* and S-entropy reduces to traditional (Rényi) entropy. At the default `q=1`, this is Shannon entropy. Therefore passing `sentropy` only a `P` yields Shannon entropy, in effective-number form:
