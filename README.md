@@ -53,7 +53,7 @@ Main arguments:
 
 We recommend running the below in [ipython](https://ipython.org/).
 
-## Vanilla Shannon entropy
+## Shannon entropy: The most vanilla S-entropy
 
 When the similarity matrix is the identity matrix—`sentropy`'s default for `similarity`—there is no similarity between elements *i*≠*j* and S-entropy reduces to traditional (Rényi) entropy. At the default `q=1`, this is Shannon entropy. Therefore passing `sentropy` only a `P` yields Shannon entropy, in effective-number form:
 
@@ -77,9 +77,9 @@ which corresponds H1 = 0.61 nats (= 0.88 bits)
 ```
 **Intuition behind effective numbers.** Suppose instead of the frequencies being (0.7, 0.3) they were (0.999999, 0.000001). The population would consist almost completely of element 1. In an intuitive sense, element 2 "shouldn't count" as much. In this case, the effective-number form would be `sentropy(np.array([0.999999, 0.000001]))` = 1.00001. (The traditional form would be ~0, at 1e-5 nats or 2e-5 bits.) In contrast, (0.7, 0.3) is far less skewed, and so the effective number is far closer to 2, at 1.84. The effective number would be *equal* to 2 if the frequencies were equal (0.5, 0.5).
 
-## Shannon-type (i.e. *q*=1) S-entropy
+## S-entropy
 
-Passing a non-identity similarity matrix (similarity≠*I*) results in S-entropy:
+Passing a non-identity similarity matrix (similarity≠*I*) results in S-entropy–here, Shannon-type (i.e. *q*=1):
 ```
 from sentropy import sentropy
 import numpy as np
@@ -230,7 +230,7 @@ S = np.array([                                # similarities of all elements, in
 D1Z = sentropy(P, similarity=S,
                return_dataframe=True)
 
-display(D1Z)                              # S-entropies on the diagonals; relative S-entropies on the off-diagonals
+display(D1Z)                              # (ipython) S-entropies on the diagonals; relative S-entropies on the off-diagonals
 ```
 Expected output:
 ```
