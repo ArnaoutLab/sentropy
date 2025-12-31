@@ -17,8 +17,19 @@
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
-[Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures and multiple *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Relative S-entropy](#relative-s-entropy) | [Ordinariness](#ordinariness) | [How to cite this work](#how-to-cite-this-work) | [Applications from our paper](#applications-from-our-paper) | [Alternatives](#alternatives)
+[How to cite this work](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures and multiple *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Relative S-entropy](#relative-s-entropy) | [Ordinariness](#ordinariness) | [Applications from our paper](#applications-from-our-paper) | [Alternatives](#alternatives)
 
+## How to cite this work
+
+@misc{nguyen2023textitgreylockpythonpackagemeasuring,
+      title={$\textit{greylock}$: A Python Package for Measuring The Composition of Complex Datasets}, 
+      author={Phuc Nguyen and Rohit Arora and Elliot D. Hill and Jasper Braun and Alexandra Morgan and Liza M. Quintana and Gabrielle Mazzoni and Ghee Rye Lee and Rima Arnaout and Ramy Arnaout},
+      year={2023},
+      eprint={2401.00102},
+      archivePrefix={arXiv},
+      primaryClass={q-bio.QM},
+      url={https://arxiv.org/abs/2401.00102}, 
+}
 # Installation
 
 `sentropy` is available via the Python Package Index (PyPI) and on GitHub at [https://github.com/ArnaoutLab/sentropy](https://github.com/ArnaoutLab/sentropy)
@@ -262,13 +273,6 @@ In this bee-butterfly-lobster dataset, with genetics-based similarity, how ordin
   a fish?    0.25
   a ladybug? 0.55
 ```
-
-## How to cite this work
-
-If you use this package, please cite it as:
-
-Nguyen et al., <i>sentropy: A Python Package for Measuring The Composition of Complex Datasets</i>.
-
 
 # Applications from our paper
 
