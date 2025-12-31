@@ -88,9 +88,9 @@ S = np.array([                                # similarity matrix
   [0.2, 1. ],
   ])
 D1Z = sentropy(P, similarity=S)               # D-number form (preferred). Note defaults: level="both", measure="alpha", q=1.
-print(f"D1Z: {D1Z:.2f} elements")              
-
 H1Z = sentropy(P, similarity=S, eff_no=False) # traditional form
+
+print(f"D1Z: {D1Z:.2f} elements")              
 print(f"H1Z: {H1Z:.2f} nats")
 ```
 Expected output:
