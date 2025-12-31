@@ -265,6 +265,12 @@ import numpy as np
 # a dataset with two classes, "apples" and "oranges"
 P1 = np.array([12, 3, 0, 0])                  # apples; e.g. 12 Granny Smith and 3 McIntosh (zeros = oranges)
 P2 = np.array([0,  0, 4, 4])                  # oranges; e.g. 4 navel and 4 cara cara (zeros = apples)
+S = np.array([                            # similarities of all elements, regardless of class
+  [1.,  0.7, 0.0, 0.0],                   #    note here the non-zero similarity between apples and oranges
+  [0.7, 1.,  0.1, 0.3],
+  [0.0, 0.1, 1.,  0.9],
+  [0.0, 0.3, 0.9, 1. ],
+  ])
 KLZ_12 = sentropy(P1, P2, similarity=S)       # KL of apples to oranges
 KLZ_21 = sentropy(P2, P1, similarity=S)       # KL of oranges to apples (recall, KL is not symmetric)
 ```
