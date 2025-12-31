@@ -43,10 +43,9 @@ The workhorse function is `sentropy.sentropy`:
 from sentropy import sentropy
 ```
 
-`sentropy`'s only required argument is `P`, a list-like object (e.g. a list, a numpy array) of relative frequencies (or a dictionary of these, one per subset or class; see [below](#how-well-each-of-two-classes-represents-the-whole-dataset)). 
+`sentropy`'s main arguments: 
 
-The most important optional arguments are:
-
+- `P`, a list-like object (e.g. a list, a numpy array) of relative frequencies (or a dictionary of these, one per subset or class; see [below](#how-well-each-of-two-classes-represents-the-whole-dataset))
 - `similarity`, which can be passed as a matrix or a function; the default is the identity matrix $I$
 - `q`, the viewpoint parameter; default is `q=1.`
 - `measure`, which can be `alpha`, `beta`, `gamma`, or others in the Leinster-Cobbold-Reeve (LCR) framework; the default is `alpha`
