@@ -273,8 +273,6 @@ S = np.array([                            # similarities of all elements, regard
   ])
 KLZ_12  = sentropy(P1, P2, similarity=S)  # KL of apples to oranges
 KLZ_21  = sentropy(P2, P1, similarity=S)  # KL of oranges to apples (recall, KL is not symmetric)
-KLZ_arr = sentropy(P, P, similarity=S,    # if we pass P and ask for level="class", the KLs are
-                  level="class")          # the off-diagonals
 
 print("Effective-number form KLZ of:")
 print(f"  apples to oranges: {KLZ_12:.2f}")
@@ -296,24 +294,33 @@ import numpy as np
 import pandas as pd
 
 # a dataset with two classes, "apples" and "oranges"
-P1 = np.array([12, 3, 0, 0])           # apples; e.g. 12 Granny Smith and 3 McIntosh (zeros = oranges)
-P2 = np.array([0,  0, 4, 4])           # oranges; e.g. 4 navel and 4 cara cara (zeros = apples)
-S = np.array([                         # similarities of all elements, regardless of class
-  [1.,  0.7, 0.1, 0.1],                #    note here the non-zero similarity between apples and oranges
+P1 = np.array([12, 3, 0, 0])             # apples; e.g. 12 Granny Smith and 3 McIntosh (zeros = oranges)
+P2 = np.array([0,  0, 4, 4])             # oranges; e.g. 4 navel and 4 cara cara (zeros = apples)
+S = np.array([                           # similarities of all elements, regardless of class
+  [1.,  0.7, 0.1, 0.1],                  #    note here the non-zero similarity between apples and oranges
   [0.7, 1.,  0.1, 0.3],
   [0.1, 0.1, 1.,  0.9],
   [0.1, 0.3, 0.9, 1. ],
   ])
-P  = {"apples": P1, "oranges": P2}    # package the classes as P
+P  = {"apples": P1, "oranges": P2}       # package the classes as P
 P = pd.DataFrame(P)
-df = sentropy(P, P, similarity=S,
-              level="class",
-              return_dataframe=True)  # as a dataframe
-display(df)                           
+KLZ_df = sentropy(P, P, similarity=S,    # return a dataframe with the KLs on the off-diagonals
+              level="class",             
+              return_dataframe=True)
+
+KLZ_arr = sentropy(P, P, similarity=S,   # default returns a numpy array with the KLs on the off-diagonals
+                  level="class")
+
+print("As a dataframe:")
+display(KLZ_df)
+print()
+print("As a numpy array:")
+print(KLZ_arr)
 ```
 Expected output:
 ```
 ```
+
 
 ## Ordinariness
 
