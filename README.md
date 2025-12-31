@@ -17,9 +17,9 @@
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
-[Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#vanilla-shannon-entropy) | [Shannon-type S-entropy](#shannon-type-ie-q1-s-entropy) | [ɑ, β, ɣ, and multiple *q*](#s-entropy-with-multiple-measures-and-viewpoint-parameters) | [Passing similarity functions](#calculating-similarity-on-the-fly) | [Representativeness](#how-well-each-of-two-classes-represents-the-whole-dataset) | [Relative S-entropy](#relative-s-entropies-between-two-classes-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [Cite this work](#how-to-cite-this-work)
+[Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#s-entropy) | [ɑ, β, ɣ, and multiple *q*](Multiple measures and viewpoint parameters) | [Passing similarity functions](#calculating-similarity-on-the-fly) | [Representativeness](#how-well-each-of-two-classes-represents-the-whole-dataset) | [Relative S-entropy](#relative-s-entropies-between-two-classes-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [Cite this work](#how-to-cite-this-work)
 
-# Install & test
+# Installation
 
 `sentropy` is available via the Python Package Index (PyPI) and on GitHub at [https://github.com/ArnaoutLab/sentropy](https://github.com/ArnaoutLab/sentropy)
 
@@ -102,7 +102,7 @@ which corresponds to H1Z = 0.44 nats
 ```
 Non-zero similarity between elements 1 and 2 reduces the overall entropy of the system relative to the [first example above](#vanilla-shannon-entropy), in which there was zero similarity between the two elements. This can be thought of as a reduction in diversity (whence the "D" in D-number). The "Z" is a convention that means "non-trivial similarity."
 
-## Multiple measures and viewpoint parameters
+## ɑ, β, ɣ, and multiple *q*
 
 To get results for multiple `q` (e.g. 0, 1, and ∞), multiple measures (e.g. alpha and beta), and/or both levels (overall and subset), pass a list-like object to the relevant argument; `sentropy()` returns an object with relevant values:
 ```
