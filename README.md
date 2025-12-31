@@ -17,7 +17,7 @@
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
-[Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures and multiple *q*](multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Relative S-entropy](#relative-s-entropy) | [Ordinariness](#ordinariness) | [How to cite this work](#how-to-cite-this-work)
+[Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures and multiple *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Relative S-entropy](#relative-s-entropy) | [Ordinariness](#ordinariness) | [How to cite this work](#how-to-cite-this-work) | [Applications from our paper](#applications-from-our-paper) | [Alternatives](#alternatives)
 
 # Installation
 
@@ -270,7 +270,7 @@ If you use this package, please cite it as:
 Nguyen et al., <i>sentropy: A Python Package for Measuring The Composition of Complex Datasets</i>. <https://github.com/ArnaoutLab/diversity>
 
 
-# Applications
+# Applications from our paper
 
 For applications of the `sentropy` package to various fields (immunomics, metagenomics, medical imaging and pathology), we refer to the Jupyter notebooks below:
 
