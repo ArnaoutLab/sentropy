@@ -225,28 +225,37 @@ from sentropy import sentropy
 import numpy as np
 
 # a dataset with two classes, "apples" and "oranges"
-C1 = np.array([5, 3, 0, 0])             # apples; e.g. 5 McIntosh and 3 gala
-C2 = np.array([0, 0, 6, 2])             # oranges; e.g. 6 navel and 2 cara cara
-P  = {"apples": C1, "oranges": C2}      # package the classes as P
-S = np.array([                          # similarities of all elements, including between classes
-  [1.,  0.8, 0.2, 0.1],                 #    note here the non-zero similarity between apples and oranges
+C1 = np.array([5, 3, 0, 0])                   # apples; e.g. 5 McIntosh and 3 gala
+C2 = np.array([0, 0, 6, 2])                   # oranges; e.g. 6 navel and 2 cara cara
+P  = {"apples": C1, "oranges": C2}            # package the classes as P
+S = np.array([                                # similarities of all elements, including between classes
+  [1.,  0.8, 0.2, 0.1],                       #    note here the non-zero similarity between apples and oranges
   [0.8, 1.,  0.1, 0.3],
   [0.2, 0.1, 1.,  0.9],
   [0.1, 0.3, 0.9, 1. ],
   ])
-D1Z = sentropy(P, similarity=S,
-               return_dataframe=True)
 
-display(D1Z)                            # (ipython) S-entropies on the diagonals; relative S-entropies on the off-diagonals
+KL = sentropy(P, P, similarity=S, level="both",
+               return_dataframe=True, eff_no=False)
+
+display(KL)                              # (ipython) S-entropies on the diagonals; relative S-entropies on the off-diagonals
+
+KL2 = sentropy(C1, C2, similarity=S, eff_no=False)
+print(KL2)
+
+KL3 = sentropy(C2, C1, similarity=S, eff_no=False)
+print(KL3)
 ```
 Expected output:
 ```
-     level  viewpoint     alpha
-0  overall          1  2.142100
-1   apples          1  2.207692
-2  oranges          1  2.078457
+(0.0,
+            apples   oranges
+ apples   0.000000  1.701976
+ oranges  1.760072  0.000000)
+1.701975574341079
+1.760071542818269
 ```
-The overall 
+
 
 ## Ordinariness
 
