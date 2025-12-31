@@ -77,7 +77,7 @@ H1: 0.61 nats (= 0.88 bits)
 
 ## Shannon-type (i.e. *q*=1) S-entropy
 
-Passing a non-*I* similarity matrix results in S-entropy:
+Passing a non-identity similarity matrix (similarity≠*I*) results in S-entropy:
 ```
 from sentropy import sentropy
 import numpy as np
