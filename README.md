@@ -129,7 +129,7 @@ print(f"H1Z: {H1Z:.1f}")
 
 ## How well each of two classes represents the whole dataset
 
-Suppose you have a dataset of fruits that has two classes, apples and oranges, and you want to know how representative each class is of the whole dataset. Representativeness ($\rho$) is the reciprocal of beta diversity, which measures distinctiveness. 
+Suppose you have a dataset of fruits that has two classes, apples and oranges, and you want to know how representative each class is of the whole dataset. Representativeness (𝜌) is the reciprocal of beta diversity, which measures distinctiveness. 
 ```
 from sentropy import sentropy
 import numpy as np
