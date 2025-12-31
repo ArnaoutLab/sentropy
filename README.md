@@ -13,7 +13,7 @@
 - **Rényi entropies** generalize Shannon entropy by allowing for different weightings (viewpoint parameter *q*).
 - **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences via a **similarity matrix** (often constructed using a **similarity function**).
 - Exponentiating entropy yields **effective-number/D-number forms**, which put entropies in the same, natural units—**effective numbers**—among other advantages.
-- `sentropy` calculates multiple S-entropic **measures**, including ɑ, β/𝜌, ɣ, at both the subset (classes) **level** and for the overall (data)set
+- `sentropy` calculates multiple S-entropic **measures**, including *ɑ*, *β/𝜌*, *ɣ*, at both the subset (classes) **level** and for the overall (data)set
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
@@ -118,13 +118,30 @@ ms = ["alpha", "beta", "gamma"]               # multiple measures
 DZ = sentropy(P, similarity=S,                # S-entropy...
               qs=qs,                          #   ...at multple qs...
               ms=ms)                          #   ...for multiple measures
-for q in qs:
-  for m in ms:
+for m in ms:
+  for q in qs:
     DqZ = DZ(q=q, m=m, which='overall')       # D-number form (preferred)
-    HqZ = np.log(DqZ)                         # traditional form
-    print(f"D{q}Z {m}: {DqZ:.2f}")
-    print(f"H{q}Z {m}: {HqZ:.2f}")
+    print(f"D{q:.0f}Z {m}:\t{DqZ:.2f} elements")
+  print()
 ```
+Expected output:
+```
+D0Z alpha:	1.60 elements
+D1Z alpha:	1.55 elements
+D2Z alpha:	1.51 elements
+DinfZ alpha:	1.32 elements
+
+D0Z beta:	1.00 elements
+D1Z beta:	1.00 elements
+D2Z beta:	1.00 elements
+DinfZ beta:	1.00 elements
+
+D0Z gamma:	1.60 elements
+D1Z gamma:	1.55 elements
+D2Z gamma:	1.51 elements
+DinfZ gamma:	1.32 elements
+```
+Values fall with increasing *q*. *ɑ*=*ɣ* in this example because there is only one class (see [Leinster 2020](https://arxiv.org/abs/2012.02113)).
 
 ## Calculating similarity on the fly
 
