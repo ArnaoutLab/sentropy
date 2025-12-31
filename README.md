@@ -263,20 +263,25 @@ from sentropy import sentropy
 import numpy as np
 
 # a dataset with two classes, "apples" and "oranges"
-P1 = np.array([12, 3, 0, 0])               # apples; e.g. 12 Granny Smith and 3 McIntosh (zeros = oranges)
-P2 = np.array([0,  0, 4, 4])               # oranges; e.g. 4 navel and 4 cara cara (zeros = apples)
+P1 = np.array([12, 3, 0, 0])              # apples; e.g. 12 Granny Smith and 3 McIntosh (zeros = oranges)
+P2 = np.array([0,  0, 4, 4])              # oranges; e.g. 4 navel and 4 cara cara (zeros = apples)
 S = np.array([                            # similarities of all elements, regardless of class
   [1.,  0.7, 0.1, 0.1],                   #    note here the non-zero similarity between apples and oranges
   [0.7, 1.,  0.1, 0.3],
   [0.1, 0.1, 1.,  0.9],
   [0.1, 0.3, 0.9, 1. ],
   ])
-KLZ_12 = sentropy(P1, P2, similarity=S)       # KL of apples to oranges
-KLZ_21 = sentropy(P2, P1, similarity=S)       # KL of oranges to apples (recall, KL is not symmetric)
+KLZ_12  = sentropy(P1, P2, similarity=S)  # KL of apples to oranges
+KLZ_21  = sentropy(P2, P1, similarity=S)  # KL of oranges to apples (recall, KL is not symmetric)
+KLZ_arr = sentropy(P, P, similarity=S,    # if we pass P and ask for level="class", the KLs are
+                  level="class")          # the off-diagonals
 
 print("Effective-number form KLZ of:")
 print(f"  apples to oranges: {KLZ_12:.2f}")
 print(f"  oranges to apples: {KLZ_21:.2f}")
+print()
+print('If we pass P and ask for level="class", the KLs are the off-diagonals:')
+print(arr)
 ```
 Expected output:
 ```
@@ -291,17 +296,20 @@ import numpy as np
 import pandas as pd
 
 # a dataset with two classes, "apples" and "oranges"
-P1 = np.array([12, 3, 0, 0])              # apples; e.g. 12 Granny Smith and 3 McIntosh (zeros = oranges)
-P2 = np.array([0,  0, 4, 4])              # oranges; e.g. 4 navel and 4 cara cara (zeros = apples)
-S = np.array([                            # similarities of all elements, regardless of class
-  [1.,  0.7, 0.1, 0.1],                   #    note here the non-zero similarity between apples and oranges
+P1 = np.array([12, 3, 0, 0])           # apples; e.g. 12 Granny Smith and 3 McIntosh (zeros = oranges)
+P2 = np.array([0,  0, 4, 4])           # oranges; e.g. 4 navel and 4 cara cara (zeros = apples)
+S = np.array([                         # similarities of all elements, regardless of class
+  [1.,  0.7, 0.1, 0.1],                #    note here the non-zero similarity between apples and oranges
   [0.7, 1.,  0.1, 0.3],
   [0.1, 0.1, 1.,  0.9],
   [0.1, 0.3, 0.9, 1. ],
   ])
-P  = {"apples": P1, "oranges": P2}            # package the classes as P
+P  = {"apples": P1, "oranges": P2}    # package the classes as P
 P = pd.DataFrame(P)
-sentropy(P, similarity=S, return_dataframe=True)
+df = sentropy(P, P, similarity=S,
+              level="class",
+              return_dataframe=True)  # as a dataframe
+display(df)                           
 ```
 Expected output:
 ```
