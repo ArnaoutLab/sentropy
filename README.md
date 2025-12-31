@@ -17,7 +17,7 @@
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
-[Installation](#availability) | [Basic usage](#basic-usage) | 
+[Availability, installation, and testing](#Availability,-installation,-and-testing) | [Basic usage](#basic-usage) | 
 
 # Availability, installation, and testing
 
