@@ -179,7 +179,7 @@ display(D1Z)                              # S-entropies on the diagonals; relati
 
 ## Ordinariness
 
-Suppose you have two datasets of animals. The first dataset consists of fish (a vertebrate) and ladybugs (an invertebrate). The second dataset consists of bees, butterflies, and lobsters—all invertebrates. The two datasets are disjoint—there are no fish or ladybugs in the second dataset—but  genetically speaking, there are similarities. Suppose you want some measure of how similar each element of the first dataset is, to the second dataset: how much would each element "belong" in the second dataset. This is measured by *ordinariness*: ladybugs would be more "ordinary" in the second dataset, since it is an invertebrate. Strictly speaking this can be calculated without `sentropy`, but `sentropy` provides speedups (see documentation).
+Suppose you have two datasets of animals. The first dataset consists of fish (a vertebrate) and ladybugs (an invertebrate). The second dataset consists of bees, butterflies, and lobsters—all invertebrates. The two datasets are disjoint—there are no fish or ladybugs in the second dataset—but  genetically speaking, there are similarities between the elements of the two datasets. Suppose you want some measure of how similar each element of the first dataset is, to the second dataset, i.e. how much each element would "belong" in the second dataset. This is measured by *ordinariness*: ladybugs would be more "ordinary" in the second dataset, since it ladybugs are invertebrates. Strictly speaking this can be calculated without `sentropy`, but `sentropy` provides speedups (see documentation).
 
 ```
 import numpy as np
