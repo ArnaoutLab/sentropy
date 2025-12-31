@@ -232,17 +232,20 @@ from sentropy import sentropy
 import numpy as np
 
 # a dataset with two classes, "apples" and "oranges"
-P1 = np.array([12, 3, 0, 0])                  # apples; e.g. 12 Granny Smith and 3 McIntosh (zeros = oranges)
-P2 = np.array([0,  0, 4, 4])                  # oranges; e.g. 4 navel and 4 cara cara (zeros = apples)
-P  = {"apples": P1, "oranges": P2}            # package the classes as P
-S = np.array([                                # similarities of all elements, regardless of class
-  [1.,  0.7, 0.0, 0.0],                       #    note here the non-zero similarity between apples and oranges
+P1 = np.array([12, 3, 0, 0])              # apples; e.g. 12 Granny Smith and 3 McIntosh (zeros = oranges)
+P2 = np.array([0,  0, 4, 4])              # oranges; e.g. 4 navel and 4 cara cara (zeros = apples)
+P  = {"apples": P1, "oranges": P2}        # package the classes as P
+S = np.array([                            # similarities of all elements, regardless of class
+  [1.,  0.7, 0.0, 0.0],                   #    note here the non-zero similarity between apples and oranges
   [0.7, 1.,  0.1, 0.3],
   [0.0, 0.1, 1.,  0.9],
   [0.0, 0.3, 0.9, 1. ],
   ])
-
-display(D1Z)                          # (ipython) S-entropies on the diagonals; relative S-entropies on the off-diagonals
+D1Z = sentropy(P, similarity=S,
+               level="subset",            # level="class" is identical; an alias/synonym
+               measure="normalized_rho",
+               return_as_dataframe=True)
+display(D1Z)                              # (ipython) S-entropies on the diagonals; relative S-entropies on the off-diagonals
 ```
 Expected output:
 ```
