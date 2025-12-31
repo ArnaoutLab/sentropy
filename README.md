@@ -1,4 +1,4 @@
-![alt text](images/diversity_logo.png)
+![alt text](https://github.com/ArnaoutLab/sentropy/blob/main/images/diversity_logo.png)
 
 # <h1> <i>sentropy</i>: A Python package for measuring the composition of complex datasets</h1>
 
@@ -106,7 +106,7 @@ S = np.array([                                # similarity matrix
   [1. , 0.2],                                 # 20% similar to each other
   [0.2, 1. ],
   ])
-D1Z = sentropy(P, similarity=S)               # D-number form (preferred). Note defaults: level="both", measure="alpha", q=1.
+D1Z = sentropy(P, similarity=S)               # D-number form (preferred). Note defaults: level="overall", measure="alpha", q=1.
 H1Z = sentropy(P, similarity=S, eff_no=False) # traditional form
 
 print(f"D1Z = {D1Z:.2f} elements, which corresponds to H1Z = {H1Z:.2f} nats")
@@ -132,13 +132,13 @@ S = np.array([                                # same similarity matrix as above
 qs = [0., 1., 2., np.inf]                     # multiple viewpoint parameters
 measures = ["alpha", "beta", "gamma"]         # multiple measures
 DZ = sentropy(P, similarity=S,                # S-entropy...
-              qs=qs,                          #   ...at multple qs...
-              ms=measures)                    #   ...for multiple measures
+              q=qs,                          #   ...at multple qs...
+              measure=measures)                    #   ...for multiple measures
                                               # note when the result of the sentropy() call contains
                                               # multiple values, it returns a function
 for measure in measures:
   for q in qs:
-    DqZ = DZ(q=q, m=measure, which='overall') # D-number form (preferred)
+    DqZ = DZ(q=q, measure=measure, which='overall') # D-number form (preferred)
     print(f"D{q:.0f}Z {measure}:\t{DqZ:.2f} elements")
   print()
 ```
@@ -160,6 +160,7 @@ D2Z gamma:	1.51 elements
 DinfZ gamma:	1.32 elements
 ```
 Values never rise, and almost always fall, with increasing *q*. *q*=0, 1, 2, and ∞ can be thought of as "counting-", "Shannon-", "Simpson-", and "Berger-Parker-type" S-entropy, respectively. *ɑ*=*ɣ* in this example because there is only one class (see [Leinster 2020](https://arxiv.org/abs/2012.02113)).
+To utilize torch instead of numpy, pass `backend="torch"`. To have the computation run on the GPU, pass `backend="torch"` and either `device="mps"` or `device="cuda"`.
 
 ## Passing a similarity function
 
@@ -189,6 +190,8 @@ D1Z = 1.18 elements, which corresponds to H1Z = 0.16 nats
 ```
 The strings in this example are amino acid sequences, such as might exist in a next-generation sequencing dataset. CARDYW outnumbers the other two 10:1; CTRDYW and CAKDYW might be sequencing errors or mutations. The three sequences are very similar. The combination of these two factors—a big difference in relative frequencies and small differences in sequence—results in this three-element dataset having an effective number of only 1.18 elements. 
 
+To parallelize the computation with the Ray package, pass `parallelize=True`. If the similarity function is known to be symmetric, a twofold speedup can be obtained by passing `symmetric=True`. Ray is an optional dependency of this package.
+
 ## Representativeness
 
 Suppose you have a dataset of fruits that has two classes, apples and oranges, and you want to know how representative each class is of the whole dataset. `sentropy` lets you do this by measuring the representativeness of each class (*𝜌*, "rho"), which is the reciprocal of *β* diversity (which measures distinctiveness):
@@ -208,8 +211,8 @@ S = np.array([                                # similarities of all elements, re
   ])
 D1Z = sentropy(P, similarity=S,
                level="subset",                # level="class" is identical; an alias/synonym
-               ms="normalized_rho")
-R1 = D1Z(which="apples")                      # note, no need to pass a measure to "m" or a viewpoint to "q"
+               measure="normalized_rho")
+R1 = D1Z(which="apples")                      # note, no need to pass a measure or a viewpoint
 R2 = D1Z(which="oranges")                     # because D1Z only computed 1 measure and 1 viewpoint anyway
 print(f"Normalized rho of Class 1 (apples):  {R1:.2f}")
 print(f"Normalized rho of Class 2 (oranges): {R2:.2f}")
@@ -238,19 +241,19 @@ S = np.array([                                # similarities of all elements, re
   [0.0, 0.1, 1.,  0.9],
   [0.0, 0.3, 0.9, 1. ],
   ])
-D1Z = sentropy(P, similarity=S,
-               return_dataframe=True)
 
 display(D1Z)                          # (ipython) S-entropies on the diagonals; relative S-entropies on the off-diagonals
 ```
 Expected output:
 ```
-     level  viewpoint     alpha
-0  overall          1  2.142100
-1   apples          1  2.207692
-2  oranges          1  2.078457
+(0.0,
+            apples   oranges
+ apples   0.000000  1.701976
+ oranges  1.760072  0.000000)
+1.701975574341079
+1.760071542818269
 ```
-The overall 
+
 
 ## Relative S-entropy
 

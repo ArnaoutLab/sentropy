@@ -63,8 +63,6 @@ def _normalize_counts(counts):
         if counts.ndim == 1:
             counts = counts.reshape(-1, 1)
         return counts, list(range(counts.shape[1]))
-    else:
-        raise TypeError("Unsupported counts type")
 
 
 def _build_superset(
@@ -105,18 +103,20 @@ class SentropyResult:
         self.ms = ms
         self.level = level
 
-    def __call__(self, which=None, q=None, m=None):
+    def __call__(self, which=None, q=None, measure=None):
         if which is None and self.level == "overall":
             which = "overall"
         if q is None and len(self.qs) == 1:
             q = self.qs[0]
-        if m is None and len(self.ms) == 1:
+        if measure is None and len(self.ms) == 1:
             m = self.ms[0]
+        else:
+            m = measure
 
         if which == "overall":
-            key = f"set_{m}_q={q}"
+            key = f"overall_{m}_q={q}"
             if key not in self.raw_dict:
-                key = f"set_{m}_q={float(q)}"
+                key = f"overall_{m}_q={float(q)}"
             return self.raw_dict[key]
         else:
             key = f"subset_{m}_q={q}"
@@ -136,7 +136,7 @@ def _compute_lcr_measures(superset, qs, ms, level, eff_no):
     for q in qs:
         for m in ms:
             if level in ("both", "overall"):
-                results[f"set_{m}_q={q}"] = superset.set_diversity(
+                results[f"overall_{m}_q={q}"] = superset.set_diversity(
                     q=q, m=m, eff_no=eff_no
                 )
             if level in ("both", "subset"):
@@ -150,7 +150,7 @@ def _compute_lcr_measures(superset, qs, ms, level, eff_no):
 # LCR Sentropy
 # ----------------------------------------------------------------------
 
-def LCR_sentropy(
+def sentropy_single_abundance(
     counts: Union[DataFrame, ndarray],
     similarity=None,
     qs=1,
@@ -197,12 +197,6 @@ def LCR_sentropy(
 # ----------------------------------------------------------------------
 # KL / Rényi divergence helpers
 # ----------------------------------------------------------------------
-
-def _extract_abundance_and_names(abundance):
-    if isinstance(abundance, DataFrame):
-        return abundance.to_numpy(), abundance.columns.tolist()
-    return abundance, [str(i) for i in range(abundance.shape[1])]
-
 
 def _exp_renyi_div(P, P_ord, Q_ord, q, atol, backend):
     ratio = P_ord / Q_ord
@@ -269,7 +263,7 @@ def _compute_renyi_divergences(
 # KL divergence front-end
 # ----------------------------------------------------------------------
 
-def kl_div_effno(
+def sentropy_two_abundances(
     P_abundance,
     Q_abundance,
     similarity=None,
@@ -286,8 +280,8 @@ def kl_div_effno(
     device="cpu",
 ):
 
-    P, P_names = _extract_abundance_and_names(P_abundance)
-    Q, Q_names = _extract_abundance_and_names(Q_abundance)
+    P, P_names = _normalize_counts(P_abundance)
+    Q, Q_names = _normalize_counts(Q_abundance)
 
     P_superset = Set(
         P, similarity, symmetric, sfargs,
@@ -323,7 +317,9 @@ def kl_div_effno(
 
 
 # ----------------------------------------------------------------------
-# Public dispatcher
+# Public dispatcher.
+# API note: the public API uses argument q for viewpoint(s) and m for measure(s), even though
+# internally we use q and m (for a single viewpoint/measure) and qs and ms (for possibly multiple viewpoints/measures)
 # ----------------------------------------------------------------------
 
 def sentropy(
@@ -331,26 +327,26 @@ def sentropy(
     counts_b=None,
     *,
     similarity=None,
-    qs=1,
-    ms="alpha",
+    q=1,
+    measure="alpha",
     symmetric=False,
     sfargs=None,
     chunk_size=10,
     parallelize=False,
     max_inflight_tasks=64,
     return_dataframe=False,
-    level="both",
+    level="overall",
     eff_no=True,
     backend="numpy",
     device="cpu",
 ):
 
     if counts_b is None:
-        return LCR_sentropy(
+        return sentropy_single_abundance(
             counts=counts_a,
             similarity=similarity,
-            qs=qs,
-            ms=ms,
+            qs=q,
+            ms=measure,
             symmetric=symmetric,
             sfargs=sfargs,
             chunk_size=chunk_size,
@@ -363,9 +359,9 @@ def sentropy(
             device=device,
         )
 
-    q = qs if isinstance(qs, (int, float)) else qs[0]
+    q = q if isinstance(q, (int, float)) else q[0]
 
-    return kl_div_effno(
+    return sentropy_two_abundances(
         P_abundance=counts_a,
         Q_abundance=counts_b,
         similarity=similarity,

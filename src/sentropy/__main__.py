@@ -40,7 +40,7 @@ def main(args):
     if len(args.input_filepath) == 1:
         counts = read_csv(args.input_filepath[0], sep=None, engine="python", dtype=int64)
         df = sentropy(counts, similarity=args.similarity,\
-            qs=args.qs, ms=args.ms, chunk_size=args.chunk_size, \
+            q=args.qs, measure=args.ms, chunk_size=args.chunk_size, \
             return_dataframe=True, level=args.level, eff_no=args.eff_no, \
             backend=args.backend, device=args.device)
 
@@ -53,7 +53,7 @@ def main(args):
         counts_a = read_csv(args.input_filepath[0], sep=None, engine="python", dtype=int64)
         counts_b = read_csv(args.input_filepath[1], sep=None, engine="python", dtype=int64)
         result = sentropy(counts_a, counts_b, similarity=args.similarity,\
-            qs=args.qs, ms=args.ms, chunk_size=args.chunk_size, \
+            q=args.qs, measure=args.ms, chunk_size=args.chunk_size, \
             return_dataframe=True, level=args.level, eff_no=args.eff_no, \
             backend=args.backend, device=args.device)
 
