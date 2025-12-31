@@ -17,9 +17,9 @@
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
-[Install](#availability-installation-and-testing) | [Basic usage](#basic-usage) | [Shannon entropy](#vanilla-shannon-entropy) | [Shannon-type S-entropy](#shannon-type-ie-q1-s-entropy) | [ɑ, β, ɣ, and multiple *q*](#s-entropy-with-multiple-measures-and-viewpoint-parameters) | [Passing similarity functions](#calculating-similarity-on-the-fly) | [Representativeness](#how-well-each-of-two-classes-represents-the-whole-dataset) | [Relative S-entropy](#relative-s-entropies-between-two-classes-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [Cite this work](#how-to-cite-this-work)
+[Install & test](#install-&-test) | [Basic usage](#basic-usage) | [Shannon entropy](#vanilla-shannon-entropy) | [Shannon-type S-entropy](#shannon-type-ie-q1-s-entropy) | [ɑ, β, ɣ, and multiple *q*](#s-entropy-with-multiple-measures-and-viewpoint-parameters) | [Passing similarity functions](#calculating-similarity-on-the-fly) | [Representativeness](#how-well-each-of-two-classes-represents-the-whole-dataset) | [Relative S-entropy](#relative-s-entropies-between-two-classes-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [Cite this work](#how-to-cite-this-work)
 
-# Availability, installation, and testing
+# Install & test
 
 `sentropy` is available via the Python Package Index (PyPI) and on GitHub at [https://github.com/ArnaoutLab/sentropy](https://github.com/ArnaoutLab/sentropy)
 
