@@ -61,7 +61,7 @@ import numpy as np
 
 P = np.array([0.7, 0.3])          # two unique elements comprising 70% and 30% of the dataset, respectively
 D1 = sentropy(P)                  # S-entropy *without* similarity at default q (q=1) = Shannon entropy,
-                                  # returned in default effective-number (D-number) form (preferred)
+                                  #   returned in default effective-number (D-number) form (preferred)
                                   # Equivalent to also including the arguments similarity=np.eye(2), measure="alpha", level="set"
 H1 = sentropy(P, eff_no=False)    # traditional, non-effective-number form (eff_no=False)
 
