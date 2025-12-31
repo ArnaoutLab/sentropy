@@ -185,14 +185,14 @@ import numpy as np
 C1 = np.array([12, 3, 0, 0])                  # apples; e.g. 12 granny smith and 3 gala
 C2 = np.array([0,  0, 4, 4])                  # oranges; e.g. 4 navel and 4 cara cara
 P  = {"apples": C1, "oranges": C2}            # package the classes as P
-S = np.array([                                # similarities of all elements, including between classes
+S = np.array([                                # similarities of all elements, regardless of class
   [1.,  0.7, 0.0, 0.0],                       #    note here the non-zero similarity between apples and oranges
   [0.7, 1.,  0.1, 0.3],
   [0.0, 0.1, 1.,  0.9],
   [0.0, 0.3, 0.9, 1. ],
   ])
 
-D1Z = sentropy(P, similarity=S, level="subset",            # level="subset" is identical; an alias/synonym
+D1Z = sentropy(P, similarity=S, level="subset",            # level="class" is identical; an alias/synonym
                ms="normalized_rho")
 R1 = D1Z(which="apples")                                   # note, no need to pass a measure to "m" or a viewpoint to "q"
 R2 = D1Z(which="oranges")                                  # because D1Z only computed 1 measure and 1 viewpoint anyway
