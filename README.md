@@ -99,7 +99,7 @@ Expected output:
 D1Z: 1.55 elements
 H1Z: 0.44 nats
 ```
-Non-zero similarity between elements 1 and 2 reduces the overall entropy of the system relative to the [first example above](#vanilla-shannon-entropy), in which there was zero similarity between the two elements. This can be thought of as a reduction in diversity.
+Non-zero similarity between elements 1 and 2 reduces the overall entropy of the system relative to the [first example above](#vanilla-shannon-entropy), in which there was zero similarity between the two elements. This can be thought of as a reduction in diversity (whence the "D" in D-number).
 
 ## S-entropy with multiple measures and viewpoint parameters
 
