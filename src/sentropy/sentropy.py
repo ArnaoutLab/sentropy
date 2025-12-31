@@ -63,8 +63,6 @@ def _normalize_counts(counts):
         if counts.ndim == 1:
             counts = counts.reshape(-1, 1)
         return counts, list(range(counts.shape[1]))
-    else:
-        raise TypeError("Unsupported counts type")
 
 
 def _build_superset(
@@ -116,9 +114,9 @@ class SentropyResult:
             m = measure
 
         if which == "overall":
-            key = f"set_{m}_q={q}"
+            key = f"overall_{m}_q={q}"
             if key not in self.raw_dict:
-                key = f"set_{m}_q={float(q)}"
+                key = f"overall_{m}_q={float(q)}"
             return self.raw_dict[key]
         else:
             key = f"subset_{m}_q={q}"
@@ -138,7 +136,7 @@ def _compute_lcr_measures(superset, qs, ms, level, eff_no):
     for q in qs:
         for m in ms:
             if level in ("both", "overall"):
-                results[f"set_{m}_q={q}"] = superset.set_diversity(
+                results[f"overall_{m}_q={q}"] = superset.set_diversity(
                     q=q, m=m, eff_no=eff_no
                 )
             if level in ("both", "subset"):
@@ -199,12 +197,6 @@ def sentropy_single_abundance(
 # ----------------------------------------------------------------------
 # KL / Rényi divergence helpers
 # ----------------------------------------------------------------------
-
-def _extract_abundance_and_names(abundance):
-    if isinstance(abundance, DataFrame):
-        return abundance.to_numpy(), abundance.columns.tolist()
-    return abundance, [str(i) for i in range(abundance.shape[1])]
-
 
 def _exp_renyi_div(P, P_ord, Q_ord, q, atol, backend):
     ratio = P_ord / Q_ord
@@ -288,8 +280,8 @@ def sentropy_two_abundances(
     device="cpu",
 ):
 
-    P, P_names = _extract_abundance_and_names(P_abundance)
-    Q, Q_names = _extract_abundance_and_names(Q_abundance)
+    P, P_names = _normalize_counts(P_abundance)
+    Q, Q_names = _normalize_counts(Q_abundance)
 
     P_superset = Set(
         P, similarity, symmetric, sfargs,

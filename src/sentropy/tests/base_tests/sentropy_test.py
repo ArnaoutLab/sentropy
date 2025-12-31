@@ -46,7 +46,7 @@ def test_abundance_as_dict():
     R4 = D1Z(q=1)
     assert np.allclose(R4, R3)
     D1Z = sentropy(P, similarity=S, level="subset", q=[0,1,np.inf], measure="normalized_rho")
-    R5 = D1Z(q=1, which="oranges")
+    R5 = D1Z(q=1, which="oranges", measure="normalized_rho")
     assert np.allclose(R5, R2)
 
 def test_no_similarity():
@@ -59,22 +59,22 @@ def test_no_similarity():
     weights /= np.sum(weights)
     diversity_indices = sentropy(counts,q=[1], measure=MEASURES, similarity=similarity, level="both").raw_dict
 
-    assert 1 <= diversity_indices['set_alpha_q=1'] <= N*S
+    assert 1 <= diversity_indices['overall_alpha_q=1'] <= N*S
     assert (1/weights <= diversity_indices['subset_alpha_q=1']).all() & (diversity_indices['subset_alpha_q=1'] <= S/weights).all()
     assert (1 <= diversity_indices['subset_normalized_alpha_q=1']).all() & (diversity_indices['subset_normalized_alpha_q=1'] < S).all() 
-    assert (1 <= diversity_indices['set_normalized_alpha_q=1']) & (diversity_indices['set_normalized_alpha_q=1'] < S)
+    assert (1 <= diversity_indices['overall_normalized_alpha_q=1']) & (diversity_indices['overall_normalized_alpha_q=1'] < S)
     assert (1 <= diversity_indices['subset_rho_q=1']).all()
-    assert (1 <= diversity_indices['set_rho_q=1'])
+    assert (1 <= diversity_indices['overall_rho_q=1'])
     assert (diversity_indices['subset_beta_q=1'] <= 1).all()
-    assert (0< diversity_indices['set_beta_q=1'] <= 1)
+    assert (0< diversity_indices['overall_beta_q=1'] <= 1)
     assert (weights <= diversity_indices['subset_normalized_rho_q=1']).all()
-    assert (0 <= diversity_indices['set_normalized_rho_q=1'])
+    assert (0 <= diversity_indices['overall_normalized_rho_q=1'])
     assert (diversity_indices['subset_normalized_beta_q=1'] <= 1/weights).all()
-    assert (diversity_indices['set_normalized_beta_q=1'] <= N)
+    assert (diversity_indices['overall_normalized_beta_q=1'] <= N)
     assert (1 <= diversity_indices['subset_gamma_q=1']).all() & (diversity_indices['subset_gamma_q=1'] <= S/weights).all()
-    assert (1 <= diversity_indices['set_gamma_q=1'] <= S)
+    assert (1 <= diversity_indices['overall_gamma_q=1'] <= S)
     assert (diversity_indices['subset_gamma_q=1'] <= diversity_indices['subset_alpha_q=1']).all()
-    assert (diversity_indices['set_gamma_q=1'] <= diversity_indices['set_alpha_q=1'])
+    assert (diversity_indices['overall_gamma_q=1'] <= diversity_indices['overall_alpha_q=1'])
 
 def test_return_dataframe():
     #Check the inequalities in Table S2.1 of Reeve's paper that hold in the naive type model (the ones marked with asterisks)
