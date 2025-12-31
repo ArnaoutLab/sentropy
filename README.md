@@ -133,7 +133,7 @@ DZ = sentropy(P, similarity=S,                # S-entropy...
                                               # multiple values, it returns a function
 for measure in measures:
   for q in qs:
-    DqZ = DZ(q=q, m=measure, which='overall') # D-number form (preferred)
+    DqZ = DZ(q=q, measure=measure, which='overall') # D-number form (preferred)
     print(f"D{q:.0f}Z {measure}:\t{DqZ:.2f} elements")
   print()
 ```
