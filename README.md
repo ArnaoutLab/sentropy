@@ -226,7 +226,7 @@ The dataset has more apples, and so the "apples" class (Class 1) is more represe
 
 ## Results as a pandas dataframe
 
-Same dataset as above, except now results are returned as a dataframe.
+Same dataset as above, except now results are returned as a dataframe:
 ```
 from sentropy import sentropy
 import numpy as np
@@ -244,7 +244,7 @@ S = np.array([                            # similarities of all elements, regard
 D1Z = sentropy(P, similarity=S,
                level="subset",            # level="class" is identical; an alias/synonym
                measure="normalized_rho",
-               return_as_dataframe=True)
+               return_dataframe=True)
 display(D1Z)                              # (ipython) S-entropies on the diagonals; relative S-entropies on the off-diagonals
 ```
 Expected output:
