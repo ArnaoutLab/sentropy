@@ -65,7 +65,7 @@ Main arguments:
 - `measure`, which can be `alpha`, `beta`, `gamma`, or others in the Leinster-Cobbold-Reeve (LCR) framework; the default is `alpha`
 - `level`, which can be `overall` (a.k.a. `dataset`) or `subset` (a.k.a. `class`); the default is `overall`
 
-We recommend running the below in [ipython](https://ipython.org/).
+(We recommend running the below in [ipython](https://ipython.org/), for maximal readability of the output.)
 
 ## Shannon entropy
 
@@ -81,13 +81,11 @@ D1 = sentropy(P)                  # S-entropy *without* similarity at default q 
                                   # Equivalent to also including the arguments similarity=np.eye(2), measure="alpha", level="both"
 H1 = sentropy(P, eff_no=False)    # traditional, non-effective-number form (eff_no=False)
 
-print(f"D1: {D1:.2f} elements")
-print(f"which corresponds to H1 = {H1:.2f} nats (= {np.log2(D1):.2f} bits)")
+print(f"D1 = {D1:.2f} elements, which corresponds to H1 = {H1:.2f} nats (= {np.log2(D1):.2f} bits)")
 ```
 Expected output:
 ```
-D1: 1.84 elements
-which corresponds H1 = 0.61 nats (= 0.88 bits)
+D1 = 1.84 elements, which corresponds to H1 = 0.61 nats (= 0.88 bits)
 ```
 **Intuition behind effective numbers.** Suppose instead of the frequencies being (0.7, 0.3) they were (0.999999, 0.000001). The population would consist almost completely of element 1. In an intuitive sense, element 2 "shouldn't count" as much. In this case, the effective-number form would be `sentropy(np.array([0.999999, 0.000001]))` = 1.00001. (The traditional form would be ~0, at 1e-5 nats or 2e-5 bits.) In contrast, (0.7, 0.3) is far less skewed, and so the effective number is far closer to 2, at 1.84. The effective number would be *equal* to 2 if the frequencies were equal (0.5, 0.5).
 
@@ -106,13 +104,11 @@ S = np.array([                                # similarity matrix
 D1Z = sentropy(P, similarity=S)               # D-number form (preferred). Note defaults: level="both", measure="alpha", q=1.
 H1Z = sentropy(P, similarity=S, eff_no=False) # traditional form
 
-print(f"D1Z: {D1Z:.2f} elements")              
-print(f"which corresponds H1Z = {H1Z:.2f} nats")
+print(f"D1Z = {D1Z:.2f} elements, which corresponds to H1Z = {H1Z:.2f} nats")
 ```
 Expected output:
 ```
-D1Z: 1.55 elements
-which corresponds to H1Z = 0.44 nats
+D1Z = 1.55 elements, which corresponds to H1Z = 0.44 nats
 ```
 Non-zero similarity between elements 1 and 2 reduces the overall entropy of the system relative to the [first example above](#vanilla-shannon-entropy), in which there was zero similarity between the two elements. This can be thought of as a reduction in diversity (whence the "D" in D-number). The "Z" is a convention that means "non-trivial similarity."
 
@@ -162,7 +158,7 @@ Values never rise, and almost always fall, with increasing *q*. *q*=0, 1, 2, and
 
 ## Passing a similarity function
 
-When the similarity matrix would be too large to hold in memory, a function can be passed to `similarity`, allowing similarilty to be calculated on the fly:
+When the similarity matrix would be too large to fit in memory, a function can be passed to `similarity`, allowing similarilty to be calculated on the fly:
 ```
 from sentropy import sentropy
 import numpy as np
@@ -179,14 +175,12 @@ def similarity_function(i, j):                          # i, j members of elemen
 # calculate datset sentropy (at the defaults meausure="alpha" and q=1.)
 D1Z = sentropy(P, similarity=similarity_function,
                sfargs=elements)                         # sfargs contains arguments needed by the similarity_function
-H1Z = np.log(D1Z)                                       # traditional form
-print(f"D1Z: {D1Z:.2f} elements")
-print(f"H1Z: {H1Z:.2f} nats")
+H1Z = np.log(D1Z)                                       # traditional form (which you could also have returned directly from the sentropy() call with eff_no = False)
+print(f"D1Z = {D1Z:.2f} elements, which corresponds to H1Z = {H1Z:.2f} nats")
 ```
 Expected output:
 ```
-D1Z: 1.18 elements
-H1Z: 0.16 nats
+D1Z = 1.18 elements, which corresponds to H1Z = 0.16 nats
 ```
 The strings in this example are amino acid sequences, such as might exist in a next-generation sequencing dataset. CARDYW outnumbers the other two 10:1; CTRDYW and CAKDYW might be sequencing errors or mutations. The three sequences are very similar. The combination of these two factors—a big difference in relative frequencies and small differences in sequence—results in this three-element dataset having an effective number of only 1.18 elements. 
 
@@ -213,13 +207,13 @@ D1Z = sentropy(P, similarity=S,
                ms="normalized_rho")
 R1 = D1Z(which="apples")                      # note, no need to pass a measure to "m" or a viewpoint to "q"
 R2 = D1Z(which="oranges")                     # because D1Z only computed 1 measure and 1 viewpoint anyway
-print(f"Normalized rho of Class 1 (apples):\t{R1:.2f}")
-print(f"Normalized rho of Class 2 (oranges):\t{R2:.2f}")
+print(f"Normalized rho of Class 1 (apples):  {R1:.2f}")
+print(f"Normalized rho of Class 2 (oranges): {R2:.2f}")
 ```
 Expected output:
 ```
-Normalized rho of Class 1 (apples):	0.67
-Normalized rho of Class 2 (oranges):	0.38
+Normalized rho of Class 1 (apples):  0.67
+Normalized rho of Class 2 (oranges): 0.38
 ```
 The dataset has more apples, and so the "apples" class (Class 1) is more representative of the dataset.
 
@@ -231,20 +225,19 @@ from sentropy import sentropy
 import numpy as np
 
 # a dataset with two classes, "apples" and "oranges"
-C1 = np.array([5, 3, 0, 0])                   # apples; e.g. 5 McIntosh and 3 gala
-C2 = np.array([0, 0, 6, 2])                   # oranges; e.g. 6 navel and 2 cara cara
-P  = {"apples": C1, "oranges": C2}            # package the classes as P
-S = np.array([                                # similarities of all elements, including between classes
-  [1.,  0.8, 0.2, 0.1],                       #    note here the non-zero similarity between apples and oranges
+C1 = np.array([5, 3, 0, 0])             # apples; e.g. 5 McIntosh and 3 gala
+C2 = np.array([0, 0, 6, 2])             # oranges; e.g. 6 navel and 2 cara cara
+P  = {"apples": C1, "oranges": C2}      # package the classes as P
+S = np.array([                          # similarities of all elements, including between classes
+  [1.,  0.8, 0.2, 0.1],                 #    note here the non-zero similarity between apples and oranges
   [0.8, 1.,  0.1, 0.3],
   [0.2, 0.1, 1.,  0.9],
   [0.1, 0.3, 0.9, 1. ],
   ])
-
 D1Z = sentropy(P, similarity=S,
                return_dataframe=True)
 
-display(D1Z)                              # (ipython) S-entropies on the diagonals; relative S-entropies on the off-diagonals
+display(D1Z)                            # (ipython) S-entropies on the diagonals; relative S-entropies on the off-diagonals
 ```
 Expected output:
 ```
