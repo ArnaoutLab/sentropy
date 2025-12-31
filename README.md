@@ -176,7 +176,7 @@ The strings in this example are amino acid sequences, such as might exist in a n
 
 ## How well each of two classes represents the whole dataset
 
-Suppose you have a dataset of fruits that has two classes, apples and oranges, and you want to know how representative each class is of the whole dataset. Representativeness (𝜌) is the reciprocal of beta diversity, which measures distinctiveness:
+Suppose you have a dataset of fruits that has two classes, apples and oranges, and you want to know how representative each class is of the whole dataset. This can be done by measuring representativeness (*𝜌*), which is the reciprocal of *β* diversity (which measures distinctiveness):
 ```
 from sentropy import sentropy
 import numpy as np
