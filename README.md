@@ -155,6 +155,7 @@ D2Z gamma:	1.51 elements
 DinfZ gamma:	1.32 elements
 ```
 Values never rise, and almost always fall, with increasing *q*. *q*=0, 1, 2, and ∞ can be thought of as "counting-", "Shannon-", "Simpson-", and "Berger-Parker-type" S-entropy, respectively. *ɑ*=*ɣ* in this example because there is only one class (see [Leinster 2020](https://arxiv.org/abs/2012.02113)).
+To utilize torch instead of numpy, pass `backend="torch"`. To have the computation run on the GPU, pass `backend="torch"` and either `device="mps"` or `device="cuda"`.
 
 ## Passing a similarity function
 
@@ -183,6 +184,8 @@ Expected output:
 D1Z = 1.18 elements, which corresponds to H1Z = 0.16 nats
 ```
 The strings in this example are amino acid sequences, such as might exist in a next-generation sequencing dataset. CARDYW outnumbers the other two 10:1; CTRDYW and CAKDYW might be sequencing errors or mutations. The three sequences are very similar. The combination of these two factors—a big difference in relative frequencies and small differences in sequence—results in this three-element dataset having an effective number of only 1.18 elements. 
+
+To parallelize the computation with the Ray package, pass `parallelize=True`. If the similarity function is known to be symmetric, a twofold speedup can be obtained by passing `symmetric=True`.
 
 ## Representativeness
 
