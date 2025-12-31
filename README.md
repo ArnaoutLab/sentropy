@@ -17,7 +17,7 @@
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
-[How to cite this work](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures and multiple *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Relative S-entropy](#relative-s-entropy) | [Ordinariness](#ordinariness) | [More applications](#more-applications) | [Alternatives](#alternatives)
+[How to cite this work](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures and multiple *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [More applications](#more-applications) | [Alternatives](#alternatives)
 
 # How to cite this work
 
@@ -42,12 +42,17 @@ To install:
 pip install sentropy
 ```
 
+or for speedups using `ray` (which as of 31 Dec. 2025 is incompatible with the latest version of Python):
+```
+pip install sentropy[ray]
+```
+
 For unit tests (including a coverage report), run:
 ```
 pip install 'sentropy[tests]'
 pytest --pyargs sentropy --cov sentropy
 ```
-The test suite runs successfully on Macintosh, Windows, and Unix systems. If you get errors, you may be missing requirements that you need to install.
+The test suite runs successfully on Macintosh, Windows, and Unix systems. Any errors are most likely due to not having installed `ray`.
 
 # Basic usage
 
@@ -195,16 +200,15 @@ from sentropy import sentropy
 import numpy as np
 
 # a dataset with two classes, "apples" and "oranges"
-C1 = np.array([12, 3, 0, 0])                  # apples; e.g. 12 granny smith and 3 gala
-C2 = np.array([0,  0, 4, 4])                  # oranges; e.g. 4 navel and 4 cara cara
-P  = {"apples": C1, "oranges": C2}            # package the classes as P
+P1 = np.array([12, 3, 0, 0])                  # apples; e.g. 12 Granny Smith and 3 McIntosh (but no oranges)
+P2 = np.array([0,  0, 4, 4])                  # oranges; e.g. 4 navel and 4 cara cara (but no apples) 
+P  = {"apples": P1, "oranges": P2}            # package the classes as P
 S = np.array([                                # similarities of all elements, regardless of class
   [1.,  0.7, 0.0, 0.0],                       #    note here the non-zero similarity between apples and oranges
   [0.7, 1.,  0.1, 0.3],
   [0.0, 0.1, 1.,  0.9],
   [0.0, 0.3, 0.9, 1. ],
   ])
-
 D1Z = sentropy(P, similarity=S,
                level="subset",                # level="class" is identical; an alias/synonym
                measure="normalized_rho")
@@ -220,34 +224,25 @@ Normalized rho of Class 2 (oranges): 0.38
 ```
 The dataset has more apples, and so the "apples" class (Class 1) is more representative of the dataset.
 
-## Relative S-entropy
+## Results as a pandas dataframe
 
-Same dataset as above, except now results are returned as a dataframe. The below calculates the similarity-sensitive version of traditional relative entropy at q=1 (a.k.a. Kullback-Leibler divergence, information divergence, etc.).
+Same dataset as above, except now results are returned as a dataframe.
 ```
 from sentropy import sentropy
 import numpy as np
 
 # a dataset with two classes, "apples" and "oranges"
-C1 = np.array([5, 3, 0, 0])                   # apples; e.g. 5 McIntosh and 3 gala
-C2 = np.array([0, 0, 6, 2])                   # oranges; e.g. 6 navel and 2 cara cara
-P  = {"apples": C1, "oranges": C2}            # package the classes as P
-S = np.array([                                # similarities of all elements, including between classes
-  [1.,  0.8, 0.2, 0.1],                       #    note here the non-zero similarity between apples and oranges
-  [0.8, 1.,  0.1, 0.3],
-  [0.2, 0.1, 1.,  0.9],
-  [0.1, 0.3, 0.9, 1. ],
+P1 = np.array([12, 3, 0, 0])                  # apples; e.g. 12 Granny Smith and 3 McIntosh (zeros = oranges)
+P2 = np.array([0,  0, 4, 4])                  # oranges; e.g. 4 navel and 4 cara cara (zeros = apples)
+P  = {"apples": P1, "oranges": P2}            # package the classes as P
+S = np.array([                                # similarities of all elements, regardless of class
+  [1.,  0.7, 0.0, 0.0],                       #    note here the non-zero similarity between apples and oranges
+  [0.7, 1.,  0.1, 0.3],
+  [0.0, 0.1, 1.,  0.9],
+  [0.0, 0.3, 0.9, 1. ],
   ])
 
-KL = sentropy(P, P, similarity=S, level="both",
-               return_dataframe=True, eff_no=False)
-
-display(KL)                              # (ipython) relative S-entropies on the off-diagonals
-
-KL2 = sentropy(C1, C2, similarity=S, eff_no=False) # the same answer can be obtained by passing C1 and C2 as the 2 counts
-print(KL2)
-
-KL3 = sentropy(C2, C1, similarity=S, eff_no=False) # note the directionality: passing C2 first then C1 gives a different answer
-print(KL3)
+display(D1Z)                          # (ipython) S-entropies on the diagonals; relative S-entropies on the off-diagonals
 ```
 Expected output:
 ```
@@ -259,6 +254,39 @@ Expected output:
 1.760071542818269
 ```
 
+
+## Relative S-entropy
+
+Shannon-type relative entropy *without* similarity is called the Kullback-Leibler divergence and is used throughout machine learning (and elsewhere). `sentropy` lets us calculate the similarity-sensitive version by passing two `P` arguments:
+```
+from sentropy import sentropy
+import numpy as np
+
+# a dataset with two classes, "apples" and "oranges"
+P1 = np.array([12, 3, 0, 0])                  # apples; e.g. 12 Granny Smith and 3 McIntosh (zeros = oranges)
+P2 = np.array([0,  0, 4, 4])                  # oranges; e.g. 4 navel and 4 cara cara (zeros = apples)
+KLZ_12 = sentropy(P1, P2, similarity=S)       # KL of apples to oranges
+KLZ_21 = sentropy(P2, P1, similarity=S)       # KL of oranges to apples (recall, KL is not symmetric)
+```
+Expected output:
+```
+```
+If we want to get both directions in a table, we can instead pass a pandas dataframe:
+```
+from sentropy import sentropy
+import numpy as np
+import pandas as pd
+
+# a dataset with two classes, "apples" and "oranges"
+P1 = np.array([12, 3, 0, 0])                  # apples; e.g. 12 Granny Smith and 3 McIntosh
+P2 = np.array([0,  0, 4, 4])                  # oranges; e.g. 4 navel and 4 cara cara
+P  = {"apples": P1, "oranges": P2}            # package the classes as P
+P = pd.DataFrame(P)
+sentropy(P1, P2, similarity=S)       
+```
+Expected output:
+```
+```
 
 ## Ordinariness
 
