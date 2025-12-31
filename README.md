@@ -66,12 +66,12 @@ D1 = sentropy(P)                  # S-entropy *without* similarity at default q 
 H1 = sentropy(P, eff_no=False)    # traditional, non-effective-number form (eff_no=False)
 
 print(f"D1: {D1:.2f} elements")
-print(f"H1: {H1:.2f} nats (= {np.log2(D1):.2f} bits)")
+print(f"which corresponds to H1 = {H1:.2f} nats (= {np.log2(D1):.2f} bits)")
 ```
 Expected output:
 ```
 D1: 1.84 elements
-H1: 0.61 nats (= 0.88 bits)
+which corresponds H1 = 0.61 nats (= 0.88 bits)
 ```
 **Intuition behind effective numbers.** Suppose instead of the frequencies being (0.7, 0.3) they were (0.999999, 0.000001). The population would consist almost completely of element 1. In an intuitive sense, element 2 "shouldn't count" as much. In this case, the effective-number form would be `sentropy(np.array([0.999999, 0.000001]))` = 1.00001. (The traditional form would be ~0, at 1e-5 nats or 2e-5 bits.) In contrast, (0.7, 0.3) is far less skewed, and so the effective number is far closer to 2, at 1.84. The effective number would be *equal* to 2 if the frequencies were equal (0.5, 0.5).
 
@@ -91,14 +91,14 @@ D1Z = sentropy(P, similarity=S)               # D-number form (preferred). Note 
 H1Z = sentropy(P, similarity=S, eff_no=False) # traditional form
 
 print(f"D1Z: {D1Z:.2f} elements")              
-print(f"H1Z: {H1Z:.2f} nats")
+print(f"which corresponds H1Z = {H1Z:.2f} nats")
 ```
 Expected output:
 ```
 D1Z: 1.55 elements
-H1Z: 0.44 nats
+which corresponds to H1Z = 0.44 nats
 ```
-Non-zero similarity between elements 1 and 2 reduces the overall entropy of the system relative to the [first example above](#vanilla-shannon-entropy), in which there was zero similarity between the two elements. This can be thought of as a reduction in diversity (whence the "D" in D-number).
+Non-zero similarity between elements 1 and 2 reduces the overall entropy of the system relative to the [first example above](#vanilla-shannon-entropy), in which there was zero similarity between the two elements. This can be thought of as a reduction in diversity (whence the "D" in D-number). The "Z" is a convention that means "non-trivial similarity."
 
 ## S-entropy with multiple measures and viewpoint parameters
 
