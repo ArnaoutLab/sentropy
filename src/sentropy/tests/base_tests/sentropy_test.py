@@ -35,7 +35,7 @@ def test_abundance_as_dict():
       [0.1, 0.3, 0.9, 1. ],
       ])
 
-    D1Z = sentropy(P, similarity=S, measure="normalized_rho")
+    D1Z = sentropy(P, similarity=S, measure="normalized_rho", level="both")
     R1 = D1Z(which="apples")         # note, q=1. is the default
     R2 = D1Z(which="oranges")
     R3 = D1Z(which="overall")
@@ -57,7 +57,7 @@ def test_no_similarity():
     N, S = counts.shape[1], counts.shape[0]
     weights = np.sum(counts, axis=0).astype(float)
     weights /= np.sum(weights)
-    diversity_indices = sentropy(counts,q=[1], measure=MEASURES, similarity=similarity).raw_dict
+    diversity_indices = sentropy(counts,q=[1], measure=MEASURES, similarity=similarity, level="both").raw_dict
 
     assert 1 <= diversity_indices['set_alpha_q=1'] <= N*S
     assert (1/weights <= diversity_indices['subset_alpha_q=1']).all() & (diversity_indices['subset_alpha_q=1'] <= S/weights).all()
@@ -82,7 +82,7 @@ def test_return_dataframe():
     N, S = counts.shape[1], counts.shape[0]
     weights = np.sum(counts, axis=0).astype(float)
     weights /= np.sum(weights)
-    df = sentropy(counts,q=[1], measure=MEASURES, return_dataframe=True)
+    df = sentropy(counts,q=[1], measure=MEASURES, return_dataframe=True, level="both")
 
     assert (df['rho'][1:].to_numpy() <= 1/weights).all()
     assert df['rho'][0] <= N
@@ -124,8 +124,8 @@ def test_kl_div_no_similarity():
     counts_1 = np.array([[9/25], [12/25], [4/25]])
     counts_2 = np.array([[1/3], [1/3], [1/3]])
 
-    results_default_viewpoint = sentropy(counts_2, counts_1, q=[1], return_dataframe=True)
-    results_viewpoint_2 = sentropy(counts_2, counts_1, q=[2], return_dataframe=True)
+    results_default_viewpoint = sentropy(counts_2, counts_1, q=[1], return_dataframe=True, level="both")
+    results_viewpoint_2 = sentropy(counts_2, counts_1, q=[2], return_dataframe=True, level="both")
 
     assert np.allclose(results_default_viewpoint[0], 1.1023618416445828, atol=1e-8)
     assert np.allclose(results_default_viewpoint[0], results_default_viewpoint[1].iloc[0,0], rtol=1e-5)
@@ -134,10 +134,10 @@ def test_kl_div_no_similarity():
 def test_arguments_eff_no_and_which_in_kl_div():
     counts_1 = np.array([[9/25], [12/25], [4/25]])
     counts_2 = np.array([[1/3], [1/3], [1/3]])
-    results_1 = sentropy(counts_1, counts_2)
-    results_2 = sentropy(counts_1, counts_2, level='overall')
+    results_1 = sentropy(counts_1, counts_2, level="both")
+    results_2 = sentropy(counts_1, counts_2)
     results_3 = sentropy(counts_1, counts_2, level='subset')
-    results_4 = sentropy(counts_1, counts_2, eff_no=False)
+    results_4 = sentropy(counts_1, counts_2, eff_no=False, level="both")
 
     assert results_2 == results_1[0]
     assert results_3 == results_1[1]
@@ -163,7 +163,8 @@ def test_kl_div_with_similarity_from_array():
     S = np.maximum(S, S.transpose() )
     counts_1 = pd.DataFrame({"Community": [1, 1, 1, 1, 1, 1, 1, 1, 1]}, index=labels)
     counts_2 = pd.DataFrame({"Community": [1, 2, 1, 1, 1, 1, 1, 2, 1]}, index=labels)
-    result_default_viewpoint = sentropy(counts_1, counts_2, similarity=S, q=1, return_dataframe=True)
+    result_default_viewpoint = sentropy(counts_1, counts_2, similarity=S, q=1, return_dataframe=True, \
+        level="both")
     assert np.allclose(result_default_viewpoint[0], 1.0004668803029282)
 
 
@@ -176,6 +177,6 @@ def test_kl_div_with_similarity_from_function():
     counts_1 = pd.DataFrame({'community_1': [1,1,0], 'community_2': [1,0,1]})
     counts_2 = pd.DataFrame({'community_1': [2,1,0], 'community_2': [2,0,1]})
 
-    results = sentropy(counts_2, counts_1, similarity=similarity_function, sfargs=sfargs)
+    results = sentropy(counts_2, counts_1, similarity=similarity_function, sfargs=sfargs, level="both")
 
     assert np.allclose(results[0], 1.0655322169685402, atol=1e-8)

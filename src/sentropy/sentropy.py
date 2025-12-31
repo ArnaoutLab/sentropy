@@ -343,7 +343,7 @@ def sentropy(
     parallelize=False,
     max_inflight_tasks=64,
     return_dataframe=False,
-    level="both",
+    level="overall",
     eff_no=True,
     backend="numpy",
     device="cpu",
