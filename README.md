@@ -151,8 +151,8 @@ from sentropy import sentropy
 import numpy as np
 
 # define a dataset consisting of two amino-acid sequences
-elements = np.array(['CARDYW', 'CTRDYW'])
-P = np.array([10, 1])                                   # the first is present 10 times; the second is present once
+elements = np.array(['CARDYW', 'CTRDYW', 'CAKDYW'])      # amino-acid sequences (reminiscent of human IGH CDR3s)
+P = np.array([20, 1, 1])                                 # the first is present 20 times; the second two are each present once
 
 # define a similarity function where similarity decreases with edit distance between the sequences
 from polyleven import levenshtein as edit_distance
@@ -168,9 +168,10 @@ print(f"H1Z: {H1Z:.2f} nats")
 ```
 Expected output:
 ```
-D1Z: 1.16 elements
-H1Z: 0.15 nats
+D1Z: 1.18 elements
+H1Z: 0.16 nats
 ```
+The strings in this example are amino acid sequences, such as might exist in a next-generation sequencing dataset. CARDYW outnumbers the other two 10:1; CTRDYW and CAKDYW might be sequencing errors or mutations. The three sequences are very similar. The combination of these two factors—a big difference in relative frequencies and small differences in sequence—results in this three-element dataset having an effective number of only 1.18 elements. 
 
 ## How well each of two classes represents the whole dataset
 
