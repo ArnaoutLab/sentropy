@@ -54,7 +54,7 @@ The most important optional arguments are:
 
 ## Vanilla Shannon entropy
 
-When the similarity matrix is the identity matrix---`sentropy`'s default for `similarity`---there is no similarity between elements *i*≠*j* and S-entropy reduces to traditional (Rényi) entropy. At the default `q=1`, this is Shannon entropy. Therefore passing `sentropy` only a `P` yields Shannon entropy, in effective-number form:
+When the similarity matrix is the identity matrix—`sentropy`'s default for `similarity`—there is no similarity between elements *i*≠*j* and S-entropy reduces to traditional (Rényi) entropy. At the default `q=1`, this is Shannon entropy. Therefore passing `sentropy` only a `P` yields Shannon entropy, in effective-number form:
 
 ```
 from sentropy import sentropy
@@ -151,8 +151,8 @@ from sentropy import sentropy
 import numpy as np
 
 # define a dataset consisting of two amino-acid sequences
-elements = np.array(['CARDYW', 'CTRDYW', 'CAKDYW'])      # amino-acid sequences (reminiscent of human IGH CDR3s)
-P = np.array([20, 1, 1])                                 # the first is present 20 times; the second two are each present once
+elements = np.array(['CARDYW', 'CTRDYW', 'CAKDYW'])     # amino-acid sequences (reminiscent of human IGH CDR3s)
+P = np.array([20, 1, 1])                                # the first is present 20 times; the second two are each present once
 
 # define a similarity function where similarity decreases with edit distance between the sequences
 from polyleven import levenshtein as edit_distance
