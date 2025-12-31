@@ -115,8 +115,8 @@ S = np.array([                                # same similarity matrix as above
 qs = [0., 1., 2., np.inf]                     # multiple viewpoint parameters
 measures = ["alpha", "beta", "gamma"]         # multiple measures
 DZ = sentropy(P, similarity=S,                # S-entropy...
-              q=qs,                           #   ...at multple qs...
-              m=measures)                     #   ...for multiple measures
+              qs=qs,                          #   ...at multple qs...
+              ms=measures)                    #   ...for multiple measures
 for measure in measures:
   for q in qs:
     DqZ = DZ(q=q, m=measure, which='overall') # D-number form (preferred)
