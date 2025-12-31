@@ -267,7 +267,7 @@ In this bee-butterfly-lobster dataset, with genetics-based similarity, how ordin
 
 If you use this package, please cite it as:
 
-Nguyen et al., <i>sentropy: A Python Package for Measuring The Composition of Complex Datasets</i>. <https://github.com/ArnaoutLab/diversity>
+Nguyen et al., <i>sentropy: A Python Package for Measuring The Composition of Complex Datasets</i>.
 
 
 # Applications from our paper
