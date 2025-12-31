@@ -209,7 +209,7 @@ Normalized rho of Class 2 (oranges):	0.38
 ```
 The dataset has more apples, and so the "apples" class (Class 1) is more representative of the dataset.
 
-## Relative S-entropies between two classes as a pandas DataFrame
+## Relative S-entropy and pandas dataframes
 
 Same dataset as above, except now results are returned as a dataframe. The below calculates the similarity-sensitive version of traditional relative entropy at q=1 (a.k.a. Kullback-Leibler divergence, information divergence, etc.).
 ```
