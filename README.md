@@ -207,7 +207,7 @@ Expected output:
 Normalized rho of class 1 (apples):	0.67
 Normalized rho of class 2 (oranges):	0.38
 ```
-The dataset has more apples, and so apples are more representative of the dataset.
+The dataset has more apples, and so the apples class is more representative of the dataset.
 
 ## Relative S-entropies between two classes as a pandas DataFrame
 
