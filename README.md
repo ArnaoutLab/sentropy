@@ -63,9 +63,9 @@ P = np.array([0.7, 0.3])          # two unique elements comprising 70% and 30% o
 D1 = sentropy(P)                  # S-entropy *without* similarity at default q (q=1) = Shannon entropy,
                                   # returned in default effective-number (D-number) form (preferred)
                                   # Equivalent to also including the argument similarity=np.eye(2)
-print(f"D1: {D1:.2f} elements")   # Note defaults: level="both", measure="alpha", q=1.
-
 H1 = sentropy(P, eff_no=False)    # traditional, non-effective-number form (eff_no=False)
+
+print(f"D1: {D1:.2f} elements")   # Note defaults: level="both", measure="alpha", q=1.
 print(f"H1: {H1:.2f} nats (= {np.log2(D1):.2f} bits)")
 ```
 Expected output:
