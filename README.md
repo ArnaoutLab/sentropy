@@ -53,7 +53,7 @@ Main arguments:
 
 We recommend running the below in [ipython](https://ipython.org/).
 
-## Shannon entropy: The most vanilla S-entropy
+## Shannon entropy
 
 When the similarity matrix is the identity matrix—`sentropy`'s default for `similarity`—there is no similarity between elements *i*≠*j* and S-entropy reduces to traditional (Rényi) entropy. At the default `q=1`, this is Shannon entropy. Therefore passing `sentropy` only a `P` yields Shannon entropy, in effective-number form:
 
@@ -102,7 +102,7 @@ which corresponds to H1Z = 0.44 nats
 ```
 Non-zero similarity between elements 1 and 2 reduces the overall entropy of the system relative to the [first example above](#vanilla-shannon-entropy), in which there was zero similarity between the two elements. This can be thought of as a reduction in diversity (whence the "D" in D-number). The "Z" is a convention that means "non-trivial similarity."
 
-## S-entropy with multiple measures and viewpoint parameters
+## Multiple measures and viewpoint parameters
 
 To get results for multiple `q` (e.g. 0, 1, and ∞), multiple measures (e.g. alpha and beta), and/or both levels (overall and subset), pass a list-like object to the relevant argument; `sentropy()` returns an object with relevant values:
 ```
@@ -146,9 +146,9 @@ DinfZ gamma:	1.32 elements
 ```
 Values never rise, and almost always fall, with increasing *q*. *q*=0, 1, 2, and ∞ can be thought of as "counting-", "Shannon-", "Simpson-", and "Berger-Parker-type" S-entropy, respectively. *ɑ*=*ɣ* in this example because there is only one class (see [Leinster 2020](https://arxiv.org/abs/2012.02113)).
 
-## Calculating similarity on the fly
+## Passing a similarity function
 
-When the similarity matrix would be too large to hold in memory, a function can be passed to `similarity`:
+When the similarity matrix would be too large to hold in memory, a function can be passed to `similarity`, allowing similarilty to be calculated on the fly:
 ```
 from sentropy import sentropy
 import numpy as np
@@ -176,7 +176,7 @@ H1Z: 0.16 nats
 ```
 The strings in this example are amino acid sequences, such as might exist in a next-generation sequencing dataset. CARDYW outnumbers the other two 10:1; CTRDYW and CAKDYW might be sequencing errors or mutations. The three sequences are very similar. The combination of these two factors—a big difference in relative frequencies and small differences in sequence—results in this three-element dataset having an effective number of only 1.18 elements. 
 
-## How well each of two classes represents the whole dataset
+## Representativeness
 
 Suppose you have a dataset of fruits that has two classes, apples and oranges, and you want to know how representative each class is of the whole dataset. `sentropy` lets you do this by measuring the representativeness of each class (*𝜌*, "rho"), which is the reciprocal of *β* diversity (which measures distinctiveness):
 ```
