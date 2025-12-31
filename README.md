@@ -226,7 +226,7 @@ The dataset has more apples, and so the "apples" class (Class 1) is more represe
 
 ## Results as a pandas dataframe
 
-Same dataset as above, except now results are returned as a dataframe:
+Same dataset as above, except now results are returned as a dataframe by passing `return_dataframe=True`:
 ```
 from sentropy import sentropy
 import numpy as np
@@ -249,12 +249,9 @@ display(D1Z)                              # (ipython) S-entropies on the diagona
 ```
 Expected output:
 ```
-(0.0,
-            apples   oranges
- apples   0.000000  1.701976
- oranges  1.760072  0.000000)
-1.701975574341079
-1.760071542818269
+     level  viewpoint  normalized_rho
+0   apples          1        0.669532
+1  oranges          1        0.375035
 ```
 
 
