@@ -199,15 +199,15 @@ D1Z = sentropy(P, similarity=S,
                ms="normalized_rho")
 R1 = D1Z(which="apples")                      # note, no need to pass a measure to "m" or a viewpoint to "q"
 R2 = D1Z(which="oranges")                     # because D1Z only computed 1 measure and 1 viewpoint anyway
-print(f"Normalized rho of class 1 (apples):\t{R1:.2f}")
-print(f"Normalized rho of class 2 (oranges):\t{R2:.2f}")
+print(f"Normalized rho of Class 1 (apples):\t{R1:.2f}")
+print(f"Normalized rho of Class 2 (oranges):\t{R2:.2f}")
 ```
 Expected output:
 ```
-Normalized rho of class 1 (apples):	0.67
-Normalized rho of class 2 (oranges):	0.38
+Normalized rho of Class 1 (apples):	0.67
+Normalized rho of Class 2 (oranges):	0.38
 ```
-The dataset has more apples, and so the apples class is more representative of the dataset.
+The dataset has more apples, and so the "apples" class (Class 1) is more representative of the dataset.
 
 ## Relative S-entropies between two classes as a pandas DataFrame
 
