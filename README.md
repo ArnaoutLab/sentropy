@@ -17,7 +17,7 @@
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
-[Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures and multiple *q*](multiple-measures-and-multiple-q) | [Passing similarity functions](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Relative S-entropy](#relative-s-entropy) | [Ordinariness](#ordinariness) | [Cite this work](#how-to-cite-this-work)
+[Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures and multiple *q*](multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Relative S-entropy](#relative-s-entropy) | [Ordinariness](#ordinariness) | [How to cite this work](#how-to-cite-this-work)
 
 # Installation
 
