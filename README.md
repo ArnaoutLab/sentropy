@@ -277,9 +277,6 @@ KLZ_21  = sentropy(P2, P1, similarity=S)  # KL of oranges to apples (recall, KL 
 print("Effective-number form KLZ of:")
 print(f"  apples to oranges: {KLZ_12:.2f}")
 print(f"  oranges to apples: {KLZ_21:.2f}")
-print()
-print('If we pass P and ask for level="class", the KLs are the off-diagonals:')
-print(arr)
 ```
 Expected output:
 ```
