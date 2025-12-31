@@ -74,7 +74,7 @@ Expected output:
 D1: 1.84 elements
 H1: 0.61 nats (= 0.88 bits)
 ```
-**Intuition behind effective numbers.** Suppose instead of the frequencies being (0.7, 0.3) they were (0.999999, 0.000001). The population would consist almost completely of element 1. In an intuitive sense, element 2 "shouldn't count" as much. In this case, the effective-number form would be `sentropy(np.array([0.999999, 0.000001]))` = 1.00001. (The traditional form would be ~0, at 1e-5 nats or 2e-5 bits.) In contrast, (0.7, 0.3) is far less skewed, and so the effective number is far closer to 2, at 1.84. The effective number would be *equal* to 2 if the frequencies were equal, at (0.5, 0.5).
+**Intuition behind effective numbers.** Suppose instead of the frequencies being (0.7, 0.3) they were (0.999999, 0.000001). The population would consist almost completely of element 1. In an intuitive sense, element 2 "shouldn't count" as much. In this case, the effective-number form would be `sentropy(np.array([0.999999, 0.000001]))` = 1.00001. (The traditional form would be ~0, at 1e-5 nats or 2e-5 bits.) In contrast, (0.7, 0.3) is far less skewed, and so the effective number is far closer to 2, at 1.84. The effective number would be *equal* to 2 if the frequencies were equal (0.5, 0.5).
 
 ## Shannon-type (i.e. *q*=1) S-entropy
 
@@ -181,23 +181,29 @@ from sentropy import sentropy
 import numpy as np
 
 # a dataset with two classes, "apples" and "oranges"
-C1 = np.array([5, 3, 0, 0])                   # apples; e.g. 5 McIntosh and 3 gala
-C2 = np.array([0, 0, 6, 2])                   # oranges; e.g. 6 navel and 2 cara cara
+C1 = np.array([12, 3, 0, 0])                  # apples; e.g. 5 granny smith and 3 gala
+C2 = np.array([0,  0, 4, 4])                  # oranges; e.g. 6 navel and 2 cara cara
 P  = {"apples": C1, "oranges": C2}            # package the classes as P
 S = np.array([                                # similarities of all elements, including between classes
-  [1.,  0.8, 0.2, 0.1],                       #    note here the non-zero similarity between apples and oranges
-  [0.8, 1.,  0.1, 0.3],
-  [0.2, 0.1, 1.,  0.9],
-  [0.1, 0.3, 0.9, 1. ],
+  [1.,  0.7, 0.0, 0.0],                       #    note here the non-zero similarity between apples and oranges
+  [0.7, 1.,  0.1, 0.3],
+  [0.0, 0.1, 1.,  0.9],
+  [0.0, 0.3, 0.9, 1. ],
   ])
 
 D1Z = sentropy(P, similarity=S, level="subset",            # level="subset" is identical; an alias/synonym
                ms="normalized_rho")
 R1 = D1Z(which="apples")                                   # note, no need to pass a measure to "m" or a viewpoint to "q"
 R2 = D1Z(which="oranges")                                  # because D1Z only computed 1 measure and 1 viewpoint anyway
-print(f"Normalized rho of class 1: {R1:.2f}")
-print(f"Normalized rho of class 2: {R2:.2f}")
+print(f"Normalized rho of class 1 (apples):\t{R1:.2f}")
+print(f"Normalized rho of class 2 (oranges):\t{R2:.2f}")
 ```
+Expected output:
+```
+Normalized rho of class 1 (apples):	0.67
+Normalized rho of class 2 (oranges):	0.38
+```
+The dataset has more apples, and so apples are more representative of the dataset.
 
 ## Relative S-entropies between two classes as a pandas DataFrame
 
