@@ -13,7 +13,7 @@
 - **Rényi entropies** generalize Shannon entropy by allowing for different weightings (viewpoint parameter *q*).
 - **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences via a **similarity matrix** (often constructed using a **similarity function**).
 - Exponentiating entropy yields **effective-number/D-number forms**, which put entropies in the same, natural units—**effective numbers**—among other advantages.
-- `sentropy` calculates multiple S-entropic **measures**, including $\alpha, \beta/\rho, \gamma$ at both the subset (classes) **level** and for the overall (data)set
+- `sentropy` calculates multiple S-entropic **measures**, including ɑ, β/𝜌, ɣ, at both the subset (classes) **level** and for the overall (data)set
 
 For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
