@@ -33,7 +33,7 @@ For unit tests (including a coverage report), run:
 pip install 'sentropy[tests]'
 pytest --pyargs sentropy --cov sentropy
 ```
-from the command line. The test suite runs successfully on Macintosh, Windows, and Unix systems.
+The test suite runs successfully on Macintosh, Windows, and Unix systems.
 
 # Basic usage
 
