@@ -5,7 +5,7 @@
 [![Python version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue)](https://www.python.org/downloads/release/python-380/)
 [![Tests](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml/badge.svg)](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml)
 
-[About](#about) | [Key terms](#key-terms) | [How to cite this work](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures, *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [Torch, GPU](#using-torch-and-the-gpu) | [More applications](#more-applications) | [Alternatives](#alternatives)
+[About](#about) | [Key terms](#key-terms) | [How to cite](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures, *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [Torch, GPU](#using-torch-and-the-gpu) | [More applications](#more-applications) | [Alternatives](#alternatives)
 
 # About
 
