@@ -5,7 +5,7 @@
 [![Python version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue)](https://www.python.org/downloads/release/python-380/)
 [![Tests](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml/badge.svg)](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml)
 
-[About](#about) | [Key terms](#key-terms) | [How to cite this work](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures, *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [More applications](#more-applications) | [Alternatives](#alternatives)
+[About](#about) | [Key terms](#key-terms) | [How to cite this work](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures, *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [Using torch and the GPU](#using-torch-and-the-gpu) | [More applications](#more-applications) | [Alternatives](#alternatives)
 
 # About
 
@@ -167,8 +167,6 @@ DinfZ gamma:	1.32 elements
 ```
 Values never rise, and almost always fall, with increasing *q*. *q*=0, 1, 2, and ∞ can be thought of as "counting-", "Shannon-", "Simpson-", and "Berger-Parker-type" S-entropy, respectively. *ɑ*=*ɣ* in this example because there is only one class (see [Leinster 2020](https://arxiv.org/abs/2012.02113)).
 
-**Torch, GPU.** To utilize torch instead of numpy, pass `backend="torch"`. To have the computation run on the GPU, pass `backend="torch"` and either `device="mps"` or `device="cuda"`.
-
 ## Passing a similarity function
 
 When the similarity matrix would be too large to fit in memory, a function can be passed to `similarity`, allowing similarilty to be calculated on the fly:
@@ -260,7 +258,6 @@ Expected output:
 0   apples          1        0.669532
 1  oranges          1        0.375035
 ```
-
 
 ## Relative S-entropy
 
@@ -355,6 +352,10 @@ In this bee-butterfly-lobster dataset, with genetics-based similarity, how ordin
   a fish?    0.25
   a ladybug? 0.55
 ```
+
+## Using torch and the GPU
+
+To utilize torch instead of numpy, pass `backend="torch"`. To have the computation run on the GPU, pass `backend="torch"` and either `device="mps"` or `device="cuda"`.
 
 # More applications
 
