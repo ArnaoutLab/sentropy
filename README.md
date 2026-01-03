@@ -5,17 +5,23 @@
 [![Python version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue)](https://www.python.org/downloads/release/python-380/)
 [![Tests](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml/badge.svg)](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml)
 
+# TL;DR
+
+S-entropy—`sentropy`—reveals differences that traditional entropy cannot. Consider two datasets:
+
+(insert picture)
+
 # About
 
-`sentropy` calculates similarity-sensitive entropies (S-entropy), plus Shannon entropy and the other traditional Rényi entropies (of which Shannon entropy is the best known).
+`sentropy` calculates similarity-sensitive entropies (S-entropy), plus Shannon entropy and the other traditional Rényi entropies (of which Shannon entropy is the best known). Key terms:
 
 - **Shannon entropy** is a weighted sum of the relative probabilities of unique elements in a system (e.g. a dataset)
-- **Rényi entropies** generalize Shannon entropy by allowing for different weightings (viewpoint parameter *q*)
-- **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences via a **similarity matrix** (often constructed using a **similarity function**)
-- Exponentiating entropy yields **effective-number/D-number forms**, which put entropies in the same, natural units—**effective numbers**—among other advantages
-- `sentropy` calculates multiple S-entropic **measures**, including *ɑ*, *β/𝜌*, *ɣ*, at both the subset (classes) **level** and for the overall (data)set
+- **Rényi entropies** generalize Shannon entropy by allowing for different weightings, set by varying the **viewpoint parameter *q***
+- **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences via a **similarity matrix**, usually constructed using a **similarity function**
+- Exponentiating traditional entropy yields **effective-number/D-number forms**, which express entropies in the same, natural units—**effective numbers** of elements
+- `sentropy` calculates multiple S-entropic **measures**, including *ɑ*, *β*, *ɣ*, and *𝜌*, at both the subset (class) **level** and for the overall dataset
 
-For more background, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
+For the most complete background currently available, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
 [How to cite this work](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures and multiple *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [More applications](#more-applications) | [Alternatives](#alternatives)
 
