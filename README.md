@@ -369,6 +369,6 @@ In [this preprint](https://arxiv.org/abs/2401.00102) of ours, we appled `sentrop
 
 # Alternatives
 
-To date, we know of no other python package that implements the partitioned frequency- and similarity-sensitive diversity measures defined by [Reeve at al.](https://arxiv.org/abs/1404.6520). However, there is a [R package](https://github.com/boydorr/rdiversity) and a [Julia package](https://github.com/EcoJulia/Diversity.jl).
+To date, we know of no other python package that implements all the measures defined by [Reeve at al.](https://arxiv.org/abs/1404.6520), only [R](https://github.com/boydorr/rdiversity) and [Julia packages](https://github.com/EcoJulia/Diversity.jl)—although to our knowledge these lack the full capabilities of `sentropy`.
 
 
