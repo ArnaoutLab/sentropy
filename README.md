@@ -5,15 +5,15 @@
 [![Python version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue)](https://www.python.org/downloads/release/python-380/)
 [![Tests](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml/badge.svg)](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml)
 
-# TL;DR
+# About
 
-S-entropy—`sentropy`—reveals differences that traditional entropy cannot. Consider two datasets:
+`sentropy` calculates similarity-sensitive entropies—S-entropy—plus Shannon entropy and the other traditional Rényi entropies (of which Shannon entropy is the best known). 
+
+S-entropy reveals differences that traditional entropy cannot. Consider two datasets:
 
 (insert picture)
 
-# About
-
-`sentropy` calculates similarity-sensitive entropies (S-entropy), plus Shannon entropy and the other traditional Rényi entropies (of which Shannon entropy is the best known). Key terms:
+# Key terms
 
 - **Shannon entropy** is a weighted sum of the relative probabilities of unique elements in a system (e.g. a dataset)
 - **Rényi entropies** generalize Shannon entropy by allowing for different weightings, set by varying the **viewpoint parameter *q***
