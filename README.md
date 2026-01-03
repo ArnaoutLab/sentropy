@@ -5,11 +5,13 @@
 [![Python version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue)](https://www.python.org/downloads/release/python-380/)
 [![Tests](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml/badge.svg)](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml)
 
+[About](#about) | [Key terms](#key-terms) | [How to cite this work](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures and multiple *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [More applications](#more-applications) | [Alternatives](#alternatives)
+
 # About
 
 `sentropy` calculates similarity-sensitive entropies—S-entropy—plus Shannon entropy and the other traditional Rényi entropies (of which Shannon entropy is the best known). 
 
-S-entropy reveals differences that traditional entropy cannot. Consider two datasets:
+**S-entropy reveals differences that traditional entropy cannot.** Consider two datasets:
 
 (insert picture)
 
@@ -22,8 +24,6 @@ S-entropy reveals differences that traditional entropy cannot. Consider two data
 - `sentropy` calculates multiple S-entropic **measures**, including *ɑ*, *β*, *ɣ*, and *𝜌*, at both the subset (class) **level** and for the overall dataset
 
 For the most complete background currently available, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
-
-[How to cite this work](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures and multiple *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [More applications](#more-applications) | [Alternatives](#alternatives)
 
 # How to cite this work
 
