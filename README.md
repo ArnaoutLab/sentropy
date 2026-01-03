@@ -166,7 +166,8 @@ D2Z gamma:	1.51 elements
 DinfZ gamma:	1.32 elements
 ```
 Values never rise, and almost always fall, with increasing *q*. *q*=0, 1, 2, and ∞ can be thought of as "counting-", "Shannon-", "Simpson-", and "Berger-Parker-type" S-entropy, respectively. *ɑ*=*ɣ* in this example because there is only one class (see [Leinster 2020](https://arxiv.org/abs/2012.02113)).
-To utilize torch instead of numpy, pass `backend="torch"`. To have the computation run on the GPU, pass `backend="torch"` and either `device="mps"` or `device="cuda"`.
+
+**Torch, GPU.** To utilize torch instead of numpy, pass `backend="torch"`. To have the computation run on the GPU, pass `backend="torch"` and either `device="mps"` or `device="cuda"`.
 
 ## Passing a similarity function
 
