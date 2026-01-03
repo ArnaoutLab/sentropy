@@ -278,13 +278,13 @@ S = np.array([                            # similarities of all elements, regard
 KLZ_12  = sentropy(P1, P2, similarity=S)  # KL of apples to oranges
 KLZ_21  = sentropy(P2, P1, similarity=S)  # KL of oranges to apples (recall, KL is not symmetric)
 
-print("Effective-number form KLZ of:")
+print("Effective-number form of similarity-sensitive KL divergence (KLZ) of:")
 print(f"  apples to oranges: {KLZ_12:.2f}")
 print(f"  oranges to apples: {KLZ_21:.2f}")
 ```
 Expected output:
 ```
-Effective-number form KLZ of:
+Effective-number form of similarity-sensitive KL divergence (KLZ) of:
   apples to oranges: 7.84
   oranges to apples: 8.03
 ```
