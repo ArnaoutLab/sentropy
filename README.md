@@ -73,7 +73,7 @@ Main arguments:
 - `P`, a list-like object (e.g. a list, a numpy array) of relative frequencies (or a dictionary of these, one per subset or class; see [below](#representativeness))
 - `similarity`, which can be passed as a matrix or a function; the default is the identity matrix $I$
 - `q`, the viewpoint parameter; default is `q=1.`
-- `measure`, which can be `alpha`, `beta`, `gamma`, or others in the Leinster-Cobbold-Reeve (LCR) framework; the default is `alpha`
+- `measure`, which can be `alpha`, `beta`, `gamma`, or others in the [Leinster-Cobbold-Reeve (LCR) framework](https://arxiv.org/abs/2012.02113); the default is `alpha`
 - `level`, which can be `overall` (a.k.a. `dataset`) or `subset` (a.k.a. `class`); the default is `overall`
 
 (We recommend running the below in [ipython](https://ipython.org/), for maximal readability of the output.)
