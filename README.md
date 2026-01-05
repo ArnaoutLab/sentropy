@@ -358,6 +358,46 @@ In this bee-butterfly-lobster dataset, with genetics-based similarity, how ordin
 
 To utilize torch instead of numpy, pass `backend="torch"`. To have the computation run on the GPU, pass `backend="torch"` and either `device="mps"` or `device="cuda"`.
 
+```
+from sentropy import sentropy
+import numpy as np
+
+# a dataset with two classes, "apples" and "oranges"
+P1 = np.array([12, 3, 0, 0])                  # apples; e.g. 12 Granny Smith and 3 McIntosh (but no oranges)
+P2 = np.array([0,  0, 4, 4])                  # oranges; e.g. 4 navel and 4 cara cara (but no apples) 
+P  = {"apples": P1, "oranges": P2}            # package the classes as P
+S = np.array([                                # similarities of all elements, regardless of class
+  [1.,  0.7, 0.0, 0.0],                       #    note here the non-zero similarity between apples and oranges
+  [0.7, 1.,  0.1, 0.3],
+  [0.0, 0.1, 1.,  0.9],
+  [0.0, 0.3, 0.9, 1. ],
+  ])
+D1Z = sentropy(P, similarity=S,
+               level="subset",                # level="class" is identical; an alias/synonym
+               measure="normalized_rho", backend="torch")
+R1 = D1Z(which="apples")                      # note, no need to pass a measure or a viewpoint
+R2 = D1Z(which="oranges")                     # because D1Z only computed 1 measure and 1 viewpoint anyway
+print("R1 using torch:", R1)
+print("R2 using torch:", R2)
+
+D1Z = sentropy(P, similarity=S,
+               level="subset",                # level="class" is identical; an alias/synonym
+               measure="normalized_rho", backend="torch", device="mps")
+
+R1 = D1Z(which="apples")                      # note, no need to pass a measure or a viewpoint
+R2 = D1Z(which="oranges")                     # because D1Z only computed 1 measure and 1 viewpoint anyway
+print("R1 using torch and GPU:", R1)
+print("R2 using torch and GPU:", R2)
+```
+
+Expected output:
+```
+R1 using torch: tensor(0.6695, dtype=torch.float64)
+R2 using torch: tensor(0.3750, dtype=torch.float64)
+R1 using torch and GPU: tensor(0.6695, device='mps:0')
+R2 using torch and GPU: tensor(0.3750, device='mps:0')
+```
+
 # More applications
 
 In [this preprint](https://arxiv.org/abs/2401.00102) of ours, we appled `sentropy` to various fields, including immunomics, metagenomics, medical imaging, and digital pathology. The code for each of these applications is in the following Jupyter notebooks. Please follow along with the paper:
