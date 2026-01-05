@@ -13,7 +13,8 @@
 
 **S-entropy reveals differences that traditional entropy cannot.** Consider two datasets:
 
-![alt text](https://raw.githubusercontent.com/ArnaoutLab/sentropy/main/images/overview.png)
+[![Alt text](https://raw.githubusercontent.com/ArnaoutLab/sentropy/main/images/overview.png)](https://arxiv.org/abs/2511.03849)
+
 
 # Key terms
 
