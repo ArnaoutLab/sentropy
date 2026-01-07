@@ -1,6 +1,6 @@
 ![alt text](https://raw.githubusercontent.com/ArnaoutLab/sentropy/main/images/diversity_logo.png)
 
-# <h1> <i>sentropy</i>: sentropy: A Python Package for Revealing Hidden Differences in Complex Datasets</h1>
+# <h1> <i>sentropy</i>: A Python Package for Revealing Hidden Differences in Complex Datasets</h1>
 
 [![Python version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue)](https://www.python.org/downloads/release/python-380/)
 [![Tests](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml/badge.svg)](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml)
