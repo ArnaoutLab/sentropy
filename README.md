@@ -1,6 +1,6 @@
 ![alt text](https://raw.githubusercontent.com/ArnaoutLab/sentropy/main/images/diversity_logo.png)
 
-# <h1> <i>sentropy</i>: A Python package for measuring the composition of complex datasets</h1>
+# <h1> <i>sentropy</i>: A Python package for revealing hidden differences in complex datasets</h1>
 
 [![Python version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-blue)](https://www.python.org/downloads/release/python-380/)
 [![Tests](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml/badge.svg)](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml)
@@ -18,10 +18,11 @@
 
 # Key terms
 
-- **Shannon entropy** is a weighted sum of the relative probabilities of unique elements in a system (e.g. a dataset)
-- **Rényi entropies** generalize Shannon entropy by allowing for different weightings, set by varying the **viewpoint parameter *q***
+- **Shannon entropy** is a weighted sum of the relative probabilities (a.k.a. relative frequencies) of the unique elements in a system (e.g. a dataset), with a special weighting (namely, the log of each probability)
+- **Rényi entropies** generalize Shannon entropy by allowing for different weightings, set by varying the **viewpoint parameter *q*** (the log corresponds to *q*=1)
 - **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences via a **similarity matrix**, usually constructed using a **similarity function**
-- Exponentiating traditional entropy yields **effective-number/D-number forms**, which express entropies in the same, natural units—**effective numbers** of elements
+- Exponentiating traditional entropy yields **effective-number a.k.a. D-number forms**, which express entropies in the same, natural unit: the **effective number of elements** present in the dataset
+- Higher entropy means more **diverse** (the "D" in D number)
 - `sentropy` calculates multiple S-entropic **measures**, including *ɑ*, *β*, *ɣ*, and *𝜌*, at both the subset (class) **level** and for the overall dataset
 
 For the most complete background currently available, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
@@ -30,7 +31,7 @@ For the most complete background currently available, see [Leinster 2020](https:
 
 ```
 @misc{nguyen2023textitgreylockpythonpackagemeasuring,
-      title={$\textit{greylock}$: A Python Package for Measuring The Composition of Complex Datasets}, 
+      title={sentropy: A Python Package for Revealing Hidden Differences in Complex Datasets}, 
       author={Phuc Nguyen and Rohit Arora and Elliot D. Hill and Jasper Braun and Alexandra Morgan and Liza M. Quintana and Gabrielle Mazzoni and Ghee Rye Lee and Rima Arnaout and Ramy Arnaout},
       year={2023},
       eprint={2401.00102},
@@ -196,7 +197,7 @@ D1Z = 1.18 elements, which corresponds to H1Z = 0.16 nats
 ```
 The strings in this example are amino acid sequences, such as might exist in a next-generation sequencing dataset. CARDYW outnumbers the other two 10:1; CTRDYW and CAKDYW might be sequencing errors or mutations. The three sequences are very similar. The combination of these two factors—a big difference in relative frequencies and small differences in sequence—results in this three-element dataset having an effective number of only 1.18 elements. 
 
-To parallelize the computation with the Ray package, pass `parallelize=True`. If the similarity function is known to be symmetric, a twofold speedup can be obtained by passing `symmetric=True`. Ray is an optional dependency of this package.
+To parallelize the computation with the `ray` package, pass `parallelize=True`. If the similarity function is known to be symmetric, a twofold speedup can be obtained by passing `symmetric=True`.
 
 ## Representativeness
 
@@ -219,7 +220,8 @@ D1Z = sentropy(P, similarity=S,
                level="subset",                # level="class" is identical; an alias/synonym
                measure="normalized_rho")
 R1 = D1Z(which="apples")                      # note, no need to pass a measure or a viewpoint
-R2 = D1Z(which="oranges")                     # because D1Z only computed 1 measure and 1 viewpoint anyway
+R2 = D1Z(which="oranges")                     #    because D1Z only computed 1 measure and 1 viewpoint anyway,
+                                              #    since no q (defaulting to q=1) and only one measure were passed
 print(f"Normalized rho of Class 1 (apples):  {R1:.2f}")
 print(f"Normalized rho of Class 2 (oranges): {R2:.2f}")
 ```
