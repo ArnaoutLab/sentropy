@@ -18,7 +18,7 @@
 
 # Key terms
 
-- **Shannon entropy** is a weighted sum of the relative probabilities of unique elements in a system (e.g. a dataset)
+- **Shannon entropy** is a weighted sum of the relative probabilities (a.k.a. relative frequencies) of unique elements in a system (e.g. a dataset)
 - **Rényi entropies** generalize Shannon entropy by allowing for different weightings, set by varying the **viewpoint parameter *q***
 - **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences via a **similarity matrix**, usually constructed using a **similarity function**
 - Exponentiating traditional entropy yields **effective-number/D-number forms**, which express entropies in the same, natural units—**effective numbers** of elements
