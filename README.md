@@ -197,7 +197,7 @@ D1Z = 1.18 elements, which corresponds to H1Z = 0.16 nats
 ```
 The strings in this example are amino acid sequences, such as might exist in a next-generation sequencing dataset. CARDYW outnumbers the other two 10:1; CTRDYW and CAKDYW might be sequencing errors or mutations. The three sequences are very similar. The combination of these two factors—a big difference in relative frequencies and small differences in sequence—results in this three-element dataset having an effective number of only 1.18 elements. 
 
-To parallelize the computation with the Ray package, pass `parallelize=True`. If the similarity function is known to be symmetric, a twofold speedup can be obtained by passing `symmetric=True`. Ray is an optional dependency of this package.
+To parallelize the computation with the `ray` package, pass `parallelize=True`. If the similarity function is known to be symmetric, a twofold speedup can be obtained by passing `symmetric=True`.
 
 ## Representativeness
 
