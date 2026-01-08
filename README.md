@@ -220,7 +220,8 @@ D1Z = sentropy(P, similarity=S,
                level="subset",                # level="class" is identical; an alias/synonym
                measure="normalized_rho")
 R1 = D1Z(which="apples")                      # note, no need to pass a measure or a viewpoint
-R2 = D1Z(which="oranges")                     # because D1Z only computed 1 measure and 1 viewpoint anyway
+R2 = D1Z(which="oranges")                     #    because D1Z only computed 1 measure and 1 viewpoint anyway,
+                                              #    since no q (defaulting to q=1) and only one measure were passed
 print(f"Normalized rho of Class 1 (apples):  {R1:.2f}")
 print(f"Normalized rho of Class 2 (oranges): {R2:.2f}")
 ```
