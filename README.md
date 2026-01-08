@@ -21,7 +21,7 @@
 - **Shannon entropy** is a weighted sum of the relative probabilities (a.k.a. relative frequencies) of the unique elements in a system (e.g. a dataset), with a special weighting (namely, the log of each probability)
 - **Rényi entropies** generalize Shannon entropy by allowing for different weightings, set by varying the **viewpoint parameter *q*** (the log corresponds to *q*=1)
 - **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences via a **similarity matrix**, usually constructed using a **similarity function**
-- Exponentiating traditional entropy yields **effective-number a.k.a. D-number forms**, which express entropies in the same, natural units—**effective numbers** of elements
+- Exponentiating traditional entropy yields **effective-number a.k.a. D-number forms**, which express entropies in the same, natural unit: the **effective number of elements** present in the dataset
 - `sentropy` calculates multiple S-entropic **measures**, including *ɑ*, *β*, *ɣ*, and *𝜌*, at both the subset (class) **level** and for the overall dataset
 
 For the most complete background currently available, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
