@@ -217,6 +217,7 @@ def _compute_renyi_divergences(
     q,
     level,
     eff_no,
+    backend,
 ):
     P_set_ab = P_superset.abundance.set_abundance
     Q_set_ab = Q_superset.abundance.set_abundance
@@ -238,7 +239,7 @@ def _compute_renyi_divergences(
 
     if level in ("both", "subset"):
         nP, nQ = P_norm_ab.shape[1], Q_norm_ord.shape[1]
-        mat = np_zeros((nP, nQ))
+        mat = backend.zeros((nP, nQ))
 
         for i in range(nP):
             for j in range(nQ):
@@ -301,6 +302,7 @@ def sentropy_two_abundances(
         q,
         level,
         eff_no,
+        backend,
     )
 
     if return_dataframe and "subset" in results:
