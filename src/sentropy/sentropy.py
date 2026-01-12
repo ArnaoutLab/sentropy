@@ -199,7 +199,7 @@ def sentropy_single_abundance(
 # ----------------------------------------------------------------------
 
 def _exp_renyi_div(P, P_ord, Q_ord, q, atol, backend):
-    ratio = P_ord / Q_ord
+    ratio = P_ord/Q_ord
     if q != 1:
         return power_mean(
             order=q - 1,
@@ -215,6 +215,7 @@ def _compute_renyi_divergences(
     P_superset,
     Q_superset,
     q,
+    m,
     level,
     eff_no,
     backend,
@@ -226,7 +227,17 @@ def _compute_renyi_divergences(
     Q_set_ord = Q_superset.components.set_ordinariness
 
     P_norm_ab = P_superset.abundance.normalized_subset_abundance
-    Q_norm_ord = Q_superset.components.normalized_subset_ordinariness
+    Q_norm_ab = Q_superset.abundance.normalized_subset_abundance
+
+    nP = P_superset.abundance.num_subsets
+    nQ = Q_superset.abundance.num_subsets
+
+    if m == 'normalized':
+        P_subset_ord = P_superset.components.normalized_subset_ordinariness
+        Q_subset_ord = Q_superset.components.normalized_subset_ordinariness
+    else:
+        P_subset_ord = P_superset.components.subset_ordinariness
+        Q_subset_ord = Q_superset.components.subset_ordinariness
 
     min_count = min(1 / P_set_ab.sum(), 1e-9)
     backend = P_superset.backend
@@ -238,15 +249,14 @@ def _compute_renyi_divergences(
         results["overall"] = backend.log(val) if not eff_no else val
 
     if level in ("both", "subset"):
-        nP, nQ = P_norm_ab.shape[1], Q_norm_ord.shape[1]
         mat = backend.zeros((nP, nQ))
 
         for i in range(nP):
             for j in range(nQ):
                 mat[i, j] = _exp_renyi_div(
                     P_norm_ab[:, i],
-                    P_superset.components.normalized_subset_ordinariness[:, i],
-                    Q_norm_ord[:, j],
+                    P_subset_ord[:, i],
+                    Q_subset_ord[:, j],
                     q,
                     min_count,
                     backend,
@@ -269,6 +279,7 @@ def sentropy_two_abundances(
     Q_abundance,
     similarity=None,
     q=1,
+    m='normalized',
     symmetric=False,
     sfargs=None,
     chunk_size=10,
@@ -300,6 +311,7 @@ def sentropy_two_abundances(
         P_superset,
         Q_superset,
         q,
+        m,
         level,
         eff_no,
         backend,
@@ -330,7 +342,7 @@ def sentropy(
     *,
     similarity=None,
     q=1,
-    measure="alpha",
+    measure=None,
     symmetric=False,
     sfargs=None,
     chunk_size=10,
@@ -346,6 +358,8 @@ def sentropy(
         level="subset"
 
     if counts_b is None:
+        if measure is None:
+            measure = 'alpha'
         return sentropy_single_abundance(
             counts=counts_a,
             similarity=similarity,
@@ -364,12 +378,15 @@ def sentropy(
         )
 
     q = q if isinstance(q, (int, float)) else q[0]
+    if measure is None:
+        measure = 'normalized'
 
     return sentropy_two_abundances(
         P_abundance=counts_a,
         Q_abundance=counts_b,
         similarity=similarity,
         q=q,
+        m=measure,
         symmetric=symmetric,
         sfargs=sfargs,
         chunk_size=chunk_size,

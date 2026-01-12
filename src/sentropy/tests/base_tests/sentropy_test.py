@@ -180,3 +180,31 @@ def test_kl_div_with_similarity_from_function():
     results = sentropy(counts_2, counts_1, similarity=similarity_function, sfargs=sfargs, level="both")
 
     assert np.allclose(results[0], 1.0655322169685402, atol=1e-8)
+
+def test_kl_div_with_unnormalized_ordinariness():
+    # a dataset with two classes, "apples" and "oranges"
+    P1 = np.array([12, 3, 0, 0])             # apples; e.g. 12 Granny Smith and 3 McIntosh (zeros = oranges)
+    P2 = np.array([0,  0, 4, 4])             # oranges; e.g. 4 navel and 4 cara cara (zeros = apples)
+    S = np.array([                           # similarities of all elements, regardless of class
+      [1.,  0.7, 0.1, 0.1],                  #    note here the non-zero similarity between apples and oranges
+      [0.7, 1.,  0.1, 0.3],
+      [0.1, 0.1, 1.,  0.9],
+      [0.1, 0.3, 0.9, 1. ],
+      ])
+    P  = {"apples": P1, "oranges": P2}       # package the classes as P
+
+    unnormalized_KL = sentropy(P, P, similarity=S,    # return a dataframe with the KLs on the off-diagonals
+              level="class", measure = "unnormalized", eff_no = False)
+
+    assert np.allclose(unnormalized_KL, [[0, 2.68817662], [1.45444702, 0]])
+
+def test_kl_div_with_Q_having_support_outside_P():
+    P1 = np.array([1,2,3,0,0])
+    Q1 = np.array([3,5,2,4,0])
+    result1 = sentropy(P1,Q1, eff_no=False)
+    assert np.allclose(result1, 0.5614981223718825)
+
+    P2 = np.array([1,2,3,0])
+    Q2 = np.array([3,5,2,4])
+    result2 = sentropy(P2,Q2, eff_no=False)
+    assert np.allclose(result2, result1)
