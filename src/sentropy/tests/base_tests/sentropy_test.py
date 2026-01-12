@@ -198,7 +198,7 @@ def test_kl_div_with_unnormalized_ordinariness():
 
     assert np.allclose(unnormalized_KL, [[0, 2.68817662], [1.45444702, 0]])
 
-def test_kl_div_with_Q_having_support_outside_P():
+def test_kl_div_with_Q_having_different_support_from_P():
     P1 = np.array([1,2,3,0,0])
     Q1 = np.array([3,5,2,4,0])
     result1 = sentropy(P1,Q1, eff_no=False)
@@ -208,3 +208,8 @@ def test_kl_div_with_Q_having_support_outside_P():
     Q2 = np.array([3,5,2,4])
     result2 = sentropy(P2,Q2, eff_no=False)
     assert np.allclose(result2, result1)
+
+    P = np.array([1,2,3,0,0])
+    Q = np.array([3,0,2,4,0])
+    result3 = sentropy(P,Q, eff_no=False)
+    assert np.isinf(result3)
