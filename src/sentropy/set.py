@@ -89,16 +89,26 @@ class Set:
         elif isinstance(similarity, DataFrame):
             self.similarity = SimilarityFromArray(similarity=similarity.values, backend=self.backend)
         elif isinstance(similarity, str):
+            if chunk_size is None:
+                raise ValueError("chunk_size cannot be None when similarity is a file.")
             self.similarity = SimilarityFromFile(similarity, chunk_size=chunk_size, backend=self.backend)
         elif callable(similarity):
+            if X is None:
+                raise ValueError("X cannot be None when similarity is a callable.")
+            if chunk_size is None:
+                raise ValueError("chunk_size cannot be None when similarity is a callable.")
             if symmetric:
                 if parallelize:
+                    if max_inflight_tasks is None:
+                        raise ValueError("max_inflight_task cannot be None when parallelizing.")
                     self.similarity = SimilarityFromSymmetricRayFunction(func=similarity,X=X, chunk_size=chunk_size, \
                         max_inflight_tasks=max_inflight_tasks, backend=self.backend)
                 else:
                     self.similarity = SimilarityFromSymmetricFunction(func=similarity,X=X, chunk_size=chunk_size, backend=self.backend)
             else:
                 if parallelize:
+                    if max_inflight_tasks is None:
+                        raise ValueError("max_inflight_task cannot be None when parallelizing.")
                     self.similarity = SimilarityFromRayFunction(func=similarity, X=X, chunk_size=chunk_size, \
                         max_inflight_tasks=max_inflight_tasks, backend=self.backend)
                 else:
@@ -109,9 +119,9 @@ class Set:
         self.components = Components(
             abundance=self.abundance, similarity=self.similarity
         )
-        self.subset_diversity_hash = {}
+        self.subset_diversity_hash: dict = {}
 
-    def subset_diversity(self, q: float, m: str, eff_no: bool=True) -> ndarray:
+    def subset_diversity(self, q: float, m: str, eff_no: bool=True) -> Union[ndarray, Tensor]:
         """Calculates subset diversity measures.
 
         Parameters
@@ -180,7 +190,7 @@ class Set:
         else:
             return diversity_measure
 
-    def set_diversity(self, q: float, m: str, eff_no: bool=True) -> ndarray:
+    def set_diversity(self, q: float, m: str, eff_no: bool=True) -> Union[ndarray, Tensor]:
         """Calculates set diversity measures.
 
         Parameters
@@ -225,11 +235,17 @@ class Set:
         A pandas.DataFrame containing all subset diversity
         measures for a given viewpoint
         """
-        df = DataFrame(
-        {
-            m: (self.subset_diversity(q, m, eff_no).cpu() if isinstance(self.subset_diversity(q, m, eff_no),Tensor) else \
-                self.subset_diversity(q, m, eff_no)) for m in ms
-        })
+        data = {}
+
+        for m in ms:
+            val = self.subset_diversity(q, m, eff_no)
+
+            if isinstance(val, Tensor):
+                val = val.cpu()
+
+            data[m] = val
+
+        df = DataFrame(data)
         df.insert(0, "viewpoint", q)
         df.insert(0, "level", Series(self.abundance.subsets_names))
         return df
@@ -250,18 +266,27 @@ class Set:
         measures for a given viewpoint
         """
 
+        data = {}
+
+        for m in ms:
+            val = self.set_diversity(q, m, eff_no)
+
+            if isinstance(val, Tensor):
+                val = val.cpu()
+
+            data[m] = val
+
         df = DataFrame(
-        {
-            m: (self.set_diversity(q, m, eff_no).cpu() if isinstance(self.set_diversity(q, m, eff_no),Tensor) else \
-                self.set_diversity(q, m, eff_no)) for m in ms
-        },
-        index=Index(["overall"], name="level"))
+            data,
+            index=Index(["overall"], name="level"),
+        )
 
         df.insert(0, "viewpoint", q)
         df.reset_index(inplace=True)
+
         return df
 
-    def to_dataframe(self, qs: Union[float, Iterable[float]], ms=MEASURES, level: str = "both", eff_no: bool = True):
+    def to_dataframe(self, qs: Iterable[float], ms=MEASURES, level: str = "both", eff_no: bool = True):
         """Table containing all set and subset diversity
         values.
 

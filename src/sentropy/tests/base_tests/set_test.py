@@ -137,7 +137,7 @@ class FrequencySet3by2:
 class SimilaritySet6by2:
     description = "similarity-sensitive set; 6 species, 2 subsets"
     viewpoint: float = 0.0
-    counts: ndarray = field(default_factory=lambda: counts_6by2)
+    counts: DataFrame = field(default_factory=lambda: counts_6by2)
     similarity: ndarray = field(
         default_factory=lambda: array(
             [
@@ -163,7 +163,7 @@ class SimilaritySet6by2:
         )
     )
     subset_similarity: ndarray = field(
-        default_factory=lambda: (
+        default_factory=lambda: 
             array(
                 [
                     [0.33333333, 0.35],
@@ -175,7 +175,6 @@ class SimilaritySet6by2:
                 ],
             ),
         )
-    )
     normalized_subset_similarity: ndarray = field(
         default_factory=lambda: array(
             [
@@ -235,7 +234,7 @@ class SimilaritySet3by2:
         default_factory=lambda: array([[0.76], [0.62], [0.22]])
     )
     subset_similarity: ndarray = field(
-        default_factory=lambda: (
+        default_factory=lambda: 
             array(
                 [
                     [0.25, 0.51],
@@ -244,7 +243,6 @@ class SimilaritySet3by2:
                 ]
             ),
         )
-    )
     normalized_subset_similarity: ndarray = field(
         default_factory=lambda: array(
             [
