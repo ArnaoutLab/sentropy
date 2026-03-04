@@ -189,7 +189,7 @@ class SimilarityFromSymmetricRayFunction(SimilarityFromSymmetricFunction):
     def weighted_abundances(
         self,
         relative_abundance: Union[ndarray, spmatrix],
-    ) -> ndarray:
+    ) -> Union[ndarray, spmatrix]:
         weighted_similarity_chunk = ray.remote(weighted_similarity_chunk_symmetric)
         X_ref = ray.put(self.X)
         abundance_ref = ray.put(relative_abundance)
