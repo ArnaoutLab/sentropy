@@ -15,7 +15,7 @@ AbundanceForDiversity
 from functools import cached_property
 from typing import Iterable, Union
 
-from numpy import arange
+from numpy import arange, ndarray
 from pandas import DataFrame
 from scipy.sparse import issparse  # type: ignore[import]
 
@@ -28,7 +28,7 @@ from sentropy.exceptions import InvalidArgumentError
 class Abundance:
     def __init__(
         self,
-        counts,
+        counts: Union[ndarray, DataFrame, dict],
         subsets_names: Iterable[Union[str, int]],
         backend=None,
     ) -> None:
@@ -61,7 +61,7 @@ class Abundance:
             self.make_normalized_subset_abundance()
         )
 
-    def make_subset_abundance(self, counts):
+    def make_subset_abundance(self, counts: Union[ndarray, DataFrame, dict]):
         """Calculates the relative abundances in subsets."""
         # counts / counts.sum()
         total = self.backend.sum(counts)
@@ -90,7 +90,7 @@ class AbundanceForDiversity(Abundance):
     """
 
     def __init__(
-        self, counts, subsets_names: Iterable[Union[str, int]], backend=None
+        self, counts: Union[ndarray, DataFrame, dict], subsets_names: Iterable[Union[str, int]], backend=None
     ) -> None:
         super().__init__(counts, subsets_names, backend=backend)
         self.set_abundance = self.make_set_abundance()
@@ -158,7 +158,7 @@ class AbundanceForDiversity(Abundance):
         return self.backend.sum(self.subset_abundance, axis=1, keepdims=True)
 
 
-def make_abundance(counts, subsets_names=None, for_diversity=True, backend=None):
+def make_abundance(counts: Union[ndarray, DataFrame, dict], subsets_names=None, for_diversity=True, backend=None):
     """Initializes a concrete subclass of Abundance."""
     if not for_diversity:
         specific_class = Abundance
