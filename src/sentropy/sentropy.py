@@ -31,7 +31,6 @@ from sentropy.ray import (
 from sentropy.set import Set
 from sentropy.powermean import power_mean
 
-
 # ----------------------------------------------------------------------
 # Constants
 # ----------------------------------------------------------------------
@@ -52,6 +51,7 @@ MEASURES = (
 # ----------------------------------------------------------------------
 # Utility helpers
 # ----------------------------------------------------------------------
+
 
 def _normalize_counts(counts):
     """Convert counts to ndarray and extract subset names."""
@@ -95,6 +95,7 @@ def _build_superset(
 # Result container
 # ----------------------------------------------------------------------
 
+
 class SentropyResult:
     def __init__(self, raw_dict, subsets_names, qs, ms, level):
         self.raw_dict = raw_dict
@@ -130,6 +131,7 @@ class SentropyResult:
 # LCR helpers
 # ----------------------------------------------------------------------
 
+
 def _compute_lcr_measures(superset, qs, ms, level, eff_no):
     results = {}
 
@@ -149,6 +151,7 @@ def _compute_lcr_measures(superset, qs, ms, level, eff_no):
 # ----------------------------------------------------------------------
 # LCR Sentropy
 # ----------------------------------------------------------------------
+
 
 def sentropy_single_abundance(
     counts: Union[DataFrame, ndarray],
@@ -197,6 +200,7 @@ def sentropy_single_abundance(
 # ----------------------------------------------------------------------
 # KL / Rényi divergence helpers
 # ----------------------------------------------------------------------
+
 
 def _exp_renyi_div(P, P_ord, Q_ord, q, atol, backend):
     ratio = P_ord / Q_ord
@@ -264,6 +268,7 @@ def _compute_renyi_divergences(
 # KL divergence front-end
 # ----------------------------------------------------------------------
 
+
 def sentropy_two_abundances(
     P_abundance,
     Q_abundance,
@@ -285,15 +290,27 @@ def sentropy_two_abundances(
     Q, Q_names = _normalize_counts(Q_abundance)
 
     P_superset = Set(
-        P, similarity, symmetric, sfargs,
-        chunk_size, parallelize, max_inflight_tasks,
-        backend, device
+        P,
+        similarity,
+        symmetric,
+        sfargs,
+        chunk_size,
+        parallelize,
+        max_inflight_tasks,
+        backend,
+        device,
     )
 
     Q_superset = Set(
-        Q, similarity, symmetric, sfargs,
-        chunk_size, parallelize, max_inflight_tasks,
-        backend, device
+        Q,
+        similarity,
+        symmetric,
+        sfargs,
+        chunk_size,
+        parallelize,
+        max_inflight_tasks,
+        backend,
+        device,
     )
 
     results = _compute_renyi_divergences(
@@ -317,12 +334,12 @@ def sentropy_two_abundances(
     return results[level]
 
 
-
 # ----------------------------------------------------------------------
 # Public dispatcher.
 # API note: the public API uses argument q for viewpoint(s) and m for measure(s), even though
 # internally we use q and m (for a single viewpoint/measure) and qs and ms (for possibly multiple viewpoints/measures)
 # ----------------------------------------------------------------------
+
 
 def sentropy(
     counts_a,
@@ -342,8 +359,8 @@ def sentropy(
     backend="numpy",
     device="cpu",
 ):
-    if level=="class":
-        level="subset"
+    if level == "class":
+        level = "subset"
 
     if counts_b is None:
         return sentropy_single_abundance(
@@ -381,4 +398,3 @@ def sentropy(
         backend=backend,
         device=device,
     )
-

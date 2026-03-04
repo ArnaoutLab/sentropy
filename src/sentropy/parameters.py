@@ -103,8 +103,17 @@ def configure_arguments():
             "A list of diversity measures to be computed. Must be in 'alpha', 'rho', 'beta',"
             "'gamma', 'normalized_alpha', 'normalized_rho', 'normalized_beta', 'rho_hat', 'beta_hat'."
         ),
-        default= ["alpha", "rho", "beta", "gamma", "normalized_alpha", "normalized_rho", \
-        "normalized_beta", "rho_hat", "beta_hat"]
+        default=[
+            "alpha",
+            "rho",
+            "beta",
+            "gamma",
+            "normalized_alpha",
+            "normalized_rho",
+            "normalized_beta",
+            "rho_hat",
+            "beta_hat",
+        ],
     )
 
     parser.add_argument(
@@ -118,7 +127,7 @@ def configure_arguments():
         "-level",
         type=str,
         help="whether to compute diversity at the set level ('overall'), subset level ('subset') or both ('both').",
-        default='both',
+        default="both",
     )
 
     parser.add_argument(
@@ -132,15 +141,14 @@ def configure_arguments():
         "-backend",
         type=str,
         help="whether to use the numpy backend ('numpy') or the torch one ('torch').",
-        default='numpy',
+        default="numpy",
     )
 
     parser.add_argument(
         "-device",
         type=str,
         help="whether to compute the diversity indices on the cpu ('cpu') or the gpu ('mps' or 'cuda').",
-        default='cpu',
+        default="cpu",
     )
-
 
     return parser

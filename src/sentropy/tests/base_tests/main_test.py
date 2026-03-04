@@ -33,19 +33,13 @@ MAIN_TEST_CASES = [
             log_level="WARNING",
             chunk_size=1,
             ms=MEASURES,
-            level='both',
+            level="both",
             eff_no=1,
-            backend='numpy',
-            device='cpu',
+            backend="numpy",
+            device="cpu",
         ),
         "input_filecontents": (
-            "subset_1\tsubset_2\n"
-            "1\t0\n"
-            "1\t0\n"
-            "1\t0\n"
-            "0\t1\n"
-            "0\t1\n"
-            "0\t1\n"
+            "subset_1\tsubset_2\n" "1\t0\n" "1\t0\n" "1\t0\n" "0\t1\n" "0\t1\n" "0\t1\n"
         ),
         "similarities_filecontents": (
             "species_1\tspecies_2\tspecies_3\tspecies_4\tspecies_5\tspecies_6\n"
@@ -73,14 +67,12 @@ MAIN_TEST_CASES = [
             log_level="WARNING",
             chunk_size=1,
             ms=MEASURES,
-            level='both',
+            level="both",
             eff_no=1,
-            backend='numpy',
-            device='cpu',
+            backend="numpy",
+            device="cpu",
         ),
-        "input_filecontents": (
-            "subset_1\tsubset_2\n" "2\t5\n" "3\t0\n" "0\t1\n"
-        ),
+        "input_filecontents": ("subset_1\tsubset_2\n" "2\t5\n" "3\t0\n" "0\t1\n"),
         "similarities_filecontents": (
             "species_1\tspecies_2\tspecies_3\n"
             "1.0\t0.5\t0.1\n"
@@ -113,14 +105,12 @@ MAIN_TEST_CASES = [
             log_level="WARNING",
             chunk_size=2,
             ms=MEASURES,
-            level='both',
+            level="both",
             eff_no=1,
-            backend='numpy',
-            device='cpu',
+            backend="numpy",
+            device="cpu",
         ),
-        "input_filecontents": (
-            "subset_1\tsubset_2\n" "2\t5\n" "3\t0\n" "0\t1\n"
-        ),
+        "input_filecontents": ("subset_1\tsubset_2\n" "2\t5\n" "3\t0\n" "0\t1\n"),
         "similarities_filecontents": (
             "species_1\tspecies_2\tspecies_3\n"
             "1.0\t0.5\t0.1\n"
@@ -157,9 +147,9 @@ class TestMain:
     @mark.parametrize("test_case", MAIN_TEST_CASES)
     def test_main(self, test_case, tmp_path):
         """Tests __main__.main."""
-        test_case["args"].input_filepath[0] = (
-            f"{tmp_path}/{test_case['args'].input_filepath[0]}"
-        )
+        test_case["args"].input_filepath[
+            0
+        ] = f"{tmp_path}/{test_case['args'].input_filepath[0]}"
         test_case["args"].similarity = f"{tmp_path}/{test_case['args'].similarity}"
         test_case["args"].output_filepath = (
             f"{tmp_path}/{test_case['args'].output_filepath}"
@@ -180,24 +170,29 @@ class TestMain:
         print(test_case["output_filecontents"])
         assert output_filecontents == test_case["output_filecontents"]
 
+
 def test_main_with_2_counts(tmp_path):
-    args = Namespace(input_filepath=[Path(__file__).parent / 'test_material/counts_2b_1.csv', Path(__file__).parent / 'test_material/counts_2b_2.csv'],
-        similarity = read_csv(Path(__file__).parent / 'test_material/S_2b.csv'),
-        qs = [1],
-        ms = None,
-        chunk_size = 1,
-        level = 'both',
-        eff_no = True,
-        backend = 'numpy',
-        device = 'cpu',
-        output_filepath = tmp_path/'output.pkl',
-        log_level = 'WARNING',
-        )
+    args = Namespace(
+        input_filepath=[
+            Path(__file__).parent / "test_material/counts_2b_1.csv",
+            Path(__file__).parent / "test_material/counts_2b_2.csv",
+        ],
+        similarity=read_csv(Path(__file__).parent / "test_material/S_2b.csv"),
+        qs=[1],
+        ms=None,
+        chunk_size=1,
+        level="both",
+        eff_no=True,
+        backend="numpy",
+        device="cpu",
+        output_filepath=tmp_path / "output.pkl",
+        log_level="WARNING",
+    )
 
     main(args)
 
-    with open(tmp_path/'output.pkl', 'rb') as file:
+    with open(tmp_path / "output.pkl", "rb") as file:
         result = pickle.load(file)
 
-    assert result[0]==1
-    assert allclose(result[1], [[1.661012, 1.548891],[1.431594, 1.556117]])
+    assert result[0] == 1
+    assert allclose(result[1], [[1.661012, 1.548891], [1.431594, 1.556117]])

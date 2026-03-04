@@ -13,29 +13,29 @@ import numpy as _np
 import torch as _torch
 import scipy.sparse
 
-
 sparse_classes = [
-        scipy.sparse.bsr_array,
-        scipy.sparse.coo_array,
-        scipy.sparse.csc_array,
-        scipy.sparse.csr_array,
-        scipy.sparse.bsr_matrix,
-        scipy.sparse.coo_matrix,
-        scipy.sparse.csc_matrix,
-        scipy.sparse.csr_matrix,
-        scipy.sparse.dia_array,
-        scipy.sparse.dia_matrix,
-        scipy.sparse.lil_array,
-        scipy.sparse.lil_matrix,
-        scipy.sparse.dok_array,
-        scipy.sparse.dok_matrix,
-    ]
+    scipy.sparse.bsr_array,
+    scipy.sparse.coo_array,
+    scipy.sparse.csc_array,
+    scipy.sparse.csr_array,
+    scipy.sparse.bsr_matrix,
+    scipy.sparse.coo_matrix,
+    scipy.sparse.csc_matrix,
+    scipy.sparse.csr_matrix,
+    scipy.sparse.dia_array,
+    scipy.sparse.dia_matrix,
+    scipy.sparse.lil_array,
+    scipy.sparse.lil_matrix,
+    scipy.sparse.dok_array,
+    scipy.sparse.dok_matrix,
+]
+
 
 class BackendError(RuntimeError):
     pass
 
 
-class BaseBackend: # pragma: no cover
+class BaseBackend:  # pragma: no cover
     name = "base"
 
     def __init__(self, device: Optional[str] = None):
@@ -121,6 +121,7 @@ class BaseBackend: # pragma: no cover
     def divide(self, x, y):
         raise NotImplementedError
 
+
 class NumpyBackend(BaseBackend):
     name = "numpy"
 
@@ -197,7 +198,9 @@ class NumpyBackend(BaseBackend):
             if out is not None:
                 return _np.multiply(a, b, out=out, where=where)
             else:
-                return _np.multiply(a, b, out=_np.zeros_like(a).astype(float), where=where)
+                return _np.multiply(
+                    a, b, out=_np.zeros_like(a).astype(float), where=where
+                )
         else:
             return _np.multiply(a, b, out=out)
 
@@ -229,17 +232,17 @@ class NumpyBackend(BaseBackend):
         return x.copy()
 
     def divide(self, x, y):
-        return _np.divide(x, y, out=_np.zeros(y.shape), where=y !=0)
+        return _np.divide(x, y, out=_np.zeros(y.shape), where=y != 0)
 
 
 class TorchBackend(BaseBackend):
     name = "torch"
-    
+
     def __init__(self, device: Optional[str] = None):
         super().__init__(device or ("cuda" if _torch.cuda.is_available() else "cpu"))
         self.torch = _torch
         # default dtype to float64 to preserve numeric behavior
-        if device == 'mps':
+        if device == "mps":
             self.dtype = self.torch.float32
         else:
             self.dtype = self.torch.float64
@@ -269,7 +272,7 @@ class TorchBackend(BaseBackend):
 
     def sum(self, x, axis=None, keepdims=False, where=None):
         if where is not None:
-            x = x*where
+            x = x * where
         return self.torch.sum(x, dim=axis, keepdim=keepdims)
 
     def ones(self, shape, dtype=None):
@@ -353,7 +356,6 @@ class TorchBackend(BaseBackend):
 
         return result
 
-
     def amax(self, x, axis=None, where=None, initial=None):
         dim = axis
 
@@ -382,7 +384,6 @@ class TorchBackend(BaseBackend):
 
         return result
 
-
     def isclose(self, a, b, rtol=1e-5, atol=1e-8):
         # Convert to tensors
         a = self.torch.as_tensor(a)
@@ -402,16 +403,16 @@ class TorchBackend(BaseBackend):
         # Use torch.isclose
         return self.torch.isclose(a, b, rtol=rtol, atol=atol)
 
-
     def multiply(self, a, b, out=None, where=None):
         if where is None:
-            return self.torch.multiply(a,b, out=out)
+            return self.torch.multiply(a, b, out=out)
         else:
-            result = a*b
+            result = a * b
             if out is None:
                 return self.torch.where(where, result, 0)
             else:
-                if result.dtype != out.dtype: result = result.to(out.dtype)
+                if result.dtype != out.dtype:
+                    result = result.to(out.dtype)
                 out[where] = result[where]
                 return out
 
@@ -455,7 +456,7 @@ class TorchBackend(BaseBackend):
         # Ensure x and y are tensors
         x = self.torch.as_tensor(x)
         y = self.torch.as_tensor(y)
-        out = self.torch.where(y!=0, x/y, self.torch.zeros_like(x))
+        out = self.torch.where(y != 0, x / y, self.torch.zeros_like(x))
         return out
 
 

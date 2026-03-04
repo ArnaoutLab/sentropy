@@ -9,6 +9,7 @@ from sentropy.exceptions import InvalidArgumentError
 # avoid mypy error: see https://github.com/jorenham/scipy-stubs/issues/100
 from scipy.sparse import spmatrix  # type: ignore
 import ray  # type: ignore
+from torch import Tensor
 
 from sentropy.similarity import (
     SimilarityFromFunction,
@@ -16,7 +17,9 @@ from sentropy.similarity import (
 )
 from sentropy.backend import get_backend
 
-def weighted_similarity_chunk_nonsymmetric(similarity: Callable,
+
+def weighted_similarity_chunk_nonsymmetric(
+    similarity: Callable,
     X: Union[_np.ndarray, DataFrame],
     Y: Union[_np.ndarray, DataFrame, None],
     relative_abundance,
@@ -24,7 +27,7 @@ def weighted_similarity_chunk_nonsymmetric(similarity: Callable,
     chunk_size: int,
     chunk_index: int,
     return_Z: bool = True,
-    ) -> Tuple[int, _np.ndarray, Union[_np.ndarray, None]]:
+) -> Tuple[int, _np.ndarray, Union[_np.ndarray, None]]:
     """
     Calculates some rows of the matrix product of Z @ p,
     where Z is not given explicitly but rather each entry
@@ -46,23 +49,26 @@ def weighted_similarity_chunk_nonsymmetric(similarity: Callable,
     else:
         return chunk_index, result, None
 
-def weighted_similarity_chunk_symmetric(similarity: Callable,
-        X: Union[_np.ndarray, DataFrame],
-        relative_abundance,
-        backend,
-        chunk_size: int,
-        chunk_index: int,
-        return_Z: bool = True,
-    ):
+
+def weighted_similarity_chunk_symmetric(
+    similarity: Callable,
+    X: Union[_np.ndarray, DataFrame],
+    relative_abundance,
+    backend,
+    chunk_size: int,
+    chunk_index: int,
+    return_Z: bool = True,
+):
     X = _np.array(X)
     chunk = X[chunk_index : chunk_index + chunk_size]
     similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
     for i, row_i in enumerate(chunk):
-        for j, row_j in enumerate(X[chunk_index + i + 1:]):
+        for j, row_j in enumerate(X[chunk_index + i + 1 :]):
             similarities_chunk[i, i + j + chunk_index + 1] = similarity(row_i, row_j)
     rows_result = backend.matmul(similarities_chunk, relative_abundance)
     rows_after_count = max(0, relative_abundance.shape[0] - (chunk_index + chunk_size))
     from numpy import vstack, zeros as _zeros
+
     rows_result = backend.vstack(
         (
             backend.zeros(shape=(chunk_index, relative_abundance.shape[1])),
@@ -75,7 +81,9 @@ def weighted_similarity_chunk_symmetric(similarity: Callable,
             ),
         )
     )
-    relative_abundance_slice = relative_abundance[chunk_index : chunk_index + chunk_size]
+    relative_abundance_slice = relative_abundance[
+        chunk_index : chunk_index + chunk_size
+    ]
     cols_result = backend.matmul(similarities_chunk.T, relative_abundance_slice)
     result = rows_result + cols_result
     if return_Z:
@@ -106,7 +114,7 @@ class SimilarityFromRayFunction(SimilarityFromFunction):
 
     def weighted_abundances(
         self,
-        relative_abundance: Union[ndarray, spmatrix],
+        relative_abundance: Union[ndarray, Tensor],
     ):
         weighted_similarity_chunk = ray.remote(weighted_similarity_chunk_nonsymmetric)
         X_ref = ray.put(self.X)
@@ -156,14 +164,16 @@ class IntersetSimilarityFromRayFunction(SimilarityFromRayFunction):
         similarities_out: Union[ndarray, None] = None,
         backend=None,
     ):
-        super().__init__(func, X, chunk_size, max_inflight_tasks, similarities_out, backend)
+        super().__init__(
+            func, X, chunk_size, max_inflight_tasks, similarities_out, backend
+        )
         self.Y = Y
 
     def get_Y(self):
         return self.Y
 
     def self_similar_weighted_abundances(
-        self, relative_abundance: Union[ndarray, spmatrix]
+        self, relative_abundance: Union[ndarray, Tensor]
     ):
         raise InvalidArgumentError(
             "Inappropriate similarity class for diversity measures"
@@ -188,8 +198,8 @@ class SimilarityFromSymmetricRayFunction(SimilarityFromSymmetricFunction):
 
     def weighted_abundances(
         self,
-        relative_abundance: Union[ndarray, spmatrix],
-    ) -> Union[ndarray, spmatrix]:
+        relative_abundance: Union[ndarray, Tensor],
+    ) -> Union[ndarray, Tensor]:
         weighted_similarity_chunk = ray.remote(weighted_similarity_chunk_symmetric)
         X_ref = ray.put(self.X)
         abundance_ref = ray.put(relative_abundance)
@@ -209,7 +219,7 @@ class SimilarityFromSymmetricRayFunction(SimilarityFromSymmetricFunction):
 
         for chunk_index in range(0, self.X.shape[0], self.chunk_size):
             if len(futures) >= self.max_inflight_tasks:
-                (ready_refs, futures) = ray.wait(futures)
+                ready_refs, futures = ray.wait(futures)
                 process_refs(ready_refs)
 
             chunk_future = weighted_similarity_chunk.remote(
@@ -228,4 +238,3 @@ class SimilarityFromSymmetricRayFunction(SimilarityFromSymmetricFunction):
             for i in range(self.X.shape[0]):
                 self.similarities_out[i, i] = 1.0
         return result
-

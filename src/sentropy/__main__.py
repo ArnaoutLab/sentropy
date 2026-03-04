@@ -38,11 +38,21 @@ def main(args):
     LOGGER.debug(f"args: {args}")
 
     if len(args.input_filepath) == 1:
-        counts = read_csv(args.input_filepath[0], sep=None, engine="python", dtype=int64)
-        df = sentropy(counts, similarity=args.similarity,\
-            q=args.qs, measure=args.ms, chunk_size=args.chunk_size, \
-            return_dataframe=True, level=args.level, eff_no=args.eff_no, \
-            backend=args.backend, device=args.device)
+        counts = read_csv(
+            args.input_filepath[0], sep=None, engine="python", dtype=int64
+        )
+        df = sentropy(
+            counts,
+            similarity=args.similarity,
+            q=args.qs,
+            measure=args.ms,
+            chunk_size=args.chunk_size,
+            return_dataframe=True,
+            level=args.level,
+            eff_no=args.eff_no,
+            backend=args.backend,
+            device=args.device,
+        )
 
         print(df)
 
@@ -50,23 +60,36 @@ def main(args):
             df.to_csv(args.output_filepath, sep="\t", float_format="%.4f", index=False)
 
     else:
-        counts_a = read_csv(args.input_filepath[0], sep=None, engine="python", dtype=int64)
-        counts_b = read_csv(args.input_filepath[1], sep=None, engine="python", dtype=int64)
-        result = sentropy(counts_a, counts_b, similarity=args.similarity,\
-            q=args.qs, measure=args.ms, chunk_size=args.chunk_size, \
-            return_dataframe=True, level=args.level, eff_no=args.eff_no, \
-            backend=args.backend, device=args.device)
+        counts_a = read_csv(
+            args.input_filepath[0], sep=None, engine="python", dtype=int64
+        )
+        counts_b = read_csv(
+            args.input_filepath[1], sep=None, engine="python", dtype=int64
+        )
+        result = sentropy(
+            counts_a,
+            counts_b,
+            similarity=args.similarity,
+            q=args.qs,
+            measure=args.ms,
+            chunk_size=args.chunk_size,
+            return_dataframe=True,
+            level=args.level,
+            eff_no=args.eff_no,
+            backend=args.backend,
+            device=args.device,
+        )
 
         print("result:", result)
-        
+
         if args.output_filepath is not None:
-            with open(args.output_filepath, 'wb') as f:
+            with open(args.output_filepath, "wb") as f:
                 pickle.dump(result, f)
 
     LOGGER.info("Done!")
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     parser = configure_arguments()
     args = parser.parse_args()
     main(args)

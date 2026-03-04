@@ -245,7 +245,7 @@ def test_power_mean(order, weights, items, atol, expected):
         weights=weights,
         items=items,
         atol=atol,
-        backend='numpy',
+        backend="numpy",
     )
     assert allclose(actual_result, expected)
 
@@ -303,7 +303,7 @@ def test_power_mean(order, weights, items, atol, expected):
             equal_weights_and_items,
             equal_weights_and_items,
         ),
-        ( #passing a list for weights, which doesn't have a shape attribute
+        (  # passing a list for weights, which doesn't have a shape attribute
             2,
             list(equal_weights_and_items),
             equal_weights_and_items,
@@ -317,5 +317,5 @@ def test_power_mean_invalid_args(order, weights, items):
             weights=weights,
             items=items,
             atol=1e-8,
-            backend='numpy',
+            backend="numpy",
         )

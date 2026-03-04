@@ -13,14 +13,16 @@ AbundanceForDiversity
 """
 
 from functools import cached_property
-from typing import Iterable, Union
+from typing import Iterable, Union, Tuple, Optional
 
 from numpy import arange, ndarray
+from torch import Tensor
 from pandas import DataFrame
 from scipy.sparse import issparse  # type: ignore[import]
 
-from sentropy.backend import get_backend, NumpyBackend
+from sentropy.backend import get_backend, BaseBackend
 from sentropy.exceptions import InvalidArgumentError
+from sentropy.similarity import Similarity
 
 # We'll avoid importing numpy or torch directly here. Use backend ops when available.
 
@@ -29,8 +31,8 @@ class Abundance:
     def __init__(
         self,
         counts: Union[ndarray, DataFrame, dict],
-        subsets_names: Iterable[Union[str, int]],
-        backend=None,
+        subsets_names: Optional[Iterable[Union[str, int]]] = None,
+        backend: Union[BaseBackend, None] = None,
     ) -> None:
         """
         Parameters
@@ -45,7 +47,11 @@ class Abundance:
         """
         self.backend = backend if backend is not None else get_backend("numpy")
         # convert counts to backend array
-        self.counts = self.backend.asarray(counts) if hasattr(self.backend, "asarray") else self.backend.array(counts)
+        self.counts = (
+            self.backend.asarray(counts)
+            if hasattr(self.backend, "asarray")
+            else self.backend.array(counts)
+        )
         self.subsets_names = subsets_names
         self.num_subsets = self.counts.shape[1]
         # min_count : small nonzero for numerical stability
@@ -57,30 +63,28 @@ class Abundance:
         self.min_count = min(1.0 / (total_scalar if total_scalar != 0 else 1.0), 1e-9)
 
         self.subset_abundance = self.make_subset_abundance(counts=self.counts)
-        self.normalized_subset_abundance = (
-            self.make_normalized_subset_abundance()
-        )
+        self.normalized_subset_abundance = self.make_normalized_subset_abundance()
 
-    def make_subset_abundance(self, counts: Union[ndarray, DataFrame, dict]):
+    def make_subset_abundance(
+        self, counts: Union[ndarray, DataFrame, dict]
+    ) -> Union[ndarray, Tensor]:
         """Calculates the relative abundances in subsets."""
         # counts / counts.sum()
         total = self.backend.sum(counts)
         # broadcasting semantics should match numpy/torch
         return counts / total
 
-    def make_subset_normalizing_constants(self):
+    def make_subset_normalizing_constants(self) -> Union[ndarray, Tensor]:
         """Calculates subset normalizing constants."""
         return self.backend.sum(self.subset_abundance, axis=0)
 
-    def make_normalized_subset_abundance(self):
+    def make_normalized_subset_abundance(self) -> Union[ndarray, Tensor]:
         """Calculates normalized relative abundances in subsets."""
-        self.subset_normalizing_constants = (
-            self.make_subset_normalizing_constants()
-        )
+        self.subset_normalizing_constants = self.make_subset_normalizing_constants()
         # divide by constants: ensure broadcasting
         return self.subset_abundance / self.subset_normalizing_constants
 
-    def premultiply_by(self, similarity):
+    def premultiply_by(self, similarity: Similarity):
         return similarity.weighted_abundances(self.normalized_subset_abundance)
 
 
@@ -90,7 +94,10 @@ class AbundanceForDiversity(Abundance):
     """
 
     def __init__(
-        self, counts: Union[ndarray, DataFrame, dict], subsets_names: Iterable[Union[str, int]], backend=None
+        self,
+        counts: Union[ndarray, DataFrame, dict],
+        subsets_names: Optional[Iterable[Union[str, int]]] = None,
+        backend: Optional[BaseBackend] = None,
     ) -> None:
         super().__init__(counts, subsets_names, backend=backend)
         self.set_abundance = self.make_set_abundance()
@@ -109,29 +116,27 @@ class AbundanceForDiversity(Abundance):
             axis=1,
         )
 
-    def get_unified_abundance_array(self):
+    def get_unified_abundance_array(self) -> ndarray:
         if self.unified_abundance_array is None:
             self.unify_abundance_array()
-            # update views (these are backend arrays)
-            self.set_abundance = self.unified_abundance_array[:, [0]]
-            self.subset_abundance = self.unified_abundance_array[
-                :, 1 : (1 + self.num_subsets)
-            ]
-            self.normalized_subset_abundance = self.unified_abundance_array[
-                :, (1 + self.num_subsets) :
-            ]
-        return self.unified_abundance_array
+            arr = self.unified_abundance_array
+            assert arr is not None
 
-    def premultiply_by(self, similarity):
+            self.set_abundance = arr[:, [0]]
+            self.subset_abundance = arr[:, 1 : (1 + self.num_subsets)]
+            self.normalized_subset_abundance = arr[:, (1 + self.num_subsets) :]
+        return arr
+
+    def premultiply_by(
+        self, similarity: Similarity
+    ) -> Tuple[Union[ndarray, Tensor], Union[ndarray, Tensor], Union[ndarray, Tensor]]:
         if similarity.is_expensive():
             all_ordinariness = similarity.self_similar_weighted_abundances(
                 self.get_unified_abundance_array()
             )
-            
+
             set_ordinariness = all_ordinariness[:, [0]]
-            subset_ordinariness = all_ordinariness[
-                :, 1 : (1 + self.num_subsets)
-            ]
+            subset_ordinariness = all_ordinariness[:, 1 : (1 + self.num_subsets)]
             normalized_subset_ordinariness = all_ordinariness[
                 :, (1 + self.num_subsets) :
             ]
@@ -153,18 +158,19 @@ class AbundanceForDiversity(Abundance):
             normalized_subset_ordinariness,
         )
 
-    def make_set_abundance(self):
+    def make_set_abundance(self) -> Union[ndarray, Tensor]:
         """Calculates the relative abundances in set."""
         return self.backend.sum(self.subset_abundance, axis=1, keepdims=True)
 
 
-def make_abundance(counts: Union[ndarray, DataFrame, dict], subsets_names=None, for_diversity=True, backend=None):
+def make_abundance(
+    counts: Union[ndarray, DataFrame, dict],
+    subsets_names: Optional[Iterable[Union[str, int]]] = None,
+    for_diversity: bool = True,
+    backend: Optional[BaseBackend] = None,
+) -> Union[Abundance, AbundanceForDiversity]:
     """Initializes a concrete subclass of Abundance."""
     if not for_diversity:
-        specific_class = Abundance
+        return Abundance(counts, subsets_names, backend=backend)
     else:
-        specific_class = AbundanceForDiversity
-
-    return specific_class(
-            counts=counts, subsets_names=subsets_names, backend=backend
-        )
+        return AbundanceForDiversity(counts, subsets_names, backend=backend)

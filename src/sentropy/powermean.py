@@ -53,8 +53,8 @@ def power_mean(
     """
 
     # Choose backend
-    if type(backend)==str:
-        backend=get_backend(backend) 
+    if type(backend) == str:
+        backend = get_backend(backend)
 
     abs_weights = backend.abs(weights)
     weight_is_nonzero = abs_weights >= atol
@@ -67,10 +67,11 @@ def power_mean(
         return backend.amax(items, axis=0, where=weight_is_nonzero, initial=-_np_inf)
     elif backend.isclose(order, 0, atol):
         # product of power(items, weights) across axis 0 where weight_is_nonzero
-        return backend.prod(backend.power(items, weights, where=weight_is_nonzero), 
+        return backend.prod(
+            backend.power(items, weights, where=weight_is_nonzero),
             axis=0,
             where=weight_is_nonzero,
-            )
+        )
 
     else:
         result = backend.zeros(shape=items.shape)
@@ -78,4 +79,3 @@ def power_mean(
         backend.multiply(result, weights, where=weight_is_nonzero, out=result)
         items_sum = backend.sum(result, axis=0, where=weight_is_nonzero)
         return backend.power(items_sum, 1.0 / order)
-

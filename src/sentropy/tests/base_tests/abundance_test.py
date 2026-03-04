@@ -231,9 +231,7 @@ class TestAbundance:
 
     def test_set_abundance(self, test_case):
         abundance = make_abundance(counts=test_case.counts)
-        assert allclose(
-            abundance.set_abundance, test_case.set_abundance
-        )
+        assert allclose(abundance.set_abundance, test_case.set_abundance)
 
     def test_subset_normalizing_constants(self, test_case):
         abundance = make_abundance(counts=test_case.counts)

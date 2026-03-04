@@ -4,11 +4,11 @@ import pandas as pd
 import torch
 import numpy as np
 
-gpu_device = None #pragma: no cover
-if torch.cuda.is_available(): #pragma: no cover
-	gpu_device = "cuda"
+gpu_device = None  # pragma: no cover
+if torch.cuda.is_available():  # pragma: no cover
+    gpu_device = "cuda"
 elif torch.backends.mps.is_available():
-	gpu_device = "mps"
+    gpu_device = "mps"
 
 numpy_bkd = NumpyBackend()
 torch_bkd = TorchBackend()
@@ -16,184 +16,255 @@ torch_bkd_w_gpu = TorchBackend(device=gpu_device)
 
 
 def test_backend_equivalence_of_array_and_asarray_and_to_numpy():
-	x = np.array([[1,2,3],[4,5,6],[7,8,9]])
-	#test array method 
-	assert np.allclose(numpy_bkd.array(x), torch_bkd.array(x))
-	#test array method when x is already a torch tensor
-	assert np.allclose(numpy_bkd.array(x), torch_bkd.array(torch.tensor(x)))
-	#test asarray method
-	assert np.allclose(numpy_bkd.asarray(x), torch_bkd.asarray(x))
-	#test to_numpy method when x
-	assert np.allclose(numpy_bkd.to_numpy(x), torch_bkd.to_numpy(x))
-	#test to_numpy method when x is already a tensor
-	assert np.allclose(numpy_bkd.to_numpy(x), torch_bkd.to_numpy(torch.tensor(x)))
+    x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    # test array method
+    assert np.allclose(numpy_bkd.array(x), torch_bkd.array(x))
+    # test array method when x is already a torch tensor
+    assert np.allclose(numpy_bkd.array(x), torch_bkd.array(torch.tensor(x)))
+    # test asarray method
+    assert np.allclose(numpy_bkd.asarray(x), torch_bkd.asarray(x))
+    # test to_numpy method when x
+    assert np.allclose(numpy_bkd.to_numpy(x), torch_bkd.to_numpy(x))
+    # test to_numpy method when x is already a tensor
+    assert np.allclose(numpy_bkd.to_numpy(x), torch_bkd.to_numpy(torch.tensor(x)))
+
 
 def test_backend_equivalence_of_matmul():
-	x = np.array([[1,2,3],[4,5,6],[7,8,9]])
+    x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-	np_result = numpy_bkd.matmul(x, x)
-	torch_result = torch_bkd.matmul(torch.tensor(x), torch.tensor(x))
-	torch_result_w_gpu = torch_bkd_w_gpu.matmul(torch.tensor(x), torch.tensor(x))
+    np_result = numpy_bkd.matmul(x, x)
+    torch_result = torch_bkd.matmul(torch.tensor(x), torch.tensor(x))
+    torch_result_w_gpu = torch_bkd_w_gpu.matmul(torch.tensor(x), torch.tensor(x))
 
-	assert np.allclose(np_result, torch_result)
-	assert np.allclose(torch_result_w_gpu, torch_result)
+    assert np.allclose(np_result, torch_result)
+    assert np.allclose(torch_result_w_gpu, torch_result)
+
 
 def test_backend_equivalence_of_sum():
-	x = np.array([[1,2,3],[4,5,6],[7,8,9]])
-	where = [[True,True,True],[False,False,False],[True,True,True]]
-	numpy_bkd_answer = numpy_bkd.sum(x, axis=0, keepdims=True, where=where)
-	torch_bkd_answer = torch_bkd.sum(torch.tensor(x), axis=0, keepdims=True, where=torch.tensor(where))
-	assert (numpy_bkd_answer == torch_bkd_answer).all()
+    x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    where = [[True, True, True], [False, False, False], [True, True, True]]
+    numpy_bkd_answer = numpy_bkd.sum(x, axis=0, keepdims=True, where=where)
+    torch_bkd_answer = torch_bkd.sum(
+        torch.tensor(x), axis=0, keepdims=True, where=torch.tensor(where)
+    )
+    assert (numpy_bkd_answer == torch_bkd_answer).all()
+
 
 def test_backend_equivalence_of_ones():
-	assert (numpy_bkd.ones(shape=(1,5)) == torch_bkd.ones(shape=(1,5))).all()
+    assert (numpy_bkd.ones(shape=(1, 5)) == torch_bkd.ones(shape=(1, 5))).all()
+
 
 def test_backend_equivalence_of_concatenate_and_vstack():
-	tuple_of_arrays = ([[1,2,3]],[[4,5,6]])
-	assert (numpy_bkd.concatenate(tuple_of_arrays, axis=1) == torch_bkd.concatenate(tuple_of_arrays, axis=1)).all()
-	assert (numpy_bkd.vstack(tuple_of_arrays) == torch_bkd.vstack(tuple_of_arrays)).all()
+    tuple_of_arrays = ([[1, 2, 3]], [[4, 5, 6]])
+    assert (
+        numpy_bkd.concatenate(tuple_of_arrays, axis=1)
+        == torch_bkd.concatenate(tuple_of_arrays, axis=1)
+    ).all()
+    assert (
+        numpy_bkd.vstack(tuple_of_arrays) == torch_bkd.vstack(tuple_of_arrays)
+    ).all()
+
 
 def test_backend_equivalence_of_identity():
-	assert (numpy_bkd.identity(3) == torch_bkd.identity(3)).all()
+    assert (numpy_bkd.identity(3) == torch_bkd.identity(3)).all()
+
 
 def test_backend_equivalence_of_power():
-	x = [1,2,3]
-	exponent = [2,3,2]
-	where = [True, True, False]
+    x = [1, 2, 3]
+    exponent = [2, 3, 2]
+    where = [True, True, False]
 
-	np_result = numpy_bkd.power(x, exponent)
-	torch_result = torch_bkd.power(torch.Tensor(x), torch.Tensor(exponent))
+    np_result = numpy_bkd.power(x, exponent)
+    torch_result = torch_bkd.power(torch.Tensor(x), torch.Tensor(exponent))
 
-	np_result_with_where = numpy_bkd.power(x, exponent, where=where)
-	torch_result_with_where = torch_bkd.power(torch.tensor(x), torch.tensor(exponent), \
-		where=torch.tensor(where, dtype=torch.bool))
+    np_result_with_where = numpy_bkd.power(x, exponent, where=where)
+    torch_result_with_where = torch_bkd.power(
+        torch.tensor(x),
+        torch.tensor(exponent),
+        where=torch.tensor(where, dtype=torch.bool),
+    )
 
-	assert (np_result == torch_result).all()
-	assert (np_result_with_where[:2] == torch_result_with_where[:2]).all()
+    assert (np_result == torch_result).all()
+    assert (np_result_with_where[:2] == torch_result_with_where[:2]).all()
 
-	result = np.zeros(3)
-	numpy_bkd.power(x, exponent, out=result)
-	result_2 = torch.zeros(3)
-	torch_bkd.power(torch.tensor(x), torch.tensor(exponent), out=result_2)
-	assert np.allclose(result, [1,8,9])
-	assert np.allclose(result_2, [1,8,9])
+    result = np.zeros(3)
+    numpy_bkd.power(x, exponent, out=result)
+    result_2 = torch.zeros(3)
+    torch_bkd.power(torch.tensor(x), torch.tensor(exponent), out=result_2)
+    assert np.allclose(result, [1, 8, 9])
+    assert np.allclose(result_2, [1, 8, 9])
 
-	result = np.zeros(3)
-	numpy_bkd.power(x, exponent, where=where, out=result)
-	result_2 = torch.zeros(3)
-	torch_bkd.power(torch.tensor(x), torch.tensor(exponent), where=torch.tensor(where), out=result_2)
-	assert np.allclose(result, [1,8,0])
-	assert np.allclose(result_2, [1,8,0])
+    result = np.zeros(3)
+    numpy_bkd.power(x, exponent, where=where, out=result)
+    result_2 = torch.zeros(3)
+    torch_bkd.power(
+        torch.tensor(x), torch.tensor(exponent), where=torch.tensor(where), out=result_2
+    )
+    assert np.allclose(result, [1, 8, 0])
+    assert np.allclose(result_2, [1, 8, 0])
+
 
 def test_backend_equivalence_of_prod():
-	x = [[1,2,3],[4,5,6]]
-	where = [[True, True, False], [False, False, True]]
-	assert (numpy_bkd.prod(x, axis=1) == torch_bkd.prod(torch.Tensor(x), axis=1)).all()
-	assert (numpy_bkd.prod(x, where=where) == torch_bkd.prod(torch.tensor(x), where=torch.tensor(where)))
-	assert (numpy_bkd.prod(x, axis=0, where=where) == torch_bkd.prod(torch.tensor(x), axis=0, where=torch.tensor(where))).all()
+    x = [[1, 2, 3], [4, 5, 6]]
+    where = [[True, True, False], [False, False, True]]
+    assert (numpy_bkd.prod(x, axis=1) == torch_bkd.prod(torch.Tensor(x), axis=1)).all()
+    assert numpy_bkd.prod(x, where=where) == torch_bkd.prod(
+        torch.tensor(x), where=torch.tensor(where)
+    )
+    assert (
+        numpy_bkd.prod(x, axis=0, where=where)
+        == torch_bkd.prod(torch.tensor(x), axis=0, where=torch.tensor(where))
+    ).all()
+
 
 def test_backend_equivalence_of_amin_and_amax():
-	x = np.array([[1,2,3],[4,5,6]])
-	where = np.array([[False, True, False], [True, False, False]])
+    x = np.array([[1, 2, 3], [4, 5, 6]])
+    where = np.array([[False, True, False], [True, False, False]])
 
-	amin_result_w_numpy = numpy_bkd.amin(x)
-	amin_result_w_torch = torch_bkd.amin(torch.tensor(x))
-	amin_result_w_numpy_initial = numpy_bkd.amin(x, initial=-1)
-	amin_result_w_torch_initial = torch_bkd.amin(torch.tensor(x), initial=-1)
-	amin_result_w_numpy_where_initial = numpy_bkd.amin(x, where=where, initial=100)
-	amin_result_w_torch_where_initial = torch_bkd.amin(torch.tensor(x), where=torch.tensor(where), initial=100)
-	amin_result_w_numpy_where_initial_axis = numpy_bkd.amin(x, where=where, initial=100, axis=0)
-	amin_result_w_torch_where_initial_axis = torch_bkd.amin(torch.tensor(x), where=torch.tensor(where), initial=100, axis=0)
+    amin_result_w_numpy = numpy_bkd.amin(x)
+    amin_result_w_torch = torch_bkd.amin(torch.tensor(x))
+    amin_result_w_numpy_initial = numpy_bkd.amin(x, initial=-1)
+    amin_result_w_torch_initial = torch_bkd.amin(torch.tensor(x), initial=-1)
+    amin_result_w_numpy_where_initial = numpy_bkd.amin(x, where=where, initial=100)
+    amin_result_w_torch_where_initial = torch_bkd.amin(
+        torch.tensor(x), where=torch.tensor(where), initial=100
+    )
+    amin_result_w_numpy_where_initial_axis = numpy_bkd.amin(
+        x, where=where, initial=100, axis=0
+    )
+    amin_result_w_torch_where_initial_axis = torch_bkd.amin(
+        torch.tensor(x), where=torch.tensor(where), initial=100, axis=0
+    )
 
-	amax_result_w_numpy = numpy_bkd.amax(x)
-	amax_result_w_torch = torch_bkd.amax(torch.tensor(x))
-	amax_result_w_numpy_initial = numpy_bkd.amax(x, initial=5.5)
-	amax_result_w_torch_initial = torch_bkd.amax(torch.tensor(x), initial=5.5)
-	amax_result_w_numpy_where_initial = numpy_bkd.amax(x, where=where, initial=-100)
-	amax_result_w_torch_where_initial = torch_bkd.amax(torch.tensor(x), where=torch.tensor(where), initial=-100)
-	amax_result_w_numpy_where_initial_axis = numpy_bkd.amax(x, where=where, initial=-100, axis=0)
-	amax_result_w_torch_where_initial_axis = torch_bkd.amax(torch.tensor(x), where=torch.tensor(where), initial=-100, axis=0)
+    amax_result_w_numpy = numpy_bkd.amax(x)
+    amax_result_w_torch = torch_bkd.amax(torch.tensor(x))
+    amax_result_w_numpy_initial = numpy_bkd.amax(x, initial=5.5)
+    amax_result_w_torch_initial = torch_bkd.amax(torch.tensor(x), initial=5.5)
+    amax_result_w_numpy_where_initial = numpy_bkd.amax(x, where=where, initial=-100)
+    amax_result_w_torch_where_initial = torch_bkd.amax(
+        torch.tensor(x), where=torch.tensor(where), initial=-100
+    )
+    amax_result_w_numpy_where_initial_axis = numpy_bkd.amax(
+        x, where=where, initial=-100, axis=0
+    )
+    amax_result_w_torch_where_initial_axis = torch_bkd.amax(
+        torch.tensor(x), where=torch.tensor(where), initial=-100, axis=0
+    )
 
+    assert np.allclose(amin_result_w_numpy, amin_result_w_torch)
+    assert np.allclose(amin_result_w_numpy_initial, amin_result_w_torch_initial)
+    assert np.allclose(
+        amin_result_w_numpy_where_initial, amin_result_w_torch_where_initial
+    )
+    assert np.allclose(
+        amin_result_w_numpy_where_initial_axis, amin_result_w_torch_where_initial_axis
+    )
 
-	assert np.allclose(amin_result_w_numpy, amin_result_w_torch)
-	assert np.allclose(amin_result_w_numpy_initial, amin_result_w_torch_initial)
-	assert np.allclose(amin_result_w_numpy_where_initial, amin_result_w_torch_where_initial)
-	assert np.allclose(amin_result_w_numpy_where_initial_axis, amin_result_w_torch_where_initial_axis)
+    assert np.allclose(amax_result_w_numpy, amax_result_w_torch)
+    assert np.allclose(amax_result_w_numpy_initial, amax_result_w_torch_initial)
+    assert np.allclose(
+        amax_result_w_numpy_where_initial, amax_result_w_torch_where_initial
+    )
+    assert np.allclose(
+        amax_result_w_numpy_where_initial_axis, amax_result_w_torch_where_initial_axis
+    )
 
-	assert np.allclose(amax_result_w_numpy, amax_result_w_torch)
-	assert np.allclose(amax_result_w_numpy_initial, amax_result_w_torch_initial)
-	assert np.allclose(amax_result_w_numpy_where_initial, amax_result_w_torch_where_initial)
-	assert np.allclose(amax_result_w_numpy_where_initial_axis, amax_result_w_torch_where_initial_axis)
 
 def test_backend_equivalence_of_isclose():
-	x = np.array([[1,2,3],[4,5,6]])
-	y = np.array([[1.01,2.005,2.99],[4.001,4.995,5.999]])
+    x = np.array([[1, 2, 3], [4, 5, 6]])
+    y = np.array([[1.01, 2.005, 2.99], [4.001, 4.995, 5.999]])
 
-	np_result_1 = numpy_bkd.isclose(x,y, rtol=1e-2, atol=1e-2)
-	torch_result_1 = torch_bkd.isclose(torch.tensor(x), torch.tensor(y), rtol=1e-2, atol=1e-2)
-	np_result_2 = numpy_bkd.isclose(y,x, rtol=1e-2, atol=1e-2)
-	torch_result_2 = torch_bkd.isclose(torch.tensor(y), torch.tensor(x), rtol=1e-2, atol=1e-2)
+    np_result_1 = numpy_bkd.isclose(x, y, rtol=1e-2, atol=1e-2)
+    torch_result_1 = torch_bkd.isclose(
+        torch.tensor(x), torch.tensor(y), rtol=1e-2, atol=1e-2
+    )
+    np_result_2 = numpy_bkd.isclose(y, x, rtol=1e-2, atol=1e-2)
+    torch_result_2 = torch_bkd.isclose(
+        torch.tensor(y), torch.tensor(x), rtol=1e-2, atol=1e-2
+    )
 
-	assert np_result_1.all()
-	assert torch_result_1.all()
-	assert np_result_2.all()
-	assert torch_result_2.all()
+    assert np_result_1.all()
+    assert torch_result_1.all()
+    assert np_result_2.all()
+    assert torch_result_2.all()
+
 
 def test_backend_equivalence_of_multiply():
-	x = np.array([[1,2,3],[4,5,6]])
-	y = np.array([[1.01,2.005,2.99],[4.001,4.995,5.999]])
-	where = np.array([[False, False, True],[False, False, False]])
+    x = np.array([[1, 2, 3], [4, 5, 6]])
+    y = np.array([[1.01, 2.005, 2.99], [4.001, 4.995, 5.999]])
+    where = np.array([[False, False, True], [False, False, False]])
 
-	np_result = numpy_bkd.multiply(x,y)
-	torch_result = torch_bkd.multiply(torch.tensor(x),torch.tensor(y))
-	np_result_with_where = numpy_bkd.multiply(x,y,where=where)
-	torch_result_with_where = torch_bkd.multiply(torch.tensor(x),torch.tensor(y),where=torch.tensor(where))
-	np_result_with_where_out = numpy_bkd.multiply(x,y,where=where, out=np.ones_like(y))
-	torch_result_with_where_out = torch_bkd.multiply(torch.tensor(x),torch.tensor(y),where=torch.tensor(where), out=torch.ones(y.shape))
+    np_result = numpy_bkd.multiply(x, y)
+    torch_result = torch_bkd.multiply(torch.tensor(x), torch.tensor(y))
+    np_result_with_where = numpy_bkd.multiply(x, y, where=where)
+    torch_result_with_where = torch_bkd.multiply(
+        torch.tensor(x), torch.tensor(y), where=torch.tensor(where)
+    )
+    np_result_with_where_out = numpy_bkd.multiply(
+        x, y, where=where, out=np.ones_like(y)
+    )
+    torch_result_with_where_out = torch_bkd.multiply(
+        torch.tensor(x),
+        torch.tensor(y),
+        where=torch.tensor(where),
+        out=torch.ones(y.shape),
+    )
 
-	assert np.allclose(np_result, torch_result)
-	assert np.allclose(np_result_with_where, torch_result_with_where)
-	assert np.allclose(np_result_with_where_out, torch_result_with_where_out)
+    assert np.allclose(np_result, torch_result)
+    assert np.allclose(np_result_with_where, torch_result_with_where)
+    assert np.allclose(np_result_with_where_out, torch_result_with_where_out)
+
 
 def test_backend_equivalence_of_abs():
-	x = np.array([[1,-2,3],[0,5,-6]])
-	assert np.allclose(numpy_bkd.abs(x), torch_bkd.abs(torch.tensor(x)))
+    x = np.array([[1, -2, 3], [0, 5, -6]])
+    assert np.allclose(numpy_bkd.abs(x), torch_bkd.abs(torch.tensor(x)))
+
 
 def test_backend_equivalence_of_all_and_any():
-	x = np.array([[True, False, True], [False, False, True]])
-	assert np.allclose(numpy_bkd.all(x), torch_bkd.all(torch.tensor(x)))
-	assert np.allclose(numpy_bkd.all(x, axis=0), torch_bkd.all(torch.tensor(x), axis=0))
-	assert np.allclose(numpy_bkd.any(x), torch_bkd.any(torch.tensor(x)))
-	assert np.allclose(numpy_bkd.any(x, axis=0), torch_bkd.any(torch.tensor(x), axis=0))
+    x = np.array([[True, False, True], [False, False, True]])
+    assert np.allclose(numpy_bkd.all(x), torch_bkd.all(torch.tensor(x)))
+    assert np.allclose(numpy_bkd.all(x, axis=0), torch_bkd.all(torch.tensor(x), axis=0))
+    assert np.allclose(numpy_bkd.any(x), torch_bkd.any(torch.tensor(x)))
+    assert np.allclose(numpy_bkd.any(x, axis=0), torch_bkd.any(torch.tensor(x), axis=0))
+
 
 def test_backend_equivalence_of_log():
-	x = np.array([[1, 2],[3, 4]])
-	assert np.allclose(numpy_bkd.log(x), torch_bkd.log(torch.tensor(x)))
+    x = np.array([[1, 2], [3, 4]])
+    assert np.allclose(numpy_bkd.log(x), torch_bkd.log(torch.tensor(x)))
+
 
 def test_backend_equivalence_of_broadcast_to():
-	x = np.array([1,2,3])
-	assert np.allclose(numpy_bkd.broadcast_to(x, shape=(2,3)), torch_bkd.broadcast_to(torch.tensor(x), shape=(2,3)))
+    x = np.array([1, 2, 3])
+    assert np.allclose(
+        numpy_bkd.broadcast_to(x, shape=(2, 3)),
+        torch_bkd.broadcast_to(torch.tensor(x), shape=(2, 3)),
+    )
+
 
 def test_backend_equivalence_of_zeros_and_empty():
-	assert np.allclose(numpy_bkd.zeros(shape=(2,2)),torch_bkd.zeros(shape=(2,2)))
-	desired_shape = (2,2)
-	assert numpy_bkd.empty(shape=desired_shape).shape == desired_shape
-	assert torch_bkd.empty(shape=desired_shape).shape == desired_shape
+    assert np.allclose(numpy_bkd.zeros(shape=(2, 2)), torch_bkd.zeros(shape=(2, 2)))
+    desired_shape = (2, 2)
+    assert numpy_bkd.empty(shape=desired_shape).shape == desired_shape
+    assert torch_bkd.empty(shape=desired_shape).shape == desired_shape
+
 
 def test_backend_equivalence_of_copy():
-	x = np.array([1,2,3])
-	assert np.allclose(numpy_bkd.copy(x),torch_bkd.copy(torch.tensor(x)))
+    x = np.array([1, 2, 3])
+    assert np.allclose(numpy_bkd.copy(x), torch_bkd.copy(torch.tensor(x)))
+
 
 def test_backend_equivalence_of_divide():
-	x = np.array([1,2,3,4,5])
-	y = np.array([3,0,2,0,1])	
-	assert np.allclose(numpy_bkd.divide(x,y), torch_bkd.divide(x,y))
+    x = np.array([1, 2, 3, 4, 5])
+    y = np.array([3, 0, 2, 0, 1])
+    assert np.allclose(numpy_bkd.divide(x, y), torch_bkd.divide(x, y))
+
 
 def test_array_if_needed():
-    x = torch.tensor([1,2,3])
+    x = torch.tensor([1, 2, 3])
     assert np.allclose(x, torch_bkd.asarray_if_needed(x))
 
+
 def test_get_backend():
-	assert isinstance(get_backend(), NumpyBackend)
-	assert isinstance(get_backend('numpy'), NumpyBackend)
-	assert isinstance(get_backend('torch'), TorchBackend)
+    assert isinstance(get_backend(), NumpyBackend)
+    assert isinstance(get_backend("numpy"), NumpyBackend)
+    assert isinstance(get_backend("torch"), TorchBackend)

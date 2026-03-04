@@ -6,12 +6,13 @@ from abc import ABC, abstractmethod
 from typing import Callable, Union, Tuple
 from pathlib import Path
 from pandas import DataFrame, read_csv
-from scipy.sparse import spmatrix, issparse  # type: ignore[import]
+
+# from scipy.sparse import spmatrix, issparse  # type: ignore[import]
 from sentropy.exceptions import InvalidArgumentError
 from sentropy.backend import get_backend
 
-# We'll try to import typing for numpy typing if necessary
-import numpy as _np
+from numpy import ndarray
+from torch import Tensor
 
 # Note: We keep many implementation details but route array ops via backend.
 
@@ -19,7 +20,7 @@ import numpy as _np
 class Similarity(ABC):
     """Root superclass for classes computing weighted similarities."""
 
-    def __init__(self, similarities_out: Union[_np.ndarray, None] = None, backend=None):
+    def __init__(self, similarities_out: Union[ndarray, None] = None, backend=None):
         """
         similarities_out: optional numpy array into which the similarity matrix will be written.
         backend: instance of backend (NumpyBackend or TorchBackend). If None, default numpy backend.
@@ -27,14 +28,17 @@ class Similarity(ABC):
         self.similarities_out = similarities_out
         self.backend = backend or get_backend("numpy")
 
-    @abstractmethod #pragma: no cover
+    @abstractmethod  # pragma: no cover
     def weighted_abundances(
         self,
-        relative_abundances: Union[_np.ndarray, spmatrix],
+        relative_abundances: Union[ndarray, Tensor],
     ):
         pass
 
-    def self_similar_weighted_abundances(self, relative_abundances: Union[_np.ndarray, spmatrix]):
+    def self_similar_weighted_abundances(
+        self, relative_abundances: Union[ndarray, Tensor]
+    ):
+        print("type(relative_abundances):", type(relative_abundances))
         return self.weighted_abundances(relative_abundances)
 
     def is_expensive(self):
@@ -62,8 +66,8 @@ class SimilarityFromArray(Similarity):
 
     def __init__(
         self,
-        similarity: Union[_np.ndarray, None],
-        similarities_out: Union[_np.ndarray, None] = None,
+        similarity: Union[ndarray, None],
+        similarities_out: Union[ndarray, None] = None,
         backend=None,
     ):
         super().__init__(similarities_out=similarities_out, backend=backend)
@@ -83,7 +87,11 @@ class SimilarityFromArray(Similarity):
 
 class SimilarityFromDataFrame(SimilarityFromArray):
     def __init__(self, similarity: DataFrame, similarities_out=None, backend=None):
-        super().__init__(similarity=similarity.to_numpy(), similarities_out=similarities_out, backend=backend)
+        super().__init__(
+            similarity=similarity.to_numpy(),
+            similarities_out=similarities_out,
+            backend=backend,
+        )
 
 
 class SimilarityFromFile(Similarity):
@@ -93,7 +101,7 @@ class SimilarityFromFile(Similarity):
         self,
         similarity_file_path: Union[str, Path],
         chunk_size: int = 100,
-        similarities_out: Union[_np.ndarray, None] = None,
+        similarities_out: Union[ndarray, None] = None,
         backend=None,
     ) -> None:
         super().__init__(similarities_out=similarities_out, backend=backend)
@@ -114,8 +122,8 @@ class SimilarityFromFile(Similarity):
                 chunk_as_numpy = chunk.to_numpy()
                 # convert chunk to backend array
                 chunk_backend = self.backend.asarray(chunk_as_numpy)
-                weighted_abundances[i : i + self.chunk_size, :] = (
-                    self.backend.matmul(chunk_backend, relative_abundance)
+                weighted_abundances[i : i + self.chunk_size, :] = self.backend.matmul(
+                    chunk_backend, relative_abundance
                 )
                 if self.similarities_out is not None:
                     self.similarities_out[i : i + self.chunk_size, :] = chunk_as_numpy
@@ -143,9 +151,15 @@ class IntersetSimilarityFromFile(SimilarityFromFile):
                         j * self.chunk_size : (j + 1) * self.chunk_size, :
                     ] = chunk_as_numpy
                 chunk_backend = self.backend.asarray(chunk_as_numpy)
-                weighted_abundance_chunks.append(self.backend.matmul(chunk_backend, relative_abundance))
+                weighted_abundance_chunks.append(
+                    self.backend.matmul(chunk_backend, relative_abundance)
+                )
         # concatenate using backend if possible
-        return self.backend.concatenate(weighted_abundance_chunks, axis=0) if hasattr(self.backend, "concatenate") else _np.concatenate(weighted_abundance_chunks, axis=0)
+        return (
+            self.backend.concatenate(weighted_abundance_chunks, axis=0)
+            if hasattr(self.backend, "concatenate")
+            else _np.concatenate(weighted_abundance_chunks, axis=0)
+        )
 
     def self_similar_weighted_abundances(self, relative_abundance):
         raise InvalidArgumentError(
@@ -157,9 +171,9 @@ class SimilarityFromSymmetricFunction(Similarity):
     def __init__(
         self,
         func: Callable,
-        X: Union[_np.ndarray, DataFrame],
+        X: Union[ndarray, DataFrame],
         chunk_size: int = 100,
-        similarities_out: Union[_np.ndarray, None] = None,
+        similarities_out: Union[ndarray, None] = None,
         backend=None,
     ):
         super().__init__(similarities_out=similarities_out, backend=backend)
@@ -196,9 +210,10 @@ class SimilarityFromSymmetricFunction(Similarity):
                 self.similarities_out[i, i] = 1.0
         return result
 
-
-    def weighted_similarity_chunk_symmetric(self, similarity: Callable,
-        X: Union[_np.ndarray, DataFrame],
+    def weighted_similarity_chunk_symmetric(
+        self,
+        similarity: Callable,
+        X: Union[ndarray, DataFrame],
         relative_abundance,
         chunk_size: int,
         chunk_index: int,
@@ -213,10 +228,15 @@ class SimilarityFromSymmetricFunction(Similarity):
         similarities_chunk = self.backend.zeros(shape=(chunk.shape[0], X.shape[0]))
         for i, row_i in enumerate(enum_helper(chunk)):
             for j, row_j in enumerate(enum_helper(X, chunk_index + i + 1)):
-                similarities_chunk[i, i + j + chunk_index + 1] = similarity(row_i, row_j)
+                similarities_chunk[i, i + j + chunk_index + 1] = similarity(
+                    row_i, row_j
+                )
         rows_result = self.backend.matmul(similarities_chunk, relative_abundance)
-        rows_after_count = max(0, relative_abundance.shape[0] - (chunk_index + chunk_size))
+        rows_after_count = max(
+            0, relative_abundance.shape[0] - (chunk_index + chunk_size)
+        )
         from numpy import vstack, zeros as _zeros
+
         rows_result = self.backend.vstack(
             (
                 self.backend.zeros(shape=(chunk_index, relative_abundance.shape[1])),
@@ -229,8 +249,12 @@ class SimilarityFromSymmetricFunction(Similarity):
                 ),
             )
         )
-        relative_abundance_slice = relative_abundance[chunk_index : chunk_index + chunk_size]
-        cols_result = self.backend.matmul(similarities_chunk.T, relative_abundance_slice)
+        relative_abundance_slice = relative_abundance[
+            chunk_index : chunk_index + chunk_size
+        ]
+        cols_result = self.backend.matmul(
+            similarities_chunk.T, relative_abundance_slice
+        )
         result = rows_result + cols_result
         if return_Z:
             return chunk_index, result, similarities_chunk
@@ -261,19 +285,22 @@ class SimilarityFromFunction(SimilarityFromSymmetricFunction):
     def get_Y(self):
         return None
 
-    def weighted_similarity_chunk_nonsymmetric(self, similarity: Callable,
-    X: Union[_np.ndarray, DataFrame],
-    Y: Union[_np.ndarray, DataFrame, None],
-    relative_abundance,
-    chunk_size: int,
-    chunk_index: int,
-    return_Z: bool = True,
-    ) -> Tuple[int, _np.ndarray, Union[_np.ndarray, None]]:
+    def weighted_similarity_chunk_nonsymmetric(
+        self,
+        similarity: Callable,
+        X: Union[ndarray, DataFrame],
+        Y: Union[ndarray, DataFrame, None],
+        relative_abundance,
+        chunk_size: int,
+        chunk_index: int,
+        return_Z: bool = True,
+    ) -> Tuple[int, ndarray, Union[ndarray, None]]:
         """
         Calculates some rows of the matrix product of Z @ p,
         where Z is not given explicitly but rather each entry
         Z[i,j] is calculated by a function.
         """
+
         def enum_helper(X):
             if type(X) == DataFrame:
                 return X.itertuples()
@@ -298,10 +325,10 @@ class IntersetSimilarityFromFunction(SimilarityFromFunction):
     def __init__(
         self,
         func: Callable,
-        X: Union[_np.ndarray, DataFrame],
-        Y: Union[_np.ndarray, DataFrame],
+        X: Union[ndarray, DataFrame],
+        Y: Union[ndarray, DataFrame],
         chunk_size: int = 100,
-        similarities_out: Union[_np.ndarray, None] = None,
+        similarities_out: Union[ndarray, None] = None,
         backend=None,
     ):
         super().__init__(func, X, chunk_size, similarities_out, backend)

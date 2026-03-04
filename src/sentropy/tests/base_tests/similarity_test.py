@@ -357,13 +357,15 @@ def test_weighted_abundances_from_function(
 
 def test_weighted_similarity_chunk(similarity_function):
     similarity = SimilarityFromFunction(func=similarity_function, X=X_3by2)
-    chunk_index, chunk, similarities = similarity.weighted_similarity_chunk_nonsymmetric(
-        similarity=similarity.func,
-        X=similarity.X,
-        Y=None,
-        relative_abundance=relative_abundance_3by2,
-        chunk_size=3,
-        chunk_index=0,
+    chunk_index, chunk, similarities = (
+        similarity.weighted_similarity_chunk_nonsymmetric(
+            similarity=similarity.func,
+            X=similarity.X,
+            Y=None,
+            relative_abundance=relative_abundance_3by2,
+            chunk_size=3,
+            chunk_index=0,
+        )
     )
     assert chunk_index == 0
     assert allclose(chunk, weighted_abundances_3by2_3)
@@ -388,10 +390,8 @@ def compare_dense_sparse(counts, dense_similarity, sparse_similarity):
         "normalized_beta",
     )
     meta_dense = Set(counts, similarity=dense_similarity)
-    meta_dense_df = meta_dense.to_dataframe(qs=qs, ms= ms)
-    meta_sparse = Set(
-        counts, similarity=SimilarityFromArray(sparse_similarity)
-    )
+    meta_dense_df = meta_dense.to_dataframe(qs=qs, ms=ms)
+    meta_sparse = Set(counts, similarity=SimilarityFromArray(sparse_similarity))
     meta_sparse_df = meta_sparse.to_dataframe(qs=qs, ms=ms)
     for col in meta_dense_df:
         if col != "level":
@@ -475,7 +475,9 @@ symmetric_example_abundance = array([[1, 0], [0, 1], [1, 0], [0, 10]])
     ],
 )
 def test_weighted_similarity_chunk_symmetric(chunk_index, expected):
-    similarity = SimilarityFromSymmetricFunction(func=another_similarity_func, X=symmetric_example_X)
+    similarity = SimilarityFromSymmetricFunction(
+        func=another_similarity_func, X=symmetric_example_X
+    )
     _, result, _ = similarity.weighted_similarity_chunk_symmetric(
         similarity.func,
         similarity.X,
@@ -698,9 +700,7 @@ def test_feature_similarity():
         animal_communities,
         similarity=SimilarityFromDataFrame(animal_similarity_matrix()),
     )
-    df1 = m.to_dataframe(qs=qs, ms=ms).set_index(
-        ["level", "viewpoint"]
-    )
+    df1 = m.to_dataframe(qs=qs, ms=ms).set_index(["level", "viewpoint"])
     m = Set(
         animal_communities,
         SimilarityFromFunction(
@@ -709,9 +709,7 @@ def test_feature_similarity():
             chunk_size=4,
         ),
     )
-    df2 = m.to_dataframe(qs=qs, ms=ms).set_index(
-        ["level", "viewpoint"]
-    )
+    df2 = m.to_dataframe(qs=qs, ms=ms).set_index(["level", "viewpoint"])
     assert allclose(df1.to_numpy(), df2.to_numpy())
     m = Set(
         animal_communities,
@@ -721,9 +719,7 @@ def test_feature_similarity():
             chunk_size=4,
         ),
     )
-    df3 = m.to_dataframe(qs=qs, ms=ms).set_index(
-        ["level", "viewpoint"]
-    )
+    df3 = m.to_dataframe(qs=qs, ms=ms).set_index(["level", "viewpoint"])
     assert allclose(df1.to_numpy(), df3.to_numpy())
 
 

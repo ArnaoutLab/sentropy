@@ -7,8 +7,14 @@ from numpy import array, atleast_1d, broadcast_to, zeros as np_zeros, ndarray
 from sentropy.exceptions import InvalidArgumentError
 
 from sentropy.abundance import make_abundance
-from sentropy.similarity import Similarity, SimilarityFromArray, SimilarityIdentity, SimilarityFromFunction, \
-SimilarityFromSymmetricFunction, SimilarityFromFile
+from sentropy.similarity import (
+    Similarity,
+    SimilarityFromArray,
+    SimilarityIdentity,
+    SimilarityFromFunction,
+    SimilarityFromSymmetricFunction,
+    SimilarityFromFile,
+)
 from sentropy.ray import SimilarityFromRayFunction, SimilarityFromSymmetricRayFunction
 from sentropy.components import Components
 from sentropy.powermean import power_mean
@@ -44,7 +50,7 @@ class Set:
         max_inflight_tasks: Optional[int] = 64,
         backend: str = "numpy",
         device: Optional[str] = None,
-        subsets_names: Optional[List[str]] = None,
+        subsets_names: Optional[Iterable[str | int]] = None,
     ) -> None:
         """
         Parameters
@@ -65,7 +71,7 @@ class Set:
         X:
             Array of features. Only relevant if similarity is callable.
         chunk_size:
-            How many rows in the similarity matrix to generate at once. 
+            How many rows in the similarity matrix to generate at once.
             Only relevant if similarity is callable or from file.
         parallelize:
             Whether or not to parallelize with ray.
@@ -81,38 +87,72 @@ class Set:
         # store backend instance
         self.backend = get_backend(backend, device)
         self.counts = counts
-        self.abundance = make_abundance(counts=counts, subsets_names=subsets_names, backend=self.backend)
+        self.abundance = make_abundance(
+            counts=counts, subsets_names=subsets_names, backend=self.backend
+        )
         if similarity is None:
             self.similarity = SimilarityIdentity(backend=self.backend)
         elif isinstance(similarity, ndarray):
-            self.similarity = SimilarityFromArray(similarity=similarity, backend=self.backend)
+            self.similarity = SimilarityFromArray(
+                similarity=similarity, backend=self.backend
+            )
         elif isinstance(similarity, DataFrame):
-            self.similarity = SimilarityFromArray(similarity=similarity.values, backend=self.backend)
+            self.similarity = SimilarityFromArray(
+                similarity=similarity.values, backend=self.backend
+            )
         elif isinstance(similarity, str):
             if chunk_size is None:
                 raise ValueError("chunk_size cannot be None when similarity is a file.")
-            self.similarity = SimilarityFromFile(similarity, chunk_size=chunk_size, backend=self.backend)
+            self.similarity = SimilarityFromFile(
+                similarity, chunk_size=chunk_size, backend=self.backend
+            )
         elif callable(similarity):
             if X is None:
                 raise ValueError("X cannot be None when similarity is a callable.")
             if chunk_size is None:
-                raise ValueError("chunk_size cannot be None when similarity is a callable.")
+                raise ValueError(
+                    "chunk_size cannot be None when similarity is a callable."
+                )
             if symmetric:
                 if parallelize:
                     if max_inflight_tasks is None:
-                        raise ValueError("max_inflight_task cannot be None when parallelizing.")
-                    self.similarity = SimilarityFromSymmetricRayFunction(func=similarity,X=X, chunk_size=chunk_size, \
-                        max_inflight_tasks=max_inflight_tasks, backend=self.backend)
+                        raise ValueError(
+                            "max_inflight_task cannot be None when parallelizing."
+                        )
+                    self.similarity = SimilarityFromSymmetricRayFunction(
+                        func=similarity,
+                        X=X,
+                        chunk_size=chunk_size,
+                        max_inflight_tasks=max_inflight_tasks,
+                        backend=self.backend,
+                    )
                 else:
-                    self.similarity = SimilarityFromSymmetricFunction(func=similarity,X=X, chunk_size=chunk_size, backend=self.backend)
+                    self.similarity = SimilarityFromSymmetricFunction(
+                        func=similarity,
+                        X=X,
+                        chunk_size=chunk_size,
+                        backend=self.backend,
+                    )
             else:
                 if parallelize:
                     if max_inflight_tasks is None:
-                        raise ValueError("max_inflight_task cannot be None when parallelizing.")
-                    self.similarity = SimilarityFromRayFunction(func=similarity, X=X, chunk_size=chunk_size, \
-                        max_inflight_tasks=max_inflight_tasks, backend=self.backend)
+                        raise ValueError(
+                            "max_inflight_task cannot be None when parallelizing."
+                        )
+                    self.similarity = SimilarityFromRayFunction(
+                        func=similarity,
+                        X=X,
+                        chunk_size=chunk_size,
+                        max_inflight_tasks=max_inflight_tasks,
+                        backend=self.backend,
+                    )
                 else:
-                    self.similarity = SimilarityFromFunction(func=similarity, X=X, chunk_size=chunk_size, backend=self.backend)
+                    self.similarity = SimilarityFromFunction(
+                        func=similarity,
+                        X=X,
+                        chunk_size=chunk_size,
+                        backend=self.backend,
+                    )
         else:
             self.similarity = similarity
 
@@ -121,7 +161,9 @@ class Set:
         )
         self.subset_diversity_hash: dict = {}
 
-    def subset_diversity(self, q: float, m: str, eff_no: bool=True) -> Union[ndarray, Tensor]:
+    def subset_diversity(
+        self, q: float, m: str, eff_no: bool = True
+    ) -> Union[ndarray, Tensor]:
         """Calculates subset diversity measures.
 
         Parameters
@@ -146,8 +188,8 @@ class Set:
                 )
             )
 
-        if f'subset_{m}_q={q}' in self.subset_diversity_hash.keys():
-            diversity_measure = self.subset_diversity_hash[f'subset_{m}_q={q}']
+        if f"subset_{m}_q={q}" in self.subset_diversity_hash.keys():
+            diversity_measure = self.subset_diversity_hash[f"subset_{m}_q={q}"]
             if eff_no == False:
                 return self.backend.log(diversity_measure)
             else:
@@ -183,14 +225,16 @@ class Set:
             N = self.counts.shape[1]
             return ((N / diversity_measure) - 1) / (N - 1)
 
-        self.subset_diversity_hash[f'subset_{m}_q={q}'] = diversity_measure
+        self.subset_diversity_hash[f"subset_{m}_q={q}"] = diversity_measure
 
-        if eff_no==False:
+        if eff_no == False:
             return self.backend.log(diversity_measure)
         else:
             return diversity_measure
 
-    def set_diversity(self, q: float, m: str, eff_no: bool=True) -> Union[ndarray, Tensor]:
+    def set_diversity(
+        self, q: float, m: str, eff_no: bool = True
+    ) -> Union[ndarray, Tensor]:
         """Calculates set diversity measures.
 
         Parameters
@@ -206,7 +250,9 @@ class Set:
         -------
         A numpy.ndarray containing the set diversity measure.
         """
-        subset_diversity = self.subset_diversity(q, m, eff_no = True) #note: eff_no must be True here !
+        subset_diversity = self.subset_diversity(
+            q, m, eff_no=True
+        )  # note: eff_no must be True here !
         diversity_measure = power_mean(
             1 - q,
             self.abundance.subset_normalizing_constants,
@@ -214,12 +260,12 @@ class Set:
             backend=self.backend,
         )
 
-        if eff_no==False:
+        if eff_no == False:
             return self.backend.log(diversity_measure).item()
         else:
             return diversity_measure.item()
 
-    def subsets_to_dataframe(self, q: float, ms=MEASURES, eff_no: bool=True):
+    def subsets_to_dataframe(self, q: float, ms=MEASURES, eff_no: bool = True):
         """Table containing all subset diversity values.
 
         Parameters
@@ -250,7 +296,7 @@ class Set:
         df.insert(0, "level", Series(self.abundance.subsets_names))
         return df
 
-    def set_to_dataframe(self, q: float, ms=MEASURES, eff_no: bool=True):
+    def set_to_dataframe(self, q: float, ms=MEASURES, eff_no: bool = True):
         """Table containing all set diversity values.
         Parameters
         ----------
@@ -286,7 +332,9 @@ class Set:
 
         return df
 
-    def to_dataframe(self, qs: Iterable[float], ms=MEASURES, level: str = "both", eff_no: bool = True):
+    def to_dataframe(
+        self, qs: Iterable[float], ms=MEASURES, level: str = "both", eff_no: bool = True
+    ):
         """Table containing all set and subset diversity
         values.
 
@@ -306,13 +354,7 @@ class Set:
         dataframes = []
         for q in qs:
             if level in ["both", "overall"]:
-                dataframes.append(
-                self.set_to_dataframe(q=q, ms=ms, eff_no=eff_no))
+                dataframes.append(self.set_to_dataframe(q=q, ms=ms, eff_no=eff_no))
             if level in ["both", "subset"]:
-                dataframes.append(
-                self.subsets_to_dataframe(q=q, ms=ms, eff_no=eff_no))
+                dataframes.append(self.subsets_to_dataframe(q=q, ms=ms, eff_no=eff_no))
         return concat(dataframes).reset_index(drop=True)
-
-
-
-

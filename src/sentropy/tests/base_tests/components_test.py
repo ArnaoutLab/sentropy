@@ -29,9 +29,7 @@ def test_set_similarity(data):
 @mark.parametrize("data", set_data[2:])
 def test_subset_similarity(data):
     set = Set(counts=data.counts, similarity=data.similarity)
-    assert allclose(
-        set.components.subset_ordinariness, data.subset_similarity
-    )
+    assert allclose(set.components.subset_ordinariness, data.subset_similarity)
 
 
 @mark.parametrize("data", set_data[2:])
