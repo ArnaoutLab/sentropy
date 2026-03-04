@@ -50,7 +50,7 @@ class Set:
         max_inflight_tasks: Optional[int] = 64,
         backend: str = "numpy",
         device: Optional[str] = None,
-        subsets_names: Optional[Iterable[str | int]] = None,
+        subsets_names: Optional[Iterable[Union[str,int]]] = None,
     ) -> None:
         """
         Parameters
