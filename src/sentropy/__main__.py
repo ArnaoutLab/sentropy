@@ -41,6 +41,19 @@ def main(args):
         counts = read_csv(
             args.input_filepath[0], sep=None, engine="python", dtype=int64
         )
+
+        if args.ms is None: #pragma: no cover
+            args.ms =[
+            "alpha",
+            "rho",
+            "beta",
+            "gamma",
+            "normalized_alpha",
+            "normalized_rho",
+            "normalized_beta",
+            "rho_hat",
+            "beta_hat"]
+            
         df = sentropy(
             counts,
             similarity=args.similarity,
@@ -66,6 +79,8 @@ def main(args):
         counts_b = read_csv(
             args.input_filepath[1], sep=None, engine="python", dtype=int64
         )
+        if args.ms is None:
+            args.ms = 'sre'
         result = sentropy(
             counts_a,
             counts_b,

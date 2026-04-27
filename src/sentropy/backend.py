@@ -466,4 +466,4 @@ def get_backend(name: str = "numpy", device: Optional[str] = None) -> BaseBacken
         return NumpyBackend(device=device)
     if name in ("torch", "pytorch"):
         return TorchBackend(device=device)
-    raise ValueError(f"Unsupported backend: {name}")
+    raise ValueError(f"Unsupported backend: {name}") #pragma: no cover

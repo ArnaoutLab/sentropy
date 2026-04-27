@@ -45,6 +45,8 @@ MEASURES = (
     "normalized_beta",
     "rho_hat",
     "beta_hat",
+    "sce", #similarity-sensitive cross-entropy
+    "sre", #similarity-sensitive relative entropy
 )
 
 
@@ -198,11 +200,12 @@ def sentropy_single_abundance(
 
 
 # ----------------------------------------------------------------------
-# KL / Rényi divergence helpers
+# SRE / SCE helpers
 # ----------------------------------------------------------------------
 
 
-def _exp_renyi_div(P, P_ord, Q_ord, q, atol, backend):
+def _compute_srd_from_ordinarinesses(P, P_ord, Q_ord, q, atol, backend):
+    """Compute similarity-sensitive relative diversity from P abundance, P ordinariness and Q ordinariness."""
     ratio = P_ord / Q_ord
     if q != 1:
         return power_mean(
@@ -215,7 +218,7 @@ def _exp_renyi_div(P, P_ord, Q_ord, q, atol, backend):
     return backend.prod(backend.power(ratio, P))
 
 
-def _compute_renyi_divergences(
+def _compute_sre(
     P_superset,
     Q_superset,
     q,
@@ -238,7 +241,7 @@ def _compute_renyi_divergences(
     results = {}
 
     if level in ("both", "overall"):
-        val = _exp_renyi_div(P_set_ab, P_set_ord, Q_set_ord, q, min_count, backend)
+        val = _compute_srd_from_ordinarinesses(P_set_ab, P_set_ord, Q_set_ord, q, min_count, backend)
         results["overall"] = backend.log(val) if not eff_no else val
 
     if level in ("both", "subset"):
@@ -247,7 +250,7 @@ def _compute_renyi_divergences(
 
         for i in range(nP):
             for j in range(nQ):
-                mat[i, j] = _exp_renyi_div(
+                mat[i, j] = _compute_srd_from_ordinarinesses(
                     P_norm_ab[:, i],
                     P_superset.components.normalized_subset_ordinariness[:, i],
                     Q_norm_ord[:, j],
@@ -263,9 +266,93 @@ def _compute_renyi_divergences(
 
     return results
 
+def _compute_scd_from_ordinarinesses(P, Q_ord, q, atol, backend):
+    """Compute similarity-sensitive cross-diversity from P abundance and Q ordinariness.
+    
+    Parameters
+    ----------
+    P : array-like
+        Probability distribution (abundance)
+    Q_ord : array-like
+        Similarity-weighted Q (Z @ Q)
+    q : float
+        Viewpoint parameter
+    atol : float
+        Absolute tolerance for numerical stability
+    backend : BaseBackend
+        Computation backend
+        
+    Returns
+    -------
+    float or array-like
+        Cross-entropy value
+    """
+    inv_Q_ord = 1/Q_ord
+    if q != 1:
+        return power_mean(
+            order=1 - q,
+            weights=P,
+            items=inv_Q_ord,
+            atol=atol,
+            backend=backend,
+        )
+    return backend.prod(backend.power(inv_Q_ord, P))
+
+
+def _compute_sce(
+    P_superset,
+    Q_superset,
+    q,
+    level,
+    eff_no,
+    backend,
+):
+    """Compute similarity-sensitive cross-entropy between P and Q."""
+    P_set_ab = P_superset.abundance.set_abundance
+    Q_set_ab = Q_superset.abundance.set_abundance
+    
+    # Get the similarity-weighted Q (Z @ Q)
+    P_set_ord = P_superset.components.set_ordinariness
+    Q_set_ord = Q_superset.components.set_ordinariness
+    
+    P_norm_ab = P_superset.abundance.normalized_subset_abundance
+    Q_norm_ord = Q_superset.components.normalized_subset_ordinariness
+
+    min_count = min(1 / P_set_ab.sum(), 1e-9)
+    backend = P_superset.backend
+
+    results = {}
+
+    if level in ("both", "overall"):
+        val = _compute_scd_from_ordinarinesses(
+            P_set_ab, Q_set_ord, q, min_count, backend
+        )
+        results["overall"] = backend.log(val) if not eff_no else val
+
+    if level in ("both", "subset"):
+        # Compute pairwise cross-entropy between each subset of P and each subset of Q
+        nP, nQ = P_norm_ab.shape[1], Q_norm_ord.shape[1]
+        mat = backend.zeros((nP, nQ))
+
+        for i in range(nP):
+            for j in range(nQ):
+                mat[i, j] = _compute_scd_from_ordinarinesses(
+                    P_norm_ab[:, i],
+                    Q_norm_ord[:, j],
+                    q,
+                    min_count,
+                    backend,
+                )
+
+        if not eff_no:
+            mat = backend.log(mat)
+
+        results["subset"] = mat
+    
+    return results
 
 # ----------------------------------------------------------------------
-# KL divergence front-end
+# SRE/SCE front-end
 # ----------------------------------------------------------------------
 
 
@@ -274,6 +361,7 @@ def sentropy_two_abundances(
     Q_abundance,
     similarity=None,
     q=1,
+    m='sre',
     symmetric=False,
     sfargs=None,
     chunk_size=10,
@@ -313,14 +401,10 @@ def sentropy_two_abundances(
         device,
     )
 
-    results = _compute_renyi_divergences(
-        P_superset,
-        Q_superset,
-        q,
-        level,
-        eff_no,
-        backend,
-    )
+    if m=='sre':
+        results = _compute_sre(P_superset, Q_superset, q, level, eff_no, backend)
+    elif m=='sce':
+        results = _compute_sce(P_superset, Q_superset, q, level, eff_no, backend)
 
     if return_dataframe and "subset" in results:
         results["subset"] = DataFrame(
@@ -347,7 +431,7 @@ def sentropy(
     *,
     similarity=None,
     q=1,
-    measure="alpha",
+    measure=None,
     symmetric=False,
     sfargs=None,
     chunk_size=10,
@@ -363,6 +447,8 @@ def sentropy(
         level = "subset"
 
     if counts_b is None:
+        if measure is None:
+            measure = 'alpha'
         return sentropy_single_abundance(
             counts=counts_a,
             similarity=similarity,
@@ -380,21 +466,24 @@ def sentropy(
             device=device,
         )
 
-    q = q if isinstance(q, (int, float)) else q[0]
-
-    return sentropy_two_abundances(
-        P_abundance=counts_a,
-        Q_abundance=counts_b,
-        similarity=similarity,
-        q=q,
-        symmetric=symmetric,
-        sfargs=sfargs,
-        chunk_size=chunk_size,
-        parallelize=parallelize,
-        max_inflight_tasks=max_inflight_tasks,
-        return_dataframe=return_dataframe,
-        level=level,
-        eff_no=eff_no,
-        backend=backend,
-        device=device,
-    )
+    else:
+        q = q if isinstance(q, (int, float)) else q[0]
+        if measure is None:
+            measure = 'sre'
+        return sentropy_two_abundances(
+            P_abundance=counts_a,
+            Q_abundance=counts_b,
+            similarity=similarity,
+            q=q,
+            m=measure,
+            symmetric=symmetric,
+            sfargs=sfargs,
+            chunk_size=chunk_size,
+            parallelize=parallelize,
+            max_inflight_tasks=max_inflight_tasks,
+            return_dataframe=return_dataframe,
+            level=level,
+            eff_no=eff_no,
+            backend=backend,
+            device=device,
+        )

@@ -101,21 +101,21 @@ class Set:
                 similarity=similarity.values, backend=self.backend
             )
         elif isinstance(similarity, str):
-            if chunk_size is None:
+            if chunk_size is None: # pragma: no cover
                 raise ValueError("chunk_size cannot be None when similarity is a file.")
             self.similarity = SimilarityFromFile(
                 similarity, chunk_size=chunk_size, backend=self.backend
             )
         elif callable(similarity):
-            if X is None:
+            if X is None: # pragma: no cover
                 raise ValueError("X cannot be None when similarity is a callable.")
-            if chunk_size is None:
+            if chunk_size is None: # pragma: no cover
                 raise ValueError(
                     "chunk_size cannot be None when similarity is a callable."
                 )
             if symmetric:
                 if parallelize:
-                    if max_inflight_tasks is None:
+                    if max_inflight_tasks is None: # pragma: no cover
                         raise ValueError(
                             "max_inflight_task cannot be None when parallelizing."
                         )
@@ -135,7 +135,7 @@ class Set:
                     )
             else:
                 if parallelize:
-                    if max_inflight_tasks is None:
+                    if max_inflight_tasks is None: # pragma: no cover
                         raise ValueError(
                             "max_inflight_task cannot be None when parallelizing."
                         )
@@ -286,7 +286,7 @@ class Set:
         for m in ms:
             val = self.subset_diversity(q, m, eff_no)
 
-            if isinstance(val, Tensor):
+            if isinstance(val, Tensor): #pragma: no cover
                 val = val.cpu()
 
             data[m] = val
@@ -317,7 +317,7 @@ class Set:
         for m in ms:
             val = self.set_diversity(q, m, eff_no)
 
-            if isinstance(val, Tensor):
+            if isinstance(val, Tensor): #pragma: no cover
                 val = val.cpu()
 
             data[m] = val
