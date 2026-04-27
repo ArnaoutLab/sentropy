@@ -102,18 +102,7 @@ def configure_arguments():
         help=(
             "A list of diversity measures to be computed. Must be in 'alpha', 'rho', 'beta',"
             "'gamma', 'normalized_alpha', 'normalized_rho', 'normalized_beta', 'rho_hat', 'beta_hat'."
-        ),
-        default=[
-            "alpha",
-            "rho",
-            "beta",
-            "gamma",
-            "normalized_alpha",
-            "normalized_rho",
-            "normalized_beta",
-            "rho_hat",
-            "beta_hat",
-        ],
+        )
     )
 
     parser.add_argument(

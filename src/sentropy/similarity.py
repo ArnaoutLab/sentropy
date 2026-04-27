@@ -38,7 +38,6 @@ class Similarity(ABC):
     def self_similar_weighted_abundances(
         self, relative_abundances: Union[ndarray, Tensor]
     ):
-        print("type(relative_abundances):", type(relative_abundances))
         return self.weighted_abundances(relative_abundances)
 
     def is_expensive(self):
