@@ -42,7 +42,7 @@ def main(args):
             args.input_filepath[0], sep=None, engine="python", dtype=int64
         )
 
-        if args.ms is None:
+        if args.ms is None: #pragma: no cover
             args.ms =[
             "alpha",
             "rho",

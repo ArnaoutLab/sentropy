@@ -7,6 +7,7 @@ from sentropy.similarity import (
 )
 import numpy as np
 import pandas as pd
+import torch
 
 MEASURES = (
     "alpha",
@@ -180,8 +181,27 @@ def test_arguments_symmetric_and_parallelize():
     assert results_1.equals(results_3)
     assert results_1.equals(results_4)
 
+def test_torch_backend():
+    # a dataset with two classes, "apples" and "oranges"
+    P1 = np.array([12, 3, 0, 0])                  # apples; e.g. 12 Granny Smith and 3 McIntosh (but no oranges)
+    P2 = np.array([0,  0, 4, 4])                  # oranges; e.g. 4 navel and 4 cara cara (but no apples) 
+    P  = {"apples": P1, "oranges": P2}            # package the classes as P
+    S = np.array([                                # similarities of all elements, regardless of class
+      [1.,  0.7, 0.0, 0.0],                       #    note here the non-zero similarity between apples and oranges
+      [0.7, 1.,  0.1, 0.3],
+      [0.0, 0.1, 1.,  0.9],
+      [0.0, 0.3, 0.9, 1. ],
+      ])
+    D1Z = sentropy(P, similarity=S,
+                   level="subset",                # level="class" is identical; an alias/synonym
+                   measure="normalized_rho", backend="torch")
+    R1 = D1Z(which="apples")                      # note, no need to pass a measure or a viewpoint
+    R2 = D1Z(which="oranges")                     # because D1Z only computed 1 measure and 1 viewpoint anyway
 
-def test_kl_div_no_similarity():
+    assert torch.allclose(R1, torch.tensor([0.6695], dtype=R1.dtype), rtol=1e-3, atol=1e-4)
+    assert torch.allclose(R2, torch.tensor([0.3750], dtype=R2.dtype), rtol=1e-3, atol=1e-4)
+
+def test_sre_no_similarity():
     counts_1 = np.array([[9 / 25], [12 / 25], [4 / 25]])
     counts_2 = np.array([[1 / 3], [1 / 3], [1 / 3]])
 
@@ -199,7 +219,7 @@ def test_kl_div_no_similarity():
     assert results_viewpoint_2[0] > results_default_viewpoint[0]
 
 
-def test_arguments_eff_no_and_which_in_kl_div():
+def test_arguments_eff_no_and_which_in_sre():
     counts_1 = np.array([[9 / 25], [12 / 25], [4 / 25]])
     counts_2 = np.array([[1 / 3], [1 / 3], [1 / 3]])
     results_1 = sentropy(counts_1, counts_2, level="both")
@@ -212,7 +232,7 @@ def test_arguments_eff_no_and_which_in_kl_div():
     assert np.allclose(results_4[0], 0.0853)
 
 
-def test_kl_div_with_similarity_from_array():
+def test_sre_with_similarity_from_array():
     labels = [
         "owl",
         "eagle",
@@ -246,7 +266,7 @@ def test_kl_div_with_similarity_from_array():
     assert np.allclose(result_default_viewpoint[0], 1.0004668803029282)
 
 
-def test_kl_div_with_similarity_from_function():
+def test_sre_with_similarity_from_function():
     sfargs = np.array([[1, 2], [3, 4], [5, 6]])
 
     def similarity_function(species_i, species_j):
@@ -260,3 +280,24 @@ def test_kl_div_with_similarity_from_function():
     )
 
     assert np.allclose(results[0], 1.0655322169685402, atol=1e-8)
+
+def test_sce_no_similarity():
+    actual_1 = sentropy(np.array([0.1,0.2,0.7]), np.array([0.5,0.25, 0.25]), measure="sce")
+    expected_1 = 3.7321319661472296
+    assert np.allclose(actual_1, expected_1)
+    actual_2 = sentropy(np.array([0.1,0.2,0.7]), np.array([0.5,0.25, 0.25]), measure="sce", q=2)
+    expected_2 = 3.6363636363636362
+    assert np.allclose(actual_2, expected_2)
+
+def test_sce_with_similarity_from_array():
+    abundance_1 = {'basket_1': [12,3,0,0], 'basket_2': [0,0,4,4]}
+    abundance_2 = {'basket_3': [5,0,6,0], 'basket_4': [0,2,0,7]}
+    S = np.array([
+        [1., 0.7, 0.1, 0.1],
+        [0.7, 1., 0.1, 0.3],
+        [0.1, 0.1, 1., 0.9],
+        [0.1, 0.3, 0.9, 1.],
+    ])
+    actual = sentropy(abundance_1, abundance_2, similarity=S, measure="sce", level="class", eff_no=False)
+    expected = np.array([[0.7374846 , 1.32147731], [0.57451801, 0.24724937]])
+    assert np.allclose(actual, expected)
