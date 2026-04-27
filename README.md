@@ -262,7 +262,7 @@ Expected output:
 1  oranges          1        0.375035
 ```
 
-## Relative S-entropy
+## Relative S-entropy and Cross S-entropy:
 
 Shannon-type relative entropy *without* similarity is called the Kullback-Leibler divergence and is used throughout machine learning (and elsewhere). `sentropy` lets us calculate the similarity-sensitive version by passing two `P` arguments:
 ```
@@ -332,6 +332,8 @@ As a numpy array:
 [[1.         7.84258081]
  [8.02896542 1.        ]]
 ```
+
+The syntax to compute the similarity-sensitive analog of the cross entropy is analogous, except that we need to pass `measure="sce"`.
 
 ## Ordinariness
 
