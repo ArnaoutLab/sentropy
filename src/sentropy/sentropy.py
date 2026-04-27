@@ -327,7 +327,7 @@ def _compute_sce(
         val = _compute_scd_from_ordinarinesses(
             P_set_ab, Q_set_ord, q, min_count, backend
         )
-        results["overall"] = val
+        results["overall"] = backend.log(val) if not eff_no else val
 
     if level in ("both", "subset"):
         # Compute pairwise cross-entropy between each subset of P and each subset of Q
@@ -343,6 +343,9 @@ def _compute_sce(
                     min_count,
                     backend,
                 )
+
+        if not eff_no:
+            mat = backend.log(mat)
 
         results["subset"] = mat
     
