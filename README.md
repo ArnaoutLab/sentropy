@@ -417,3 +417,5 @@ In [this preprint](https://arxiv.org/abs/2401.00102) of ours, we appled `sentrop
 To date, we know of no other python package that implements all the measures defined by [Reeve at al.](https://arxiv.org/abs/1404.6520), only [R](https://github.com/boydorr/rdiversity) and [Julia packages](https://github.com/EcoJulia/Diversity.jl), which enable some of the capabilities of `sentropy`.
 
 
+# Release history
+Version 1.1.0: implemented the similarity-sensitive cross-entropy.
