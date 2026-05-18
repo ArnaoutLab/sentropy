@@ -12,6 +12,7 @@ from typing import Optional
 import numpy as _np
 import torch as _torch
 import scipy.sparse
+import scipy as _scipy
 
 sparse_classes = [
     scipy.sparse.bsr_array,

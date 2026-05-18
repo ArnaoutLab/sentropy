@@ -221,16 +221,11 @@ class Set:
             
             # Filter non-zero eigenvalues for numerical stability
             # Use a small tolerance
-            tol = 1e-12
-            nonzero_eigs = eigenvalues[eigenvalues > tol]
+            tol = 0
+            probs = eigenvalues[eigenvalues > tol]
             
-            if len(nonzero_eigs) == 0:
+            if len(probs) == 0:
                 return 0.0 if eff_no else -float('inf')
-                
-            # Normalize to sum to 1 (though Tr(Z_p) should be 1 if p sums to 1)
-            # Just in case of floating point drift
-            s = backend.sum(nonzero_eigs)
-            probs = nonzero_eigs / s
             
             if q == 1:
                 # Shannon Entropy
