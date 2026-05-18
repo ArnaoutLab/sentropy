@@ -239,7 +239,7 @@ def test_nonsquare_from_file(make_similarity_from_file):
     sim = make_similarity_from_file(similarity_class=IntersetSimilarityFromFile)
     counts = array([[1], [1], [1]])
     with raises(InvalidArgumentError):
-        Set(counts, sim).to_dataframe(q=0)
+        Set(counts, sim).to_dataframe(qs=[0])
 
 
 def test_interset_from_file(make_similarity_from_file):

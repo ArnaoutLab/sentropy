@@ -139,6 +139,9 @@ class BaseBackend:  # pragma: no cover
     def round(self, x):
         raise NotImplementedError
 
+    def outer(self, a, b):
+        raise NotImplementedError
+
 
 class NumpyBackend(BaseBackend):
     name = "numpy"
@@ -269,6 +272,9 @@ class NumpyBackend(BaseBackend):
 
     def round(self, x):
         return _np.round(x)
+
+    def outer(self, a, b):
+        return _np.outer(a, b)
 
 
 class TorchBackend(BaseBackend):
@@ -527,6 +533,15 @@ class TorchBackend(BaseBackend):
             x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
         return self.torch.round(x)
 
+    def outer(self, a, b):
+        # Ensure inputs are tensors on the correct device
+        if not isinstance(a, self.torch.Tensor):
+            a = self.torch.as_tensor(a, dtype=self.dtype, device=self.device)
+        if not isinstance(b, self.torch.Tensor):
+            b = self.torch.as_tensor(b, dtype=self.dtype, device=self.device)
+        
+        # torch.outer handles the device placement automatically
+        return self.torch.outer(a, b)
 
 def get_backend(name: str = "numpy", device: Optional[str] = None) -> BaseBackend:
     name = (name or "numpy").lower()

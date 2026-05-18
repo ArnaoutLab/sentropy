@@ -158,15 +158,17 @@ class Set:
         else:
             self.similarity = similarity
 
-        self.components = Components(
-            abundance=self.abundance, similarity=self.similarity
-        )
+        self._components = None
         self.subset_diversity_hash: dict = {}
 
-    def _compute_vendi_score(self, q, eff_no):        
-        Z = self.similarity.similarity # This might need adjustment based on similarity type
-        
-        return _spectral_diversity(Z, p, q, eff_no, self.backend)
+    @property
+    def components(self):
+        """Ordinariness vectors — computed on first access, then cached."""
+        if self._components is None:
+            self._components = Components(
+                abundance=self.abundance, similarity=self.similarity
+            )
+        return self._components
 
     def _spectral_diversity(self, Z, p, q, eff_no, backend):
         """
@@ -189,16 +191,10 @@ class Set:
             )
 
         # 1. Construct Z_p = D^{1/2} Z D^{1/2}
-        # sqrt_p = backend.sqrt(p)
-        # D_sqrt = backend.diag(sqrt_p) # Need a diag function in backend?
-        # Or use broadcasting: Z_p[i,j] = Z[i,j] * sqrt(p[i]) * sqrt(p[j])
         
         sqrt_p = backend.sqrt(p)
-        # Broadcasting trick: Z_p = Z * sqrt_p[:, None] * sqrt_p[None, :]
-        Z_p = backend.multiply(
-            backend.multiply(Z, backend.broadcast_to(sqrt_p[:, None], Z.shape)),
-            backend.broadcast_to(sqrt_p[None, :], Z.shape)
-        )
+        outer_product = backend.outer(sqrt_p, sqrt_p)
+        Z_p = backend.multiply(Z, outer_product)
         
         # 2. Compute Trace(Z_p^q) if q is integer > 1
         # Check if q is effectively an integer
