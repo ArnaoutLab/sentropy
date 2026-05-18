@@ -47,6 +47,7 @@ MEASURES = (
     "beta_hat",
     "sce", #similarity-sensitive cross-entropy
     "sre", #similarity-sensitive relative entropy
+    "vendi", #vendi score
 )
 
 

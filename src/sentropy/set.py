@@ -10,6 +10,7 @@ from sentropy.abundance import make_abundance
 from sentropy.similarity import (
     Similarity,
     SimilarityFromArray,
+    SimilarityFromDataFrame,
     SimilarityIdentity,
     SimilarityFromFunction,
     SimilarityFromSymmetricFunction,
@@ -37,6 +38,7 @@ class Set:
         "normalized_beta",
         "rho_hat",
         "beta_hat",
+        "vendi",
     )
 
     def __init__(
@@ -161,6 +163,95 @@ class Set:
         )
         self.subset_diversity_hash: dict = {}
 
+    def _compute_vendi_score(self, q, eff_no):        
+        Z = self.similarity.similarity # This might need adjustment based on similarity type
+        
+        return _spectral_diversity(Z, p, q, eff_no, self.backend)
+
+    def _spectral_diversity(self, Z, p, q, eff_no, backend):
+        """
+        Internal helper to compute Vendi/Renyi spectral diversity.
+        Z: Similarity matrix (n x n)
+        p: Abundance vector (n,)
+        q: Viewpoint parameter
+        """
+        # Check if we have a materialized similarity matrix
+        if isinstance(self.similarity, (SimilarityFromArray, SimilarityFromDataFrame)):
+            Z = self.similarity.similarity  # Get the raw matrix
+        elif isinstance(self.similarity, SimilarityIdentity):
+            Z = backend.identity(p.shape[0])
+        else:
+            raise InvalidArgumentError(
+                "Vendi score requires a pre-computed similarity matrix. "
+                "Please pass a numpy array or pandas DataFrame as the 'similarity' argument. "
+                "Function-based or file-based similarities are not supported for Vendi scores "
+                "because eigenvalue decomposition requires the full similarity matrix."
+            )
+
+        # 1. Construct Z_p = D^{1/2} Z D^{1/2}
+        # sqrt_p = backend.sqrt(p)
+        # D_sqrt = backend.diag(sqrt_p) # Need a diag function in backend?
+        # Or use broadcasting: Z_p[i,j] = Z[i,j] * sqrt(p[i]) * sqrt(p[j])
+        
+        sqrt_p = backend.sqrt(p)
+        # Broadcasting trick: Z_p = Z * sqrt_p[:, None] * sqrt_p[None, :]
+        Z_p = backend.multiply(
+            backend.multiply(Z, backend.broadcast_to(sqrt_p[:, None], Z.shape)),
+            backend.broadcast_to(sqrt_p[None, :], Z.shape)
+        )
+        
+        # 2. Compute Trace(Z_p^q) if q is integer > 1
+        # Check if q is effectively an integer
+        if q > 1 and backend.isclose(q, backend.round(q), atol=1e-9):
+            k = int(round(q))
+            # Compute Z_p^k
+            # For large k, repeated squaring is better, but matrix_power is standard
+            Z_p_k = backend.matrix_power(Z_p, k)
+            trace_val = backend.trace(Z_p_k)
+            
+            # Renyi Entropy H_q = 1/(1-q) * ln(trace)
+            # Vendi Score = exp(H_q) = trace^(1/(1-q))
+            if eff_no:
+                # Return effective number: trace^(1/(1-q))
+                return backend.power(trace_val, 1.0 / (1.0 - q))
+            else:
+                # Return entropy: ln(trace) / (1-q)
+                return backend.log(trace_val) / (1.0 - q)
+                
+        else:
+            # Fallback to eigendecomposition for non-integers or q <= 1
+            # Eigenvalues of Z_p are real and non-negative (PSD)
+            eigenvalues = backend.eigvalsh(Z_p)
+            
+            # Filter non-zero eigenvalues for numerical stability
+            # Use a small tolerance
+            tol = 1e-12
+            nonzero_eigs = eigenvalues[eigenvalues > tol]
+            
+            if len(nonzero_eigs) == 0:
+                return 0.0 if eff_no else -float('inf')
+                
+            # Normalize to sum to 1 (though Tr(Z_p) should be 1 if p sums to 1)
+            # Just in case of floating point drift
+            s = backend.sum(nonzero_eigs)
+            probs = nonzero_eigs / s
+            
+            if q == 1:
+                # Shannon Entropy
+                # H = - sum(p * ln(p))
+                entropy = -backend.sum(backend.multiply(probs, backend.log(probs)))
+                if eff_no:
+                    return backend.exp(entropy)
+                return entropy
+            else:
+                # Renyi Entropy
+                # H_q = 1/(1-q) * ln(sum(p^q))
+                sum_pow = backend.sum(backend.power(probs, q))
+                entropy = backend.log(sum_pow) / (1.0 - q)
+                if eff_no:
+                    return backend.exp(entropy)
+                return entropy
+
     def subset_diversity(
         self, q: float, m: str, eff_no: bool = True
     ) -> Union[ndarray, Tensor]:
@@ -187,6 +278,14 @@ class Set:
                     f"{', '.join(self.MEASURES)}"
                 )
             )
+
+        if m == 'vendi':
+            results = []
+            for i in range(self.abundance.num_subsets):
+                p = self.abundance.normalized_subset_abundance[:,i]
+                val = self._spectral_diversity(self.similarity.similarity, p, q, eff_no, self.backend)
+                results.append(val)
+            return self.backend.array(results)
 
         if f"subset_{m}_q={q}" in self.subset_diversity_hash.keys():
             diversity_measure = self.subset_diversity_hash[f"subset_{m}_q={q}"]

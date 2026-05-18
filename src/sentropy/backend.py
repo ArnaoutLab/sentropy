@@ -121,6 +121,24 @@ class BaseBackend:  # pragma: no cover
     def divide(self, x, y):
         raise NotImplementedError
 
+    def sqrt(self, x):
+        raise NotImplementedError
+
+    def exp(self, x):
+        raise NotImplementedError
+
+    def matrix_power(self, x, n):
+        raise NotImplementedError
+
+    def trace(self, x):
+        raise NotImplementedError
+
+    def eigvalsh(self, x):
+        raise NotImplementedError
+
+    def round(self, x):
+        raise NotImplementedError
+
 
 class NumpyBackend(BaseBackend):
     name = "numpy"
@@ -233,6 +251,24 @@ class NumpyBackend(BaseBackend):
 
     def divide(self, x, y):
         return _np.divide(x, y, out=_np.zeros(y.shape), where=y != 0)
+
+    def sqrt(self, x):
+        return _np.sqrt(x)
+
+    def exp(self, x):
+        return _np.exp(x)
+
+    def matrix_power(self, x, n):
+        return _np.linalg.matrix_power(x, n)
+
+    def trace(self, x):
+        return _np.trace(x)
+
+    def eigvalsh(self, x):
+        return _np.linalg.eigvalsh(x)
+
+    def round(self, x):
+        return _np.round(x)
 
 
 class TorchBackend(BaseBackend):
@@ -458,6 +494,38 @@ class TorchBackend(BaseBackend):
         y = self.torch.as_tensor(y)
         out = self.torch.where(y != 0, x / y, self.torch.zeros_like(x))
         return out
+
+    # In backend.py, inside class TorchBackend
+    def sqrt(self, x):
+        # Ensure x is a tensor on the correct device
+        if not isinstance(x, self.torch.Tensor):
+            x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
+        return self.torch.sqrt(x)
+
+    def exp(self, x):
+        if not isinstance(x, self.torch.Tensor):
+            x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
+        return self.torch.exp(x)
+
+    def matrix_power(self, x, n):
+        if not isinstance(x, self.torch.Tensor):
+            x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
+        return self.torch.linalg.matrix_power(x, n)
+
+    def trace(self, x):
+        if not isinstance(x, self.torch.Tensor):
+            x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
+        return self.torch.trace(x)
+
+    def eigvalsh(self, x):
+        if not isinstance(x, self.torch.Tensor):
+            x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
+        return self.torch.linalg.eigvalsh(x)
+
+    def round(self, x):
+        if not isinstance(x, self.torch.Tensor):
+            x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
+        return self.torch.round(x)
 
 
 def get_backend(name: str = "numpy", device: Optional[str] = None) -> BaseBackend:

@@ -856,8 +856,7 @@ def test_computation_count(
 
     sim.weighted_abundances = count_decorator(sim.weighted_abundances, callcounter, key)
     m = Set(abundances, sim)
-    m.set_diversity(q=1, m="alpha")
-    m.to_dataframe(qs=[0])
+    m.to_dataframe(qs=[0], ms=['alpha'])
 
     assert callcounter[key] == expected_count
 
