@@ -1,4 +1,11 @@
-"""Module for calculating relative sub- and metacomunity abundances."""
+"""Module for calculating relative sub- and metacomunity abundances.
+
+Classes
+-------
+Abundance
+    Relative (normalized) species abundances in (meta-/sub-) communities.
+    All derived quantities are computed lazily on first access and cached.
+"""
 
 from typing import Iterable, Union, Tuple, Optional
 
@@ -12,7 +19,19 @@ from sentropy.similarity import Similarity
 
 class Abundance:
     """Relative species abundances in (meta-/sub-) communities,
-    with all components needed for diversity calculations."""
+    with all components needed for diversity calculations.
+
+    Derived quantities (subset_abundance, set_abundance, etc.) are
+    computed lazily on first access and cached. This avoids unnecessary
+    work when only a subset of the quantities are needed — for example,
+    a Vendi score only requires normalized_subset_abundance, not
+    set_abundance or subset_normalizing_constants.
+
+    Dependency chain:
+        total ← min_count
+        total ← subset_abundance ← set_abundance
+        subset_abundance ← subset_normalizing_constants ← normalized_subset_abundance
+    """
 
     def __init__(
         self,
@@ -29,33 +48,66 @@ class Abundance:
         self.subsets_names = subsets_names
         self.num_subsets = self.counts.shape[1]
 
-        total = self.backend.sum(self.counts)
-        total_scalar = float(total)
-        self.min_count = min(
-            1.0 / (total_scalar if total_scalar != 0 else 1.0), 1e-9
-        )
+        # Lazy caches — populated on first access
+        self._total = None
+        self._min_count = None
+        self._subset_abundance = None
+        self._set_abundance = None
+        self._subset_normalizing_constants = None
+        self._normalized_subset_abundance = None
 
-        # Core abundance quantities
-        self.subset_abundance = self._make_subset_abundance()
-        self.set_abundance = self._make_set_abundance()
-        self.normalized_subset_abundance = self._make_normalized_subset_abundance()
+    # --- Lazy properties ---
 
-    # --- Construction helpers ---
+    @property
+    def total(self):
+        """Total count across all species and subsets."""
+        if self._total is None:
+            self._total = self.backend.sum(self.counts)
+        return self._total
 
-    def _make_subset_abundance(self) -> Union[ndarray, Tensor]:
-        """Relative abundances: counts / total."""
-        return self.counts / self.backend.sum(self.counts)
+    @property
+    def min_count(self):
+        """Small nonzero value for numerical stability in power_mean."""
+        if self._min_count is None:
+            total_scalar = float(self.total)
+            self._min_count = min(
+                1.0 / (total_scalar if total_scalar != 0 else 1.0), 1e-9
+            )
+        return self._min_count
 
-    def _make_set_abundance(self) -> Union[ndarray, Tensor]:
+    @property
+    def subset_abundance(self):
+        """Relative abundances: counts / total (columns sum to subset weights)."""
+        if self._subset_abundance is None:
+            self._subset_abundance = self.counts / self.total
+        return self._subset_abundance
+
+    @property
+    def set_abundance(self):
         """Metacommunity abundance: row-wise sum of subset_abundance."""
-        return self.backend.sum(self.subset_abundance, axis=1, keepdims=True)
+        if self._set_abundance is None:
+            self._set_abundance = self.backend.sum(
+                self.subset_abundance, axis=1, keepdims=True
+            )
+        return self._set_abundance
 
-    def _make_normalized_subset_abundance(self) -> Union[ndarray, Tensor]:
+    @property
+    def subset_normalizing_constants(self):
+        """Column sums of subset_abundance (weights for aggregating subsets)."""
+        if self._subset_normalizing_constants is None:
+            self._subset_normalizing_constants = self.backend.sum(
+                self.subset_abundance, axis=0
+            )
+        return self._subset_normalizing_constants
+
+    @property
+    def normalized_subset_abundance(self):
         """Subset-normalized abundances: each column sums to 1."""
-        self.subset_normalizing_constants = self.backend.sum(
-            self.subset_abundance, axis=0
-        )
-        return self.subset_abundance / self.subset_normalizing_constants
+        if self._normalized_subset_abundance is None:
+            self._normalized_subset_abundance = (
+                self.subset_abundance / self.subset_normalizing_constants
+            )
+        return self._normalized_subset_abundance
 
     # --- Similarity interaction ---
 

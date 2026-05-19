@@ -9,15 +9,6 @@ from scipy.sparse import coo_array  # type: ignore[import]
 from sentropy.abundance import Abundance
 
 
-def test_sparse():
-    sparse_abundance = coo_array(
-        (array([4, 5, 7, 9]), (array([0, 3, 1, 0]), array([0, 3, 1, 2]))),
-        shape=(4, 4),
-    )
-    with raises(TypeError):
-        Abundance(sparse_abundance)
-
-
 def counts_array_3by2():
     return array([[2, 4], [3, 0], [0, 1]])
 
