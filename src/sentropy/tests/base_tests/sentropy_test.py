@@ -1,4 +1,5 @@
 from sentropy.sentropy import sentropy
+from sentropy.exceptions import InvalidArgumentError
 from sentropy.similarity import (
     SimilarityFromFunction,
     SimilarityFromSymmetricFunction,
@@ -8,8 +9,9 @@ from sentropy.similarity import (
 import numpy as np
 import pandas as pd
 import torch
+import pytest
 
-MEASURES = (
+LCR_MEASURES = (
     "alpha",
     "rho",
     "beta",
@@ -79,7 +81,7 @@ def test_no_similarity():
     weights = np.sum(counts, axis=0).astype(float)
     weights /= np.sum(weights)
     diversity_indices = sentropy(
-        counts, q=[1], measure=MEASURES, similarity=similarity, level="both"
+        counts, q=[1], measure=LCR_MEASURES, similarity=similarity, level="both"
     ).raw_dict
 
     assert 1 <= diversity_indices["overall_alpha_q=1"] <= N * S
@@ -118,7 +120,7 @@ def test_return_dataframe():
     N, S = counts.shape[1], counts.shape[0]
     weights = np.sum(counts, axis=0).astype(float)
     weights /= np.sum(weights)
-    df = sentropy(counts, q=[1], measure=MEASURES, return_dataframe=True, level="both")
+    df = sentropy(counts, q=[1], measure=LCR_MEASURES, return_dataframe=True, level="both")
 
     assert (df["rho"][1:].to_numpy() <= 1 / weights).all()
     assert df["rho"][0] <= N
@@ -300,4 +302,69 @@ def test_sce_with_similarity_from_array():
     ])
     actual = sentropy(abundance_1, abundance_2, similarity=S, measure="sce", level="class", eff_no=False)
     expected = np.array([[0.7374846 , 1.32147731], [0.57451801, 0.24724937]])
-    assert np.allclose(actual, expected)
+
+def test_vendi_1():
+    counts = np.array([[1],[2],[3]])
+    Z = np.array([
+    [1.0,0.5,0.2],
+    [0.5,1.0,0.3],
+    [0.2,0.3,1.0]])
+    VS = sentropy(counts, similarity=Z, measure="vendi")
+    VE = sentropy(counts, similarity=Z, measure="vendi", eff_no=False)
+    Z_p = np.diag(np.sqrt([1/6,2/6,3/6])) @ Z @ np.diag(np.sqrt([1/6,2/6,3/6]))
+    eigvals = np.linalg.eigvals(Z_p)
+    expected_VE = np.sum(-eigvals*np.log(eigvals))
+    expected_VS = np.exp(expected_VE)
+    assert np.allclose(VS, expected_VS)
+    assert np.allclose(VE, expected_VE)
+
+def test_vendi_2():
+    """The case where we do not pass any similarity matrix."""
+    counts = np.array([[1],[2],[3]])
+    VS = sentropy(counts, measure="vendi")
+    p = counts/6
+    expected_VS = np.exp(-np.sum(p*np.log(p)))
+    assert np.allclose(VS, expected_VS)
+
+def test_vendi_3():
+    """Test that the Vendi score at viewpoint=2 is same as LCR alpha with the elementwise squared similarity matrix
+    as proved by Claude.
+    """
+    counts = np.array([[10,5],[5,10],[0,2]])
+    Z = np.array([
+        [1.0, 0.5, 0.2],
+        [0.5, 1.0, 0.3],
+        [0.2, 0.3, 1.0],
+        ])
+    VS = sentropy(counts, similarity=Z, measure='vendi', q=2, level='class')
+    VS1, VS2 = VS.raw_dict['subset_vendi_q=2'][0], VS.raw_dict['subset_vendi_q=2'][1]
+    alpha = sentropy(counts, similarity=Z**2, measure='normalized_alpha', q=2, level='class', return_dataframe=True)
+    alpha1, alpha2 = alpha['normalized_alpha'][0], alpha['normalized_alpha'][1]
+    assert np.allclose(VS1, alpha1)
+    assert np.allclose(VS2, alpha2)
+
+    VE = sentropy(counts, similarity=Z, measure='vendi', q=2, level='class', eff_no=False, backend='torch')
+    VE1, VE2 = VE.raw_dict['subset_vendi_q=2'][0], VE.raw_dict['subset_vendi_q=2'][1]
+    assert np.allclose(np.exp(VE1), VS1)
+    assert np.allclose(np.exp(VE2), VS2)
+
+def test_vendi_4():
+    """Test that an error is raised if we pass a function to the similarity argument, when computing the Vendi score"""
+    with pytest.raises(InvalidArgumentError):
+        counts = np.array([[1],[2],[3]])
+        sim_function = lambda x,y : np.exp(-np.abs(x-y))
+        VS = sentropy(counts, similarity=sim_function, sfargs=np.array([-1,5,10]), measure='vendi')
+
+def test_vendi_5():
+    """Test the Vendi score for negative viewpoint and non-integer viewpoint"""
+    p = np.array([[1/6],[2/6],[3/6]])
+    VE_1 = sentropy(p, measure="vendi", q=0.5, eff_no=False)
+    VS_1 = sentropy(p, measure="vendi", q=0.5)
+    expected_VS_1 = np.sum(np.sqrt(p))**2
+    expected_VE_1 = np.log(expected_VS_1)
+    assert np.allclose(VS_1, expected_VS_1)
+    assert np.allclose(VE_1, expected_VE_1)
+
+    VS_2 = sentropy(p, measure="vendi", q=-1)
+    expected_VS_2 = np.sqrt(np.sum(1/p))
+    assert np.allclose(VS_2, expected_VS_2)

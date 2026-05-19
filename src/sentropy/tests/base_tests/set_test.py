@@ -1,7 +1,7 @@
 """Tests for diversity.set."""
 
 from dataclasses import dataclass, field
-from numpy import allclose, array, ndarray, identity, zeros, inf, maximum, log
+from numpy import allclose, array, ndarray, identity, zeros, inf, maximum, log, sum as np_sum
 from numpy.linalg import norm
 from pandas import DataFrame, concat
 from pandas.testing import assert_frame_equal
@@ -18,6 +18,7 @@ from sentropy.similarity import (
     SimilarityFromFunction,
 )
 from sentropy import Set
+from sentropy.backend import get_backend
 from sentropy.tests.base_tests.similarity_test import similarity_dataframe_3by3
 from sentropy.tests.base_tests.similarity_test import similarity_array_3by3_1
 
@@ -663,3 +664,12 @@ def test_figure_1():
         assert naive_alpha <= 4.0
         assert before_alpha <= 3.0
         assert (nonnaive_alpha - before_alpha) < 0.2
+
+def test_spectral_diversity():
+    p = array([[1],[2],[3]])/6
+    superset = Set(p, None)
+    backend = get_backend()
+    VE_1 = superset._spectral_diversity(superset.similarity, p, 1, eff_no=False, backend=backend)
+    assert allclose(VE_1, -np_sum(p*log(p)))
+    VE_2 = superset._spectral_diversity(superset.similarity, p, -1, eff_no=False, backend=backend)
+    assert allclose(VE_2, (1/2)*log(np_sum(1/p)))

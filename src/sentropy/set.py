@@ -170,17 +170,20 @@ class Set:
             )
         return self._components
 
-    def _spectral_diversity(self, Z, p, q, eff_no, backend):
+    def _spectral_diversity(self, similarity_obj, p, q, eff_no, backend):
         """
         Internal helper to compute Vendi/Renyi spectral diversity.
-        Z: Similarity matrix (n x n)
+        similarity_obj: The Similarity object (not just the matrix)
         p: Abundance vector (n,)
         q: Viewpoint parameter
         """
+        Z = None
+        
         # Check if we have a materialized similarity matrix
-        if isinstance(self.similarity, (SimilarityFromArray, SimilarityFromDataFrame)):
-            Z = self.similarity.similarity  # Get the raw matrix
-        elif isinstance(self.similarity, SimilarityIdentity):
+        if isinstance(similarity_obj, (SimilarityFromArray, SimilarityFromDataFrame)):
+            Z = similarity_obj.similarity  # Get the raw matrix
+        elif isinstance(similarity_obj, SimilarityIdentity):
+            # Create identity matrix on the fly
             Z = backend.identity(p.shape[0])
         else:
             raise InvalidArgumentError(
@@ -223,9 +226,6 @@ class Set:
             # Use a small tolerance
             tol = 0
             probs = eigenvalues[eigenvalues > tol]
-            
-            if len(probs) == 0:
-                return 0.0 if eff_no else -float('inf')
             
             if q == 1:
                 # Shannon Entropy
@@ -274,7 +274,7 @@ class Set:
             results = []
             for i in range(self.abundance.num_subsets):
                 p = self.abundance.normalized_subset_abundance[:,i]
-                val = self._spectral_diversity(self.similarity.similarity, p, q, eff_no, self.backend)
+                val = self._spectral_diversity(self.similarity, p, q, eff_no, self.backend)
                 results.append(val)
             return self.backend.array(results)
 
