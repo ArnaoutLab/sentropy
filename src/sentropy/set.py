@@ -198,50 +198,28 @@ class Set:
         sqrt_p = backend.sqrt(p)
         outer_product = backend.outer(sqrt_p, sqrt_p)
         Z_p = backend.multiply(Z, outer_product)
+        eigenvalues = backend.eigvalsh(Z_p)
         
-        # 2. Compute Trace(Z_p^q) if q is integer > 1
-        # Check if q is effectively an integer
-        if q > 1 and backend.isclose(q, backend.round(q), atol=1e-9):
-            k = int(round(q))
-            # Compute Z_p^k
-            # For large k, repeated squaring is better, but matrix_power is standard
-            Z_p_k = backend.matrix_power(Z_p, k)
-            trace_val = backend.trace(Z_p_k)
-            
-            # Renyi Entropy H_q = 1/(1-q) * ln(trace)
-            # Vendi Score = exp(H_q) = trace^(1/(1-q))
+        # Filter non-zero eigenvalues for numerical stability
+        # Use a small tolerance
+        tol = 0
+        probs = eigenvalues[eigenvalues > tol]
+        
+        if q == 1:
+            # Shannon Entropy
+            # H = - sum(p * ln(p))
+            entropy = -backend.sum(backend.multiply(probs, backend.log(probs)))
             if eff_no:
-                # Return effective number: trace^(1/(1-q))
-                return backend.power(trace_val, 1.0 / (1.0 - q))
-            else:
-                # Return entropy: ln(trace) / (1-q)
-                return backend.log(trace_val) / (1.0 - q)
-                
+                return backend.exp(entropy)
+            return entropy
         else:
-            # Fallback to eigendecomposition for non-integers or q <= 1
-            # Eigenvalues of Z_p are real and non-negative (PSD)
-            eigenvalues = backend.eigvalsh(Z_p)
-            
-            # Filter non-zero eigenvalues for numerical stability
-            # Use a small tolerance
-            tol = 0
-            probs = eigenvalues[eigenvalues > tol]
-            
-            if q == 1:
-                # Shannon Entropy
-                # H = - sum(p * ln(p))
-                entropy = -backend.sum(backend.multiply(probs, backend.log(probs)))
-                if eff_no:
-                    return backend.exp(entropy)
-                return entropy
-            else:
-                # Renyi Entropy
-                # H_q = 1/(1-q) * ln(sum(p^q))
-                sum_pow = backend.sum(backend.power(probs, q))
-                entropy = backend.log(sum_pow) / (1.0 - q)
-                if eff_no:
-                    return backend.exp(entropy)
-                return entropy
+            # Renyi Entropy
+            # H_q = 1/(1-q) * ln(sum(p^q))
+            sum_pow = backend.sum(backend.power(probs, q))
+            entropy = backend.log(sum_pow) / (1.0 - q)
+            if eff_no:
+                return backend.exp(entropy)
+            return entropy
 
     def subset_diversity(
         self, q: float, m: str, eff_no: bool = True
