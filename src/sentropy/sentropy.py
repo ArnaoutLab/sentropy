@@ -68,32 +68,6 @@ def _normalize_counts(counts):
         return counts, list(range(counts.shape[1]))
 
 
-def _build_superset(
-    counts,
-    similarity,
-    symmetric,
-    sfargs,
-    chunk_size,
-    parallelize,
-    max_inflight_tasks,
-    backend,
-    device,
-    subsets_names,
-):
-    return Set(
-        counts,
-        similarity,
-        symmetric,
-        sfargs,
-        chunk_size,
-        parallelize,
-        max_inflight_tasks,
-        backend,
-        device,
-        subsets_names,
-    )
-
-
 # ----------------------------------------------------------------------
 # Result container
 # ----------------------------------------------------------------------
@@ -177,7 +151,7 @@ def sentropy_single_abundance(
     qs = atleast_1d(qs)
     ms = atleast_1d(ms)
 
-    superset = _build_superset(
+    superset = Set(
         counts,
         similarity,
         symmetric,
