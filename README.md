@@ -402,6 +402,9 @@ R1 using torch and GPU: tensor(0.6695, device='mps:0')
 R2 using torch and GPU: tensor(0.3750, device='mps:0')
 ```
 
+## Vendi score
+This package also computes Vendi scores, which is an alternative definition of similarity-sensitive diversity in addition to the Leinster-Cobbold-Reeve diversity framework. To compute Vendi scores, we simply pass `measure='vendi'` to the `sentropy` function.
+
 # More applications
 
 In [this preprint](https://arxiv.org/abs/2401.00102) of ours, we appled `sentropy` to various fields, including immunomics, metagenomics, medical imaging, and digital pathology. The code for each of these applications is in the following Jupyter notebooks. Please follow along with the paper:
