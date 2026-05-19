@@ -5,7 +5,7 @@
 [![Python version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11-blue)](https://www.python.org/downloads/release/python-380/)
 [![Tests](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml/badge.svg)](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml)
 
-[About](#about) | [Key terms](#key-terms) | [How to cite](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures, *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) | [Ordinariness](#ordinariness) | [Torch, GPU](#using-torch-and-the-gpu) | [More applications](#more-applications) | [Alternatives](#alternatives)
+[About](#about) | [Key terms](#key-terms) | [How to cite](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type S-entropy](#shannon-type-s-entropy) | [Multiple measures, *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) |[Relative S-entropy and Cross S-entropy](#relative-s-entropy-and-cross-s-entropy) | [Ordinariness](#ordinariness) | [Torch, GPU](#using-torch-and-the-gpu) | [Vendi score](#vendi-score) | [More applications](#more-applications) | [Alternatives](#alternatives)
 
 # About
 
@@ -262,7 +262,7 @@ Expected output:
 1  oranges          1        0.375035
 ```
 
-## Relative S-entropy and Cross S-entropy:
+## Relative S-entropy and Cross S-entropy
 
 Shannon-type relative entropy *without* similarity is called the Kullback-Leibler divergence and is used throughout machine learning (and elsewhere). `sentropy` lets us calculate the similarity-sensitive version by passing two `P` arguments:
 ```
