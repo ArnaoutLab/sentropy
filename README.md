@@ -421,4 +421,5 @@ To date, we know of no other python package that implements all the measures def
 
 
 # Release history
+Version 1.2.0: implemented the Vendi score.
 Version 1.1.0: implemented the similarity-sensitive cross-entropy.
