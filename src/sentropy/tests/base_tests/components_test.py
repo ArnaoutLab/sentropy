@@ -3,7 +3,7 @@ from pytest import mark
 
 from sentropy.set import Set
 from sentropy.components import Components
-from sentropy.abundance import make_abundance
+from sentropy.abundance import Abundance
 from sentropy.tests.base_tests.set_test import set_data
 from sentropy.tests.base_tests.similarity_test import similarity_array_3by3_1
 

@@ -1,7 +1,7 @@
 """Tests for diversity.set."""
 
 from dataclasses import dataclass, field
-from numpy import allclose, array, ndarray, identity, zeros, inf, maximum, log
+from numpy import allclose, array, ndarray, identity, zeros, inf, maximum, log, sum as np_sum
 from numpy.linalg import norm
 from pandas import DataFrame, concat
 from pandas.testing import assert_frame_equal
@@ -18,10 +18,11 @@ from sentropy.similarity import (
     SimilarityFromFunction,
 )
 from sentropy import Set
+from sentropy.backend import get_backend
 from sentropy.tests.base_tests.similarity_test import similarity_dataframe_3by3
 from sentropy.tests.base_tests.similarity_test import similarity_array_3by3_1
 
-MEASURES = (
+LCR = (
     "alpha",
     "rho",
     "beta",
@@ -314,7 +315,7 @@ def test_set(data, expected):
     assert isinstance(set.similarity, expected)
 
 
-@mark.parametrize("m", MEASURES)
+@mark.parametrize("m", LCR)
 @mark.parametrize("data", set_data)
 def test_set_diversity(data, m):
     set = Set(counts=data.counts, similarity=data.similarity)
@@ -333,7 +334,7 @@ def test_effno_argument_in_set_diversity():
     assert allclose(set_diversity_2, 1.38629)
 
 
-@mark.parametrize("m", MEASURES)
+@mark.parametrize("m", LCR)
 @mark.parametrize("data", set_data)
 def test_subset_diversity(data, m):
     superset = Set(counts=data.counts, similarity=data.similarity)
@@ -377,14 +378,14 @@ def test_subsets_to_dataframe(data):
     superset = Set(
         counts=data.counts, similarity=data.similarity, subsets_names=subsets_names
     )
-    subsets_df = superset.subsets_to_dataframe(data.viewpoint)
+    subsets_df = superset.subsets_to_dataframe(data.viewpoint, ms=LCR)
     assert_frame_equal(subsets_df, data.subset_results)
 
 
 @mark.parametrize("data", set_data)
 def test_metacommunities_to_dataframe(data):
     superset = Set(counts=data.counts, similarity=data.similarity)
-    set_df = superset.set_to_dataframe(q=data.viewpoint)
+    set_df = superset.set_to_dataframe(q=data.viewpoint, ms=LCR)
     assert_frame_equal(set_df, data.set_results)
 
 
@@ -394,7 +395,7 @@ def test_to_dataframe(data):
         counts=data.counts, similarity=data.similarity, subsets_names=subsets_names
     )
     expected = concat([data.set_results, data.subset_results]).reset_index(drop=True)
-    assert_frame_equal(superset.to_dataframe(qs=[data.viewpoint]), expected)
+    assert_frame_equal(superset.to_dataframe(qs=[data.viewpoint], ms=LCR), expected)
 
 
 @mark.parametrize("data", set_data)
@@ -458,7 +459,7 @@ def test_effective_counts():
     ]:
         sim[i, j] = sim[j, i] = val
     m = Set(counts, sim, subsets_names=["A", "B"])
-    df = m.to_dataframe(qs=viewpoints)
+    df = m.to_dataframe(qs=viewpoints, ms=LCR)
     df.set_index(["level", "viewpoint"], inplace=True)
     for col in first_df:
         for ind in first_df.index:
@@ -492,7 +493,7 @@ def test_symmetric_similarity_function():
         symmetric=True,
     )
 
-    assert set1.to_dataframe(qs=[0, 1, inf]).equals(set2.to_dataframe(qs=[0, 1, inf]))
+    assert set1.to_dataframe(qs=[0, 1, inf], ms=LCR).equals(set2.to_dataframe(qs=[0, 1, inf], ms=LCR))
 
 
 def test_property1():
@@ -585,7 +586,7 @@ def test_property2():
     counts = DataFrame({"Community 2b": [1, 1, 1, 1, 1, 1, 1, 1, 0]}, index=labels_2b)
     viewpoints = [0, 1, 2, 3, 4, 5, inf]
     superset = Set(counts, similarity=S_2b_df)
-    df1 = superset.to_dataframe(qs=viewpoints).set_index(["level", "viewpoint"])
+    df1 = superset.to_dataframe(qs=viewpoints, ms=LCR).set_index(["level", "viewpoint"])
     counts = counts[counts["Community 2b"] > 0]
     S_2b = S_2b[:-1, :-1]
     S_2b_df = DataFrame(
@@ -595,7 +596,7 @@ def test_property2():
     superset = Set(
         counts, similarity="S_2b_df_after_removing_zero_abundance_species.csv"
     )
-    df2 = superset.to_dataframe(qs=viewpoints).set_index(["level", "viewpoint"])
+    df2 = superset.to_dataframe(qs=viewpoints, ms=LCR).set_index(["level", "viewpoint"])
     assert allclose(df1.to_numpy(), df2.to_numpy())
 
 
@@ -663,3 +664,12 @@ def test_figure_1():
         assert naive_alpha <= 4.0
         assert before_alpha <= 3.0
         assert (nonnaive_alpha - before_alpha) < 0.2
+
+def test_spectral_diversity():
+    p = array([[1],[2],[3]])/6
+    superset = Set(p, None)
+    backend = get_backend()
+    VE_1 = superset._spectral_diversity(superset.similarity, p, 1, eff_no=False, backend=backend)
+    assert allclose(VE_1, -np_sum(p*log(p)))
+    VE_2 = superset._spectral_diversity(superset.similarity, p, -1, eff_no=False, backend=backend)
+    assert allclose(VE_2, (1/2)*log(np_sum(1/p)))

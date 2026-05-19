@@ -258,6 +258,34 @@ def test_backend_equivalence_of_divide():
     y = np.array([3, 0, 2, 0, 1])
     assert np.allclose(numpy_bkd.divide(x, y), torch_bkd.divide(x, y))
 
+def test_backend_equivalence_of_sqrt():
+    x = np.array([[1,2],[3,4]])
+    assert np.allclose(numpy_bkd.sqrt(x), torch_bkd.sqrt(x))
+
+def test_backend_equivalence_of_exp():
+    x = np.array([[3,4],[-1,-2.5]])
+    assert np.allclose(numpy_bkd.exp(x), torch_bkd.exp(x))
+
+def test_backend_equivalence_of_matrix_power():
+    x = np.array([[1,2],[3,4]])
+    assert np.allclose(numpy_bkd.matrix_power(x,2), [[7,10],[15,22]])
+    assert np.allclose(numpy_bkd.matrix_power(x,2), torch_bkd.matrix_power(x,2))
+
+def test_backend_equivalence_of_trace():
+    x = np.array([[1,2],[3,4]])
+    assert np.allclose(numpy_bkd.trace(x), 5)
+    assert np.allclose(numpy_bkd.trace(x), torch_bkd.trace(x))
+
+def test_backend_equivalence_of_eigvalsh():
+    x = np.array([[2,0],[0,4]])
+    assert np.allclose(numpy_bkd.eigvalsh(x), [2,4])
+    assert np.allclose(numpy_bkd.eigvalsh(x), torch_bkd.eigvalsh(x))
+
+def test_backend_equivalence_of_outer():
+    a = [1,2]
+    b = [3,4]
+    assert np.allclose(numpy_bkd.outer(a,b), [[3,4],[6,8]])
+    assert np.allclose(numpy_bkd.outer(a,b), torch_bkd.outer(a,b))
 
 def test_array_if_needed():
     x = torch.tensor([1, 2, 3])

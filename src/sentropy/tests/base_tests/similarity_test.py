@@ -36,7 +36,7 @@ from sentropy.similarity import (
 )
 from sentropy import Set
 from sentropy.exceptions import InvalidArgumentError
-from sentropy.abundance import make_abundance
+from sentropy.abundance import Abundance
 
 
 @fixture
@@ -239,7 +239,7 @@ def test_nonsquare_from_file(make_similarity_from_file):
     sim = make_similarity_from_file(similarity_class=IntersetSimilarityFromFile)
     counts = array([[1], [1], [1]])
     with raises(InvalidArgumentError):
-        Set(counts, sim).to_dataframe(q=0)
+        Set(counts, sim).to_dataframe(qs=[0])
 
 
 def test_interset_from_file(make_similarity_from_file):
@@ -249,7 +249,7 @@ def test_interset_from_file(make_similarity_from_file):
         similarity_class=IntersetSimilarityFromFile,
     )
     counts = array([[50], [25], [25]])
-    abundance_object = make_abundance(counts, None, False)
+    abundance_object = Abundance(counts, None)
     # fmt: off
     expected = array([[0.65, 0.55, 0.35,
                       0.65, 0.55, 0.35,
@@ -263,7 +263,7 @@ def test_interset_from_file(make_similarity_from_file):
                       0.125, 0.3, 0.05,
                        0.125, 0.3, 0.05]]).T
     # fmt: on
-    result = sim @ abundance_object
+    result = sim.weighted_abundances(abundance_object.normalized_subset_abundance)
     assert allclose(result, expected)
     expected_similarity_matrix = read_csv(sim.path).to_numpy()
     similarities_out = empty_like(expected_similarity_matrix)
@@ -856,8 +856,7 @@ def test_computation_count(
 
     sim.weighted_abundances = count_decorator(sim.weighted_abundances, callcounter, key)
     m = Set(abundances, sim)
-    m.set_diversity(q=1, m="alpha")
-    m.to_dataframe(qs=[0])
+    m.to_dataframe(qs=[0], ms=['alpha'])
 
     assert callcounter[key] == expected_count
 
@@ -883,9 +882,6 @@ def test_interset_similarity(X, Y, abundance, expected):
     sim = IntersetSimilarityFromFunction(similarity_from_distance, X, Y)
     result = sim.weighted_abundances(abundance)
     assert allclose(result, expected)
-    abundance_obj = make_abundance(abundance, None, False)
-    result = sim @ abundance_obj
-    assert allclose(result, expected)
 
 
 def test_interset_diversity_forbidden():
@@ -905,7 +901,7 @@ def test_matmul():
         index=["ladybug", "fish"],
     )
     similarity = SimilarityFromDataFrame(similarity_df)
-    abundance = make_abundance(array([[5000], [2000], [3000]]), False)
+    abundance = Abundance(array([[5000], [2000], [3000]]), False)
     expected = array([[0.545], [0.248]])
     relative_abundance = similarity @ abundance
     assert allclose(expected, relative_abundance)

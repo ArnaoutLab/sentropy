@@ -334,4 +334,4 @@ def test_interset_diversity_forbidden():
     )
     counts = array([[1, 1, 1, 1, 1]])
     with raises(InvalidArgumentError):
-        Set(counts, sim).to_dataframe(viewpoint=0)
+        Set(counts, sim).to_dataframe(qs=[0])

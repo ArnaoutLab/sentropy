@@ -47,6 +47,7 @@ MEASURES = (
     "beta_hat",
     "sce", #similarity-sensitive cross-entropy
     "sre", #similarity-sensitive relative entropy
+    "vendi", #vendi score
 )
 
 
@@ -65,32 +66,6 @@ def _normalize_counts(counts):
         if counts.ndim == 1:
             counts = counts.reshape(-1, 1)
         return counts, list(range(counts.shape[1]))
-
-
-def _build_superset(
-    counts,
-    similarity,
-    symmetric,
-    sfargs,
-    chunk_size,
-    parallelize,
-    max_inflight_tasks,
-    backend,
-    device,
-    subsets_names,
-):
-    return Set(
-        counts,
-        similarity,
-        symmetric,
-        sfargs,
-        chunk_size,
-        parallelize,
-        max_inflight_tasks,
-        backend,
-        device,
-        subsets_names,
-    )
 
 
 # ----------------------------------------------------------------------
@@ -176,7 +151,7 @@ def sentropy_single_abundance(
     qs = atleast_1d(qs)
     ms = atleast_1d(ms)
 
-    superset = _build_superset(
+    superset = Set(
         counts,
         similarity,
         symmetric,

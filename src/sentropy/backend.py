@@ -12,6 +12,7 @@ from typing import Optional
 import numpy as _np
 import torch as _torch
 import scipy.sparse
+import scipy as _scipy
 
 sparse_classes = [
     scipy.sparse.bsr_array,
@@ -119,6 +120,27 @@ class BaseBackend:  # pragma: no cover
         raise NotImplementedError
 
     def divide(self, x, y):
+        raise NotImplementedError
+
+    def sqrt(self, x):
+        raise NotImplementedError
+
+    def exp(self, x):
+        raise NotImplementedError
+
+    def matrix_power(self, x, n):
+        raise NotImplementedError
+
+    def trace(self, x):
+        raise NotImplementedError
+
+    def eigvalsh(self, x):
+        raise NotImplementedError
+
+    def round(self, x):
+        raise NotImplementedError
+
+    def outer(self, a, b):
         raise NotImplementedError
 
 
@@ -233,6 +255,27 @@ class NumpyBackend(BaseBackend):
 
     def divide(self, x, y):
         return _np.divide(x, y, out=_np.zeros(y.shape), where=y != 0)
+
+    def sqrt(self, x):
+        return _np.sqrt(x)
+
+    def exp(self, x):
+        return _np.exp(x)
+
+    def matrix_power(self, x, n):
+        return _np.linalg.matrix_power(x, n)
+
+    def trace(self, x):
+        return _np.trace(x)
+
+    def eigvalsh(self, x):
+        return _np.linalg.eigvalsh(x)
+
+    def round(self, x):
+        return _np.round(x)
+
+    def outer(self, a, b):
+        return _np.outer(a, b)
 
 
 class TorchBackend(BaseBackend):
@@ -459,6 +502,47 @@ class TorchBackend(BaseBackend):
         out = self.torch.where(y != 0, x / y, self.torch.zeros_like(x))
         return out
 
+    # In backend.py, inside class TorchBackend
+    def sqrt(self, x):
+        # Ensure x is a tensor on the correct device
+        if not isinstance(x, self.torch.Tensor):
+            x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
+        return self.torch.sqrt(x)
+
+    def exp(self, x):
+        if not isinstance(x, self.torch.Tensor):
+            x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
+        return self.torch.exp(x)
+
+    def matrix_power(self, x, n):
+        if not isinstance(x, self.torch.Tensor):
+            x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
+        return self.torch.linalg.matrix_power(x, n)
+
+    def trace(self, x):
+        if not isinstance(x, self.torch.Tensor):
+            x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
+        return self.torch.trace(x)
+
+    def eigvalsh(self, x):
+        if not isinstance(x, self.torch.Tensor):
+            x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
+        return self.torch.linalg.eigvalsh(x)
+
+    def round(self, x):
+        if not isinstance(x, self.torch.Tensor):
+            x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
+        return self.torch.round(x)
+
+    def outer(self, a, b):
+        # Ensure inputs are tensors on the correct device
+        if not isinstance(a, self.torch.Tensor):
+            a = self.torch.as_tensor(a, dtype=self.dtype, device=self.device)
+        if not isinstance(b, self.torch.Tensor):
+            b = self.torch.as_tensor(b, dtype=self.dtype, device=self.device)
+        
+        # torch.outer handles the device placement automatically
+        return self.torch.outer(a, b)
 
 def get_backend(name: str = "numpy", device: Optional[str] = None) -> BaseBackend:
     name = (name or "numpy").lower()

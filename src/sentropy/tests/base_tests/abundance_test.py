@@ -6,19 +6,7 @@ from pandas import DataFrame
 from pytest import fixture, mark, raises
 from scipy.sparse import coo_array  # type: ignore[import]
 
-from sentropy.abundance import (
-    AbundanceForDiversity,
-    make_abundance,
-)
-
-
-def test_sparse():
-    sparse_abundance = coo_array(
-        (array([4, 5, 7, 9]), (array([0, 3, 1, 0]), array([0, 3, 1, 2]))),
-        shape=(4, 4),
-    )
-    with raises(TypeError):
-        make_abundance(sparse_abundance)
+from sentropy.abundance import Abundance
 
 
 def counts_array_3by2():
@@ -200,18 +188,6 @@ class AbundanceOneSubset:
 
 
 @mark.parametrize(
-    "counts, expected",
-    [
-        (counts_array_3by2(), AbundanceForDiversity),
-        (counts_dataframe_3by2, AbundanceForDiversity),
-    ],
-)
-def test_make_abundance(counts, expected):
-    abundance = make_abundance(counts=counts)
-    assert isinstance(abundance, expected)
-
-
-@mark.parametrize(
     "test_case",
     [
         AbundanceExclusiveSpecies(),
@@ -223,25 +199,25 @@ def test_make_abundance(counts, expected):
 )
 class TestAbundance:
     def test_make_subset_abundance(self, test_case):
-        abundance = make_abundance(counts=test_case.counts)
+        abundance = Abundance(counts=test_case.counts)
         assert allclose(
             abundance.subset_abundance,
             test_case.subset_abundance,
         )
 
     def test_set_abundance(self, test_case):
-        abundance = make_abundance(counts=test_case.counts)
+        abundance = Abundance(counts=test_case.counts)
         assert allclose(abundance.set_abundance, test_case.set_abundance)
 
     def test_subset_normalizing_constants(self, test_case):
-        abundance = make_abundance(counts=test_case.counts)
+        abundance = Abundance(counts=test_case.counts)
         assert allclose(
             abundance.subset_normalizing_constants,
             test_case.subset_normalizing_constants,
         )
 
     def test_normalized_subset_abundance(self, test_case):
-        abundance = make_abundance(counts=test_case.counts)
+        abundance = Abundance(counts=test_case.counts)
         assert allclose(
             abundance.normalized_subset_abundance,
             test_case.normalized_subset_abundance,
