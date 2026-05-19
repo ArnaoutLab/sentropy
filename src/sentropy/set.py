@@ -6,7 +6,7 @@ from pandas import DataFrame, Index, Series, concat
 from numpy import array, atleast_1d, broadcast_to, zeros as np_zeros, ndarray
 from sentropy.exceptions import InvalidArgumentError
 
-from sentropy.abundance import make_abundance
+from sentropy.abundance import Abundance
 from sentropy.similarity import (
     Similarity,
     SimilarityFromArray,
@@ -89,7 +89,7 @@ class Set:
         # store backend instance
         self.backend = get_backend(backend, device)
         self.counts = counts
-        self.abundance = make_abundance(
+        self.abundance = Abundance(
             counts=counts, subsets_names=subsets_names, backend=self.backend
         )
         if similarity is None:
