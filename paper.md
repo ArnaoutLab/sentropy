@@ -13,33 +13,33 @@ tags:
   - data science
   - diversity
 authors:
-  - name: Phuc Nguyen, PhD
+  - name: Phuc Nguyen PhD
     orcid: 0000-0001-9993-8434
     affiliation: 1
-  - name: Rohit Arora, PhD
+  - name: Rohit Arora PhD
     orcid: 0000-0001-7128-6403
     affiliation: 1
-  - name: Elliot D. Hill, MSc
+  - name: Elliot D. Hill MSc
     orcid: 0009-0004-1987-3749
     affiliation: "1,2"
-  - name: Jasper Braun, PhD
+  - name: Jasper Braun PhD
     orcid: 0000-0003-1250-4399
     affiliation: 1
   - name: Alexandra Morgan
     orcid: 0000-0001-7787-0547
     affiliation: 1
-  - name: Liza M. Quintana, MD
+  - name: Liza M. Quintana MD
     orcid: 0000-0002-5043-7425
     affiliation: 1
   - name: Gabrielle Mazzoni
     affiliation: "1,3"
-  - name: Ghee Rye Lee, MMSc, MM
+  - name: Ghee Rye Lee MMSc MM
     orcid: 0000-0001-6614-0223
     affiliation: "1,4"
-  - name: Rima Arnaout, MD
+  - name: Rima Arnaout MD
     orcid: 0000-0002-7134-0040
     affiliation: 5
-  - name: Ramy Arnaout, MD, DPhil
+  - name: Ramy Arnaout MD DPhil
     orcid: 0000-0001-6955-9310
     affiliation: "1,6,7"
 affiliations:
@@ -53,7 +53,7 @@ affiliations:
   index: 4
 - name: Department of Medicine, Bakar Institute for Computational Health Sciences, and Center for Intelligent Imaging, University of California San Francisco, San Francisco, CA 94143, USA
   index: 5
-- name: Division of Clinical Informatics, Beth Israel Deaconess Medical Center, Boston, MA 02215, United States
+- name: Division of Clinical Informatics, Beth Israel Deaconess Medical Center, Boston, MA 02215, USA
   index: 6
 - name: Harvard Medical School, Boston, MA 02115, USA
   index: 7
