@@ -32,16 +32,16 @@ authors:
     orcid: 0000-0002-5043-7425
     affiliation: 1
   - name: Gabrielle Mazzoni
-    affiliation: "1, 4"
+    affiliation: "1,4"
   - name: Ghee Rye Lee, MMSc, MM
     orcid: 0000-0001-6614-0223
-    affiliation: "1, 5"
+    affiliation: "1,5"
   - name: Rima Arnaout, MD
     orcid: 0000-0002-7134-0040
     affiliation: 6
   - name: Ramy Arnaout, MD, DPhil
     orcid: 0000-0001-6955-9310
-    affiliation: "1, 7, 8"
+    affiliation: "1,7,8"
 affiliations:
 - name: Department of Pathology, Beth Israel Deaconess Medical Center, Boston, MA 02215, United States
   index: 1
