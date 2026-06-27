@@ -13,33 +13,33 @@ tags:
   - data science
   - diversity
 authors:
-  - Phuc Nguyen, PhD
+  - name: Phuc Nguyen, PhD
     orcid: 0000-0001-9993-8434
     affiliation: 1
-  - Rohit Arora, PhD
+  - name: Rohit Arora, PhD
     orcid: 0000-0001-7128-6403
     affiliation: 1
-  - Elliot D. Hill, MSc
+  - name: Elliot D. Hill, MSc
   - orcid: 0009-0004-1987-3749
     affiliation: "1, 2, 3"
-  - Jasper Braun, PhD
+  - name: Jasper Braun, PhD
     orcid: 0000-0003-1250-4399
     affiliation: 1
-  - Alexandra Morgan
+  - name: Alexandra Morgan
     orcid: 0000-0001-7787-0547
     affiliation: 1
-  - Liza M. Quintana, MD
+  - name: Liza M. Quintana, MD
     orcid: 0000-0002-5043-7425
     affiliation: 1
-  - Gabrielle Mazzoni
+  - name: Gabrielle Mazzoni
     affiliation: "1, 4"
-  - Ghee Rye Lee, MMSc, MM
+  - name: Ghee Rye Lee, MMSc, MM
     orcid: 0000-0001-6614-0223
     affiliation: "1, 5"
-  - Rima Arnaout, MD
+  - name: Rima Arnaout, MD
     orcid: 0000-0002-7134-0040
     affiliation: 6
-  - Ramy Arnaout, MD, DPhil
+  - name: Ramy Arnaout, MD, DPhil
     orcid: 0000-0001-6955-9310
     affiliation: "1, 7, 8"
 affiliations:
