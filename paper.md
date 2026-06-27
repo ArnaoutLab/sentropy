@@ -19,6 +19,9 @@ authors:
   - name: Rohit Arora, PhD
     orcid: 0000-0001-7128-6403
     affiliation: 1
+  - name: Elliot D. Hill, MSc
+    orcid: 0009-0004-1987-3749
+    affiliation: "1,2"
   - name: Jasper Braun, PhD
     orcid: 0000-0003-1250-4399
     affiliation: 1
