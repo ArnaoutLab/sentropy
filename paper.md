@@ -32,33 +32,31 @@ authors:
     orcid: 0000-0002-5043-7425
     affiliation: 1
   - name: Gabrielle Mazzoni
-    affiliation: "1,4"
+    affiliation: "1,3"
   - name: Ghee Rye Lee, MMSc, MM
     orcid: 0000-0001-6614-0223
-    affiliation: "1,5"
+    affiliation: "1,4"
   - name: Rima Arnaout, MD
     orcid: 0000-0002-7134-0040
-    affiliation: 6
+    affiliation: 5
   - name: Ramy Arnaout, MD, DPhil
     orcid: 0000-0001-6955-9310
-    affiliation: "1,7,8"
+    affiliation: "1,6,7"
 affiliations:
 - name: Department of Pathology, Beth Israel Deaconess Medical Center, Boston, MA 02215, United States
   index: 1
-- name: Department of Biostatistics and Bioinformatics, Duke University School of Medicine, Durham, NC 27710, USA
+- name: Department of Biostatistics and Bioinformatics and Duke AI Health, Duke University School of Medicine, Durham, NC 27710, USA
   index: 2
-- name: Duke AI Health, Duke University School of Medicine, Durham, NC 27710, USA
-  index: 3
 - name: University of Virginia School of Medicine, Charlottesville, VA 22903, USA
-  index: 4
+  index: 3
 - name: Department of Surgery, Duke University School of Medicine, Durham, NC 27710, USA
-  index: 5
+  index: 4
 - name: Department of Medicine, Bakar Institute for Computational Health Sciences, and Center for Intelligent Imaging, University of California San Francisco, San Francisco, CA 94143, USA
-  index: 6
+  index: 5
 - name: Division of Clinical Informatics, Beth Israel Deaconess Medical Center, Boston, MA 02215, United States
-  index: 7
+  index: 6
 - name: Harvard Medical School, Boston, MA 02115, USA
-  index: 8
+  index: 7
 date: 26 June 2026
 bibliography: paper.bib
 ---
