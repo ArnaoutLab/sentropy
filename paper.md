@@ -89,3 +89,5 @@ Since its initial release, `sentropy` (originally called *greylock*) has been ad
 
 # AI usage disclosure
 The authors used GitHub Copilot for inline code suggestions. The authors reviewed and validated all AI-suggested edits and bear full responsibility for the final work.
+
+# References
