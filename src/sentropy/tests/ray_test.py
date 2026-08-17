@@ -23,7 +23,6 @@ from sentropy.similarity import (
 from sentropy.ray import (
     SimilarityFromRayFunction,
     SimilarityFromSymmetricRayFunction,
-    IntersetSimilarityFromRayFunction,
 )
 import sentropy.tests.mockray as mockray
 from sentropy.tests.base_tests.similarity_test import similarity_from_distance
@@ -301,37 +300,3 @@ def test_similarities_out():
         computed_similarity_matrices.append(similarities_out)
     for matrix in computed_similarity_matrices[1:]:
         assert allclose(computed_similarity_matrices[0], matrix)
-
-
-@mark.parametrize(
-    "X, Y, abundance, expected",
-    [
-        [
-            array([[2, 1, 5], [4, 3, 2]]),
-            array([[2, 0, 5], [4, 2, 1], [2, 0, 5]]),
-            array([[0.5, 0.1], [0.25, 0.1], [0.25, 0.8]]),
-            array([[0.27846671, 0.33211435], [0.06766633, 0.03257625]]),
-        ],
-        [
-            array([[1, 0, 0]]),
-            array([[1, 0, 0], [0, 1, 0], [0, 1, 1]]),
-            array([[1.0, 0.8, 0.0], [0.0, 0.1, 0.5], [0.0, 0.1, 0.5]]),
-            array([[1.0, 0.84200379, 0.21001897]]),
-        ],
-    ],
-)
-def test_interset_similarity(X, Y, abundance, expected):
-    sim = IntersetSimilarityFromRayFunction(similarity_from_distance, X, Y)
-    result = sim.weighted_abundances(abundance)
-    assert allclose(result, expected)
-
-
-def test_interset_diversity_forbidden():
-    sim = IntersetSimilarityFromRayFunction(
-        similarity_from_distance,
-        X=array([[1, 0, 0]]),
-        Y=array([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]]),
-    )
-    counts = array([[1, 1, 1, 1, 1]])
-    with raises(InvalidArgumentError):
-        Set(counts, sim).to_dataframe(qs=[0])

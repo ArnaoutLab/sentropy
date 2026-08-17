@@ -153,33 +153,6 @@ class SimilarityFromRayFunction(SimilarityFromFunction):
         return self.backend.concatenate(weighted_similarity_chunks)
 
 
-class IntersetSimilarityFromRayFunction(SimilarityFromRayFunction):
-    def __init__(
-        self,
-        func: Callable,
-        X: Union[ndarray, DataFrame],
-        Y: Union[ndarray, DataFrame],
-        chunk_size: int = 100,
-        max_inflight_tasks=64,
-        similarities_out: Union[ndarray, None] = None,
-        backend=None,
-    ):
-        super().__init__(
-            func, X, chunk_size, max_inflight_tasks, similarities_out, backend
-        )
-        self.Y = Y
-
-    def get_Y(self):
-        return self.Y
-
-    def self_similar_weighted_abundances(
-        self, relative_abundance: Union[ndarray, Tensor]
-    ):
-        raise InvalidArgumentError(
-            "Inappropriate similarity class for diversity measures"
-        )
-
-
 class SimilarityFromSymmetricRayFunction(SimilarityFromSymmetricFunction):
     """Parallelized symmetric-function similarity via Ray."""
 

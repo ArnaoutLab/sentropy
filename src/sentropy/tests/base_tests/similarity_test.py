@@ -29,10 +29,8 @@ from sentropy.similarity import (
     SimilarityFromArray,
     SimilarityFromDataFrame,
     SimilarityFromFile,
-    IntersetSimilarityFromFile,
     SimilarityFromFunction,
     SimilarityFromSymmetricFunction,
-    IntersetSimilarityFromFunction,
 )
 from sentropy import Set
 from sentropy.exceptions import InvalidArgumentError
@@ -233,46 +231,6 @@ def test_weighted_abundances(
     actual = similarity.weighted_abundances(relative_abundance)
     assert allclose(expected_similarity_matrix, similarities_out)
     assert allclose(actual, expected)
-
-
-def test_nonsquare_from_file(make_similarity_from_file):
-    sim = make_similarity_from_file(similarity_class=IntersetSimilarityFromFile)
-    counts = array([[1], [1], [1]])
-    with raises(InvalidArgumentError):
-        Set(counts, sim).to_dataframe(qs=[0])
-
-
-def test_interset_from_file(make_similarity_from_file):
-    sim = make_similarity_from_file(
-        filecontent=similarities_filecontents_32by3_csv,
-        chunk_size=4,
-        similarity_class=IntersetSimilarityFromFile,
-    )
-    counts = array([[50], [25], [25]])
-    abundance_object = Abundance(counts, None)
-    # fmt: off
-    expected = array([[0.65, 0.55, 0.35,
-                      0.65, 0.55, 0.35,
-                      0.65, 0.35,
-                      0.65, 0.55, 0.35,
-                      0.65, 0.55, 0.35,
-                      0.65, 0.55, 0.35,
-                      0.65, 0.55, 0.35,
-                      0.125, 0.3, 0.05,
-                      0.125, 0.3, 0.05,
-                      0.125, 0.3, 0.05,
-                       0.125, 0.3, 0.05]]).T
-    # fmt: on
-    result = sim.weighted_abundances(abundance_object.normalized_subset_abundance)
-    assert allclose(result, expected)
-    expected_similarity_matrix = read_csv(sim.path).to_numpy()
-    similarities_out = empty_like(expected_similarity_matrix)
-    sim.similarities_out = similarities_out
-    result = sim.weighted_abundances(
-        abundance_object.normalized_subset_abundance,
-    )
-    assert allclose(result, expected)
-    assert allclose(expected_similarity_matrix, similarities_out)
 
 
 @mark.parametrize(
@@ -859,40 +817,6 @@ def test_computation_count(
     m.to_dataframe(qs=[0], ms=['alpha'])
 
     assert callcounter[key] == expected_count
-
-
-@mark.parametrize(
-    "X, Y, abundance, expected",
-    [
-        [
-            array([[2, 1, 5], [4, 3, 2]]),
-            array([[2, 0, 5], [4, 2, 1], [2, 0, 5]]),
-            array([[0.5, 0.1], [0.25, 0.1], [0.25, 0.8]]),
-            array([[0.27846671, 0.33211435], [0.06766633, 0.03257625]]),
-        ],
-        [
-            array([[1, 0, 0]]),
-            array([[1, 0, 0], [0, 1, 0], [0, 1, 1]]),
-            array([[1.0, 0.8, 0.0], [0.0, 0.1, 0.5], [0.0, 0.1, 0.5]]),
-            array([[1.0, 0.84200379, 0.21001897]]),
-        ],
-    ],
-)
-def test_interset_similarity(X, Y, abundance, expected):
-    sim = IntersetSimilarityFromFunction(similarity_from_distance, X, Y)
-    result = sim.weighted_abundances(abundance)
-    assert allclose(result, expected)
-
-
-def test_interset_diversity_forbidden():
-    sim = IntersetSimilarityFromFunction(
-        similarity_from_distance,
-        X=array([[1, 0, 0]]),
-        Y=array([[0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0]]),
-    )
-    counts = array([[1, 1, 1, 1, 1]])
-    with raises(InvalidArgumentError):
-        Set(counts, sim).to_dataframe(qs=[0])
 
 
 def test_matmul():

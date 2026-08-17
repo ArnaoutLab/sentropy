@@ -133,39 +133,6 @@ class SimilarityFromFile(Similarity):
         return True
 
 
-class IntersetSimilarityFromFile(SimilarityFromFile):
-    def weighted_abundances(self, relative_abundance):
-        weighted_abundance_chunks = []
-        with read_csv(
-            self.path,
-            chunksize=self.chunk_size,
-            sep=None,
-            engine="python",
-            dtype=float,
-        ) as similarity_matrix_chunks:
-            for j, chunk in enumerate(similarity_matrix_chunks):
-                chunk_as_numpy = chunk.to_numpy()
-                if self.similarities_out is not None:
-                    self.similarities_out[
-                        j * self.chunk_size : (j + 1) * self.chunk_size, :
-                    ] = chunk_as_numpy
-                chunk_backend = self.backend.asarray(chunk_as_numpy)
-                weighted_abundance_chunks.append(
-                    self.backend.matmul(chunk_backend, relative_abundance)
-                )
-        # concatenate using backend if possible
-        return (
-            self.backend.concatenate(weighted_abundance_chunks, axis=0)
-            if hasattr(self.backend, "concatenate")
-            else _np.concatenate(weighted_abundance_chunks, axis=0)
-        )
-
-    def self_similar_weighted_abundances(self, relative_abundance):
-        raise InvalidArgumentError(
-            "Inappropriate similarity class for diversity measures"
-        )
-
-
 class SimilarityFromSymmetricFunction(Similarity):
     def __init__(
         self,
@@ -318,25 +285,3 @@ class SimilarityFromFunction(SimilarityFromSymmetricFunction):
             return chunk_index, result, similarities_chunk
         else:
             return chunk_index, result, None
-
-
-class IntersetSimilarityFromFunction(SimilarityFromFunction):
-    def __init__(
-        self,
-        func: Callable,
-        X: Union[ndarray, DataFrame],
-        Y: Union[ndarray, DataFrame],
-        chunk_size: int = 100,
-        similarities_out: Union[ndarray, None] = None,
-        backend=None,
-    ):
-        super().__init__(func, X, chunk_size, similarities_out, backend)
-        self.Y = Y
-
-    def get_Y(self):
-        return self.Y
-
-    def self_similar_weighted_abundances(self, relative_abundance):
-        raise InvalidArgumentError(
-            "Inappropriate similarity class for diversity measures"
-        )
