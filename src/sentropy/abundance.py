@@ -16,6 +16,36 @@ from pandas import DataFrame
 from sentropy.backend import get_backend, BaseBackend
 from sentropy.similarity import Similarity
 
+def joint_ordinariness(P: "Abundance", Q: "Abundance", similarity: Similarity):
+    """Compute (set, subset, normalized_subset) ordinariness for two
+    Abundance objects that share the same similarity, in a single pass.
+
+    Equivalent to `similarity @ P` and `similarity @ Q` computed
+    separately, but evaluates the (possibly expensive) similarity matrix
+    only once by concatenating P's and Q's abundance vectors into one
+    array before the matmul — the same trick `_premultiply_batched` uses
+    to fold a single Abundance's set/subset/normalized vectors together.
+    """
+    backend = P.backend
+
+    def _unify(a: "Abundance"):
+        return backend.concatenate(
+            (a.set_abundance, a.subset_abundance, a.normalized_subset_abundance),
+            axis=1,
+        )
+
+    combined = backend.concatenate((_unify(P), _unify(Q)), axis=1)
+    all_ord = similarity.self_similar_weighted_abundances(combined)
+
+    wP = 1 + 2 * P.num_subsets
+    wQ = 1 + 2 * Q.num_subsets
+    P_block, Q_block = all_ord[:, :wP], all_ord[:, wP : wP + wQ]
+
+    def _split(block, n):
+        return block[:, [0]], block[:, 1 : 1 + n], block[:, 1 + n :]
+
+    return _split(P_block, P.num_subsets), _split(Q_block, Q.num_subsets)
+
 
 class Abundance:
     """Relative species abundances in (meta-/sub-) communities,

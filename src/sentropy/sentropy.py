@@ -15,6 +15,9 @@ from numpy import (
 )
 from pandas import DataFrame
 
+from sentropy.abundance import Abundance, joint_ordinariness
+from sentropy.backend import get_backend
+
 from sentropy.similarity import (
     SimilarityIdentity,
     SimilarityFromArray,
@@ -28,7 +31,7 @@ from sentropy.ray import (
     SimilarityFromRayFunction,
 )
 
-from sentropy.set import Set
+from sentropy.set import Set, build_similarity
 from sentropy.powermean import power_mean
 
 # ----------------------------------------------------------------------
@@ -193,54 +196,6 @@ def _compute_srd_from_ordinarinesses(P, P_ord, Q_ord, q, atol, backend):
     return backend.prod(backend.power(ratio, P))
 
 
-def _compute_sre(
-    P_superset,
-    Q_superset,
-    q,
-    level,
-    eff_no,
-    backend,
-):
-    P_set_ab = P_superset.abundance.set_abundance
-    Q_set_ab = Q_superset.abundance.set_abundance
-
-    P_set_ord = P_superset.components.set_ordinariness
-    Q_set_ord = Q_superset.components.set_ordinariness
-
-    P_norm_ab = P_superset.abundance.normalized_subset_abundance
-    Q_norm_ord = Q_superset.components.normalized_subset_ordinariness
-
-    min_count = min(1 / P_set_ab.sum(), 1e-9)
-    backend = P_superset.backend
-
-    results = {}
-
-    if level in ("both", "overall"):
-        val = _compute_srd_from_ordinarinesses(P_set_ab, P_set_ord, Q_set_ord, q, min_count, backend)
-        results["overall"] = backend.log(val) if not eff_no else val
-
-    if level in ("both", "subset"):
-        nP, nQ = P_norm_ab.shape[1], Q_norm_ord.shape[1]
-        mat = backend.zeros((nP, nQ))
-
-        for i in range(nP):
-            for j in range(nQ):
-                mat[i, j] = _compute_srd_from_ordinarinesses(
-                    P_norm_ab[:, i],
-                    P_superset.components.normalized_subset_ordinariness[:, i],
-                    Q_norm_ord[:, j],
-                    q,
-                    min_count,
-                    backend,
-                )
-
-        if not eff_no:
-            mat = backend.log(mat)
-
-        results["subset"] = mat
-
-    return results
-
 def _compute_scd_from_ordinarinesses(P, Q_ord, q, atol, backend):
     """Compute similarity-sensitive cross-diversity from P abundance and Q ordinariness.
     
@@ -273,63 +228,63 @@ def _compute_scd_from_ordinarinesses(P, Q_ord, q, atol, backend):
         )
     return backend.prod(backend.power(inv_Q_ord, P))
 
-
-def _compute_sce(
-    P_superset,
-    Q_superset,
-    q,
-    level,
-    eff_no,
-    backend,
+def _compute_sre(
+    P_abundance, Q_abundance,
+    P_set_ord, Q_set_ord, P_norm_ord, Q_norm_ord,
+    q, level, eff_no, backend,
 ):
-    """Compute similarity-sensitive cross-entropy between P and Q."""
-    P_set_ab = P_superset.abundance.set_abundance
-    Q_set_ab = Q_superset.abundance.set_abundance
-    
-    # Get the similarity-weighted Q (Z @ Q)
-    P_set_ord = P_superset.components.set_ordinariness
-    Q_set_ord = Q_superset.components.set_ordinariness
-    
-    P_norm_ab = P_superset.abundance.normalized_subset_abundance
-    Q_norm_ord = Q_superset.components.normalized_subset_ordinariness
-
+    P_set_ab = P_abundance.set_abundance
+    P_norm_ab = P_abundance.normalized_subset_abundance
     min_count = min(1 / P_set_ab.sum(), 1e-9)
-    backend = P_superset.backend
 
     results = {}
-
     if level in ("both", "overall"):
-        val = _compute_scd_from_ordinarinesses(
-            P_set_ab, Q_set_ord, q, min_count, backend
-        )
+        val = _compute_srd_from_ordinarinesses(P_set_ab, P_set_ord, Q_set_ord, q, min_count, backend)
         results["overall"] = backend.log(val) if not eff_no else val
 
     if level in ("both", "subset"):
-        # Compute pairwise cross-entropy between each subset of P and each subset of Q
         nP, nQ = P_norm_ab.shape[1], Q_norm_ord.shape[1]
         mat = backend.zeros((nP, nQ))
+        for i in range(nP):
+            for j in range(nQ):
+                mat[i, j] = _compute_srd_from_ordinarinesses(
+                    P_norm_ab[:, i], P_norm_ord[:, i], Q_norm_ord[:, j], q, min_count, backend,
+                )
+        results["subset"] = backend.log(mat) if not eff_no else mat
 
+    return results
+
+
+def _compute_sce(
+    P_abundance, Q_abundance,
+    P_set_ord, Q_set_ord, P_norm_ord, Q_norm_ord,
+    q, level, eff_no, backend,
+):
+    """Compute similarity-sensitive cross-entropy between P and Q."""
+    P_set_ab = P_abundance.set_abundance
+    P_norm_ab = P_abundance.normalized_subset_abundance
+    min_count = min(1 / P_set_ab.sum(), 1e-9)
+
+    results = {}
+    if level in ("both", "overall"):
+        val = _compute_scd_from_ordinarinesses(P_set_ab, Q_set_ord, q, min_count, backend)
+        results["overall"] = backend.log(val) if not eff_no else val
+
+    if level in ("both", "subset"):
+        nP, nQ = P_norm_ab.shape[1], Q_norm_ord.shape[1]
+        mat = backend.zeros((nP, nQ))
         for i in range(nP):
             for j in range(nQ):
                 mat[i, j] = _compute_scd_from_ordinarinesses(
-                    P_norm_ab[:, i],
-                    Q_norm_ord[:, j],
-                    q,
-                    min_count,
-                    backend,
+                    P_norm_ab[:, i], Q_norm_ord[:, j], q, min_count, backend,
                 )
+        results["subset"] = backend.log(mat) if not eff_no else mat
 
-        if not eff_no:
-            mat = backend.log(mat)
-
-        results["subset"] = mat
-    
     return results
 
 # ----------------------------------------------------------------------
 # SRE/SCE front-end
 # ----------------------------------------------------------------------
-
 
 def sentropy_two_abundances(
     P_abundance,
@@ -348,44 +303,42 @@ def sentropy_two_abundances(
     backend="numpy",
     device="cpu",
 ):
-
     P, P_names = _normalize_counts(P_abundance)
     Q, Q_names = _normalize_counts(Q_abundance)
 
-    P_superset = Set(
-        P,
-        similarity,
-        symmetric,
-        sfargs,
-        chunk_size,
-        parallelize,
-        max_inflight_tasks,
-        backend,
-        device,
+    backend_obj = get_backend(backend, device)
+
+    P_ab = Abundance(counts=P, backend=backend_obj)
+    Q_ab = Abundance(counts=Q, backend=backend_obj)
+
+    sim = build_similarity(
+        similarity=similarity,
+        symmetric=symmetric,
+        X=sfargs,
+        chunk_size=chunk_size,
+        parallelize=parallelize,
+        max_inflight_tasks=max_inflight_tasks,
+        backend=backend_obj,
     )
 
-    Q_superset = Set(
-        Q,
-        similarity,
-        symmetric,
-        sfargs,
-        chunk_size,
-        parallelize,
-        max_inflight_tasks,
-        backend,
-        device,
+    (P_set_ord, P_subset_ord, P_norm_ord), (Q_set_ord, Q_subset_ord, Q_norm_ord) = (
+        joint_ordinariness(P_ab, Q_ab, sim)
     )
 
-    if m=='sre':
-        results = _compute_sre(P_superset, Q_superset, q, level, eff_no, backend)
-    elif m=='sce':
-        results = _compute_sce(P_superset, Q_superset, q, level, eff_no, backend)
+    if m == 'sre':
+        results = _compute_sre(
+            P_ab, Q_ab, P_set_ord, Q_set_ord, P_norm_ord, Q_norm_ord,
+            q, level, eff_no, backend_obj,
+        )
+    elif m == 'sce':
+        results = _compute_sce(
+            P_ab, Q_ab, P_set_ord, Q_set_ord, P_norm_ord, Q_norm_ord,
+            q, level, eff_no, backend_obj,
+        )
 
     if return_dataframe and "subset" in results:
         results["subset"] = DataFrame(
-            results["subset"],
-            index=P_names,
-            columns=Q_names,
+            results["subset"], index=P_names, columns=Q_names,
         )
 
     if level == "both":

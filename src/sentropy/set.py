@@ -23,6 +23,65 @@ from sentropy.backend import get_backend
 
 from torch import Tensor
 
+# set.py — add near the top, after imports, before `class Set:`
+
+def build_similarity(
+    similarity,
+    symmetric: bool = False,
+    X=None,
+    chunk_size: Optional[int] = 10,
+    parallelize: bool = False,
+    max_inflight_tasks: Optional[int] = 64,
+    backend=None,
+) -> Similarity:
+    """Build a Similarity object from the flexible `similarity` argument.
+
+    Factored out of Set.__init__ so callers that need to compare two
+    Abundance objects over the *same* species/feature space (e.g.
+    sentropy_two_abundances) can build one Similarity and reuse it,
+    instead of constructing an equivalent-but-separate one per Abundance —
+    which, for an expensive similarity, would mean evaluating it twice.
+    """
+    if similarity is None:
+        return SimilarityIdentity(backend=backend)
+    elif isinstance(similarity, ndarray):
+        return SimilarityFromArray(similarity=similarity, backend=backend)
+    elif isinstance(similarity, DataFrame):
+        return SimilarityFromArray(similarity=similarity.values, backend=backend)
+    elif isinstance(similarity, str):
+        if chunk_size is None:  # pragma: no cover
+            raise ValueError("chunk_size cannot be None when similarity is a file.")
+        return SimilarityFromFile(similarity, chunk_size=chunk_size, backend=backend)
+    elif callable(similarity):
+        if X is None:  # pragma: no cover
+            raise ValueError("X cannot be None when similarity is a callable.")
+        if chunk_size is None:  # pragma: no cover
+            raise ValueError("chunk_size cannot be None when similarity is a callable.")
+        if symmetric:
+            if parallelize:
+                if max_inflight_tasks is None:  # pragma: no cover
+                    raise ValueError("max_inflight_task cannot be None when parallelizing.")
+                return SimilarityFromSymmetricRayFunction(
+                    func=similarity, X=X, chunk_size=chunk_size,
+                    max_inflight_tasks=max_inflight_tasks, backend=backend,
+                )
+            return SimilarityFromSymmetricFunction(
+                func=similarity, X=X, chunk_size=chunk_size, backend=backend,
+            )
+        else:
+            if parallelize:
+                if max_inflight_tasks is None:  # pragma: no cover
+                    raise ValueError("max_inflight_task cannot be None when parallelizing.")
+                return SimilarityFromRayFunction(
+                    func=similarity, X=X, chunk_size=chunk_size,
+                    max_inflight_tasks=max_inflight_tasks, backend=backend,
+                )
+            return SimilarityFromFunction(
+                func=similarity, X=X, chunk_size=chunk_size, backend=backend,
+            )
+    else:
+        return similarity
+
 
 class Set:
     similarity: Similarity
@@ -92,71 +151,15 @@ class Set:
         self.abundance = Abundance(
             counts=counts, subsets_names=subsets_names, backend=self.backend
         )
-        if similarity is None:
-            self.similarity = SimilarityIdentity(backend=self.backend)
-        elif isinstance(similarity, ndarray):
-            self.similarity = SimilarityFromArray(
-                similarity=similarity, backend=self.backend
-            )
-        elif isinstance(similarity, DataFrame):
-            self.similarity = SimilarityFromArray(
-                similarity=similarity.values, backend=self.backend
-            )
-        elif isinstance(similarity, str):
-            if chunk_size is None: # pragma: no cover
-                raise ValueError("chunk_size cannot be None when similarity is a file.")
-            self.similarity = SimilarityFromFile(
-                similarity, chunk_size=chunk_size, backend=self.backend
-            )
-        elif callable(similarity):
-            if X is None: # pragma: no cover
-                raise ValueError("X cannot be None when similarity is a callable.")
-            if chunk_size is None: # pragma: no cover
-                raise ValueError(
-                    "chunk_size cannot be None when similarity is a callable."
-                )
-            if symmetric:
-                if parallelize:
-                    if max_inflight_tasks is None: # pragma: no cover
-                        raise ValueError(
-                            "max_inflight_task cannot be None when parallelizing."
-                        )
-                    self.similarity = SimilarityFromSymmetricRayFunction(
-                        func=similarity,
-                        X=X,
-                        chunk_size=chunk_size,
-                        max_inflight_tasks=max_inflight_tasks,
-                        backend=self.backend,
-                    )
-                else:
-                    self.similarity = SimilarityFromSymmetricFunction(
-                        func=similarity,
-                        X=X,
-                        chunk_size=chunk_size,
-                        backend=self.backend,
-                    )
-            else:
-                if parallelize:
-                    if max_inflight_tasks is None: # pragma: no cover
-                        raise ValueError(
-                            "max_inflight_task cannot be None when parallelizing."
-                        )
-                    self.similarity = SimilarityFromRayFunction(
-                        func=similarity,
-                        X=X,
-                        chunk_size=chunk_size,
-                        max_inflight_tasks=max_inflight_tasks,
-                        backend=self.backend,
-                    )
-                else:
-                    self.similarity = SimilarityFromFunction(
-                        func=similarity,
-                        X=X,
-                        chunk_size=chunk_size,
-                        backend=self.backend,
-                    )
-        else:
-            self.similarity = similarity
+        self.similarity = build_similarity(
+            similarity=similarity,
+            symmetric=symmetric,
+            X=X,
+            chunk_size=chunk_size,
+            parallelize=parallelize,
+            max_inflight_tasks=max_inflight_tasks,
+            backend=self.backend,
+        )
 
         self._components = None
         self.subset_diversity_hash: dict = {}

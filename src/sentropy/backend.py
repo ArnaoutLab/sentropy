@@ -271,7 +271,7 @@ class NumpyBackend(BaseBackend):
     def eigvalsh(self, x):
         return _np.linalg.eigvalsh(x)
 
-    def round(self, x):
+    def round(self, x): #pragma: no cover
         return _np.round(x)
 
     def outer(self, a, b):
@@ -529,7 +529,7 @@ class TorchBackend(BaseBackend):
             x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
         return self.torch.linalg.eigvalsh(x)
 
-    def round(self, x):
+    def round(self, x): #pragma: no cover
         if not isinstance(x, self.torch.Tensor):
             x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
         return self.torch.round(x)

@@ -102,7 +102,7 @@ D1 = 1.84 elements, which corresponds to H1 = 0.61 nats (= 0.88 bits)
 ```
 **Intuition behind effective numbers.** Suppose instead of the frequencies being (0.7, 0.3) they were (0.999999, 0.000001). The population would consist almost completely of element 1. In an intuitive sense, element 2 "shouldn't count" as much. In this case, the effective-number form would be `sentropy(np.array([0.999999, 0.000001]))` = 1.00001. (The traditional form would be ~0, at 1e-5 nats or 2e-5 bits.) In contrast, (0.7, 0.3) is far less skewed, and so the effective number is far closer to 2, at 1.84. The effective number would be *equal* to 2 if the frequencies were equal: (0.5, 0.5).
 
-## Shannon-type S-entropy
+## Shannon-type sentropy
 
 Passing a non-identity similarity matrix (similarity≠*I*) results in S-entropy–here, Shannon-type (i.e. *q*=1):
 ```
@@ -262,7 +262,7 @@ Expected output:
 1  oranges          1        0.375035
 ```
 
-## Relative S-entropy and Cross S-entropy
+## Relative sentropy and cross-sentropy
 
 Shannon-type relative entropy *without* similarity is called the Kullback-Leibler divergence and is used throughout machine learning (and elsewhere). `sentropy` lets us calculate the similarity-sensitive version by passing two `P` arguments:
 ```
@@ -421,5 +421,6 @@ To date, we know of no other python package that implements all the measures def
 
 
 # Release history
+- Version 1.2.1: sped up the SKL computation.
 - Version 1.2.0: implemented the Vendi score.
 - Version 1.1.0: implemented the similarity-sensitive cross-entropy.
