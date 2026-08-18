@@ -13,7 +13,7 @@
 
 **Sentropy reveals differences that traditional entropy cannot.** Consider two datasets:
 
-[![Alt text](https://raw.githubusercontent.com/ArnaoutLab/sentropy/main/images/overview.png)](https://arxiv.org/abs/2511.03849)
+[![Alt text](https://raw.githubusercontent.com/ArnaoutLab/sentropy/main/images/sentropy_overview.png)](https://arxiv.org/abs/2511.03849)
 
 
 # Key terms
@@ -23,7 +23,7 @@
 - **sentropy** generalizes Rényi entropies by incorporating elements' similarities and differences via a **similarity matrix**, usually constructed using a **similarity function**
 - Exponentiating traditional entropy yields **effective-number a.k.a. D-number forms**, which express entropies in the same, natural unit: the **effective number of elements** present in the dataset
 - Higher entropy means more **diverse** (the "D" in D number)
-- `sentropy` calculates multiple S-entropic **measures**, including *ɑ*, *β*, *ɣ*, and *𝜌*, at both the subset (class) **level** and for the overall dataset
+- `sentropy` calculates multiple sentropic **measures**, including *ɑ*, *β*, *ɣ*, and *𝜌*, at both the subset (class) **level** and for the overall dataset
 
 For the most complete background currently available, see [Leinster 2020](https://arxiv.org/abs/2012.02113) and references therein.
 
@@ -253,7 +253,7 @@ D1Z = sentropy(P, similarity=S,
                level="subset",            # level="class" is identical; an alias/synonym
                measure="normalized_rho",
                return_dataframe=True)
-display(D1Z)                              # (ipython) S-entropies on the diagonals; relative S-entropies on the off-diagonals
+display(D1Z)                              # (ipython) sentropies on the diagonals; relative sentropies on the off-diagonals
 ```
 Expected output:
 ```
