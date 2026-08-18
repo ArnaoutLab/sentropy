@@ -5,13 +5,13 @@
 [![Python version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11-blue)](https://www.python.org/downloads/release/python-380/)
 [![Tests](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml/badge.svg)](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml)
 
-[About](#about) | [Key terms](#key-terms) | [How to cite](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type sentropy](#shannon-type-s-entropy) | [Multiple measures, *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) |[Relative sentropy and Cross-sentropy](#relative-s-entropy-and-cross-s-entropy) | [Ordinariness](#ordinariness) | [Torch, GPU](#using-torch-and-the-gpu) | [Vendi score](#vendi-score) | [More applications](#more-applications) | [Alternatives](#alternatives)
+[About](#about) | [Key terms](#key-terms) | [How to cite](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type sentropy](#shannon-type-sentropy) | [Multiple measures, *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) |[Relative sentropy and Cross-sentropy](#relative-sentropy-and-cross-sentropy) | [Ordinariness](#ordinariness) | [Torch, GPU](#using-torch-and-the-gpu) | [Vendi score](#vendi-score) | [More applications](#more-applications) | [Alternatives](#alternatives)
 
 # About
 
-`sentropy` calculates similarity-sensitive entropies—S-entropy—plus Shannon entropy and the other traditional Rényi entropies (of which Shannon entropy is the best known). 
+`sentropy` calculates similarity-sensitive entropies—sentropy—plus Shannon entropy and the other traditional Rényi entropies (of which Shannon entropy is the best known). 
 
-**S-entropy reveals differences that traditional entropy cannot.** Consider two datasets:
+**Sentropy reveals differences that traditional entropy cannot.** Consider two datasets:
 
 [![Alt text](https://raw.githubusercontent.com/ArnaoutLab/sentropy/main/images/overview.png)](https://arxiv.org/abs/2511.03849)
 
@@ -20,7 +20,7 @@
 
 - **Shannon entropy** is a weighted sum of the relative probabilities (a.k.a. relative frequencies) of the unique elements in a system (e.g. a dataset), with a special weighting (namely, the log of each probability)
 - **Rényi entropies** generalize Shannon entropy by allowing for different weightings, set by varying the **viewpoint parameter *q*** (the log corresponds to *q*=1)
-- **S-entropy** generalizes Rényi entropies by incorporating elements' similarities and differences via a **similarity matrix**, usually constructed using a **similarity function**
+- **sentropy** generalizes Rényi entropies by incorporating elements' similarities and differences via a **similarity matrix**, usually constructed using a **similarity function**
 - Exponentiating traditional entropy yields **effective-number a.k.a. D-number forms**, which express entropies in the same, natural unit: the **effective number of elements** present in the dataset
 - Higher entropy means more **diverse** (the "D" in D number)
 - `sentropy` calculates multiple S-entropic **measures**, including *ɑ*, *β*, *ɣ*, and *𝜌*, at both the subset (class) **level** and for the overall dataset
@@ -82,14 +82,14 @@ Main arguments:
 
 ## Shannon entropy
 
-When the similarity matrix is the identity matrix—`sentropy`'s default for `similarity`—there is no similarity between elements *i*≠*j* and S-entropy reduces to traditional (Rényi) entropy. At the default `q=1`, this is Shannon entropy. Therefore passing `sentropy` only a `P` yields Shannon entropy, in effective-number form:
+When the similarity matrix is the identity matrix—`sentropy`'s default for `similarity`—there is no similarity between elements *i*≠*j* and sentropy reduces to traditional (Rényi) entropy. At the default `q=1`, this is Shannon entropy. Therefore passing `sentropy` only a `P` yields Shannon entropy, in effective-number form:
 
 ```
 from sentropy import sentropy
 import numpy as np
 
 P = np.array([0.7, 0.3])          # two unique elements comprising 70% and 30% of this single-class dataset, respectively
-D1 = sentropy(P)                  # S-entropy *without* similarity at default q (q=1) = Shannon entropy,
+D1 = sentropy(P)                  # sentropy *without* similarity at default q (q=1) = Shannon entropy,
                                   #   returned in default effective-number (D-number) form (preferred)
                                   # Equivalent to also including the arguments similarity=np.eye(2), measure="alpha", level="both"
 H1 = sentropy(P, eff_no=False)    # traditional, non-effective-number form (eff_no=False)
@@ -104,7 +104,7 @@ D1 = 1.84 elements, which corresponds to H1 = 0.61 nats (= 0.88 bits)
 
 ## Shannon-type sentropy
 
-Passing a non-identity similarity matrix (similarity≠*I*) results in S-entropy–here, Shannon-type (i.e. *q*=1):
+Passing a non-identity similarity matrix (similarity≠*I*) results in sentropy–here, Shannon-type (i.e. *q*=1):
 ```
 from sentropy import sentropy
 import numpy as np
@@ -139,7 +139,7 @@ S = np.array([                                # same similarity matrix as above
   ])
 qs = [0., 1., 2., np.inf]                     # multiple viewpoint parameters
 measures = ["alpha", "beta", "gamma"]         # multiple measures
-DZ = sentropy(P, similarity=S,                # S-entropy...
+DZ = sentropy(P, similarity=S,                # sentropy...
               q=qs,                           #   ...at multple qs...
               measure=measures)               #   ...for multiple measures
                                               # note when the result of the sentropy() call contains
@@ -167,7 +167,7 @@ D1Z gamma:	1.55 elements
 D2Z gamma:	1.51 elements
 DinfZ gamma:	1.32 elements
 ```
-Values never rise, and almost always fall, with increasing *q*. *q*=0, 1, 2, and ∞ can be thought of as "counting-", "Shannon-", "Simpson-", and "Berger-Parker-type" S-entropy, respectively. *ɑ*=*ɣ* in this example because there is only one class (see [Leinster 2020](https://arxiv.org/abs/2012.02113)).
+Values never rise, and almost always fall, with increasing *q*. *q*=0, 1, 2, and ∞ can be thought of as "counting-", "Shannon-", "Simpson-", and "Berger-Parker-type" sentropy, respectively. *ɑ*=*ɣ* in this example because there is only one class (see [Leinster 2020](https://arxiv.org/abs/2012.02113)).
 
 ## Passing a similarity function
 
@@ -423,4 +423,4 @@ To date, we know of no other python package that implements all the measures def
 # Release history
 - Version 1.2.1: sped up the SKL computation.
 - Version 1.2.0: implemented the Vendi score.
-- Version 1.1.0: implemented the similarity-sensitive cross-entropy.
+- Version 1.1.0: implemented the similarity-sensitive crossentropy.
