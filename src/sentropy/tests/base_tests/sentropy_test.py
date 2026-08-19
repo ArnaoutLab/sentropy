@@ -1,4 +1,4 @@
-from sentropy.sentropy import sentropy
+from sentropy.sentropy import sentropy, interset_ordinariness
 from sentropy.exceptions import InvalidArgumentError
 from sentropy.similarity import (
     SimilarityFromFunction,
@@ -368,3 +368,34 @@ def test_vendi_5():
     VS_2 = sentropy(p, measure="vendi", q=-1)
     expected_VS_2 = np.sqrt(np.sum(1/p))
     assert np.allclose(VS_2, expected_VS_2)
+
+def test_interset_ordinariness():
+    # Three objects in X whose ordinariness we want to calculate.
+    X = np.array([
+        [1.0, 0.0],
+        [0.0, 1.0],
+        [0.7, 0.7],
+    ])
+
+    # Four objects in the reference set Y.
+    Y = np.array([
+        [1.0, 0.0],
+        [0.9, 0.1],
+        [0.0, 1.0],
+        [0.1, 0.9],
+    ])
+
+    # Raw counts for the four elements of Y.
+    Y_counts = np.array([100, 50, 25, 25])
+
+    # A simple similarity function.
+    def similarity(x, y):
+        return np.dot(x, y)
+    ordinariness = interset_ordinariness(
+        X=X,
+        Y=Y,
+        Y_abundance=Y_counts,
+        similarity=similarity,
+    )
+    expected = np.array([0.7375, 0.2625, 0.7   ])
+    assert np.allclose(ordinariness, expected)

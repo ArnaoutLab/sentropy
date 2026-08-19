@@ -417,7 +417,6 @@ def interset_ordinariness(
     Y_abundance,
     similarity,
     chunk_size=100,
-    parallelize=True,
     max_inflight_tasks=64,
     backend="numpy",
     device="cpu",
@@ -457,9 +456,6 @@ def interset_ordinariness(
 
     chunk_size : int, default=100
         Number of rows of X to process at a time.
-
-    parallelize : bool, default=True
-        Whether to use Ray for parallel computation.
 
     max_inflight_tasks : int, default=64
         Maximum number of Ray tasks allowed to be in flight.
@@ -511,39 +507,21 @@ def interset_ordinariness(
 
     Y_abundance = Y_abundance / abundance_totals
 
-    if parallelize:
-        from sentropy.ray import _interset_weighted_abundances_ray
-        if max_inflight_tasks is None:
-            raise ValueError(
-                "max_inflight_tasks cannot be None when parallelize=True."
-            )
-
-        result = _interset_weighted_abundances_ray(
-            similarity=similarity,
-            X=X,
-            Y=Y,
-            relative_abundance=Y_abundance,
-            chunk_size=chunk_size,
-            max_inflight_tasks=max_inflight_tasks,
-            backend=backend,
+    from sentropy.ray import _interset_weighted_abundances_ray
+    if max_inflight_tasks is None:
+        raise ValueError(
+            "max_inflight_tasks cannot be None when parallelize=True."
         )
-    else:
-        result_chunks = []
 
-        for chunk_index in range(0, X.shape[0], chunk_size):
-            _, result_chunk, _ = weighted_similarity_chunk_nonsymmetric(
-                similarity=similarity,
-                X=X,
-                Y=Y,
-                relative_abundance=Y_abundance,
-                backend=backend,
-                chunk_size=chunk_size,
-                chunk_index=chunk_index,
-                return_Z=False,
-            )
-            result_chunks.append(result_chunk)
-
-        result = backend.concatenate(result_chunks)
+    result = _interset_weighted_abundances_ray(
+        similarity=similarity,
+        X=X,
+        Y=Y,
+        relative_abundance=Y_abundance,
+        chunk_size=chunk_size,
+        max_inflight_tasks=max_inflight_tasks,
+        backend=backend,
+    )
 
     if one_dimensional:
         return result[:, 0]
