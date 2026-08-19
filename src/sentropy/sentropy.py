@@ -26,11 +26,6 @@ from sentropy.similarity import (
     SimilarityFromFunction,
 )
 
-from sentropy.ray import (
-    SimilarityFromSymmetricRayFunction,
-    SimilarityFromRayFunction,
-)
-
 from sentropy.set import Set, build_similarity
 from sentropy.powermean import power_mean
 
@@ -415,3 +410,142 @@ def sentropy(
             backend=backend,
             device=device,
         )
+
+def interset_ordinariness(
+    X,
+    Y,
+    Y_abundance,
+    similarity,
+    chunk_size=100,
+    parallelize=True,
+    max_inflight_tasks=64,
+    backend="numpy",
+    device="cpu",
+):
+    """
+    Calculate the ordinariness of elements of X with respect to Y.
+
+    Y_abundance is interpreted as counts and normalized so that each
+    abundance distribution sums to one.
+
+    For each x_i in X, computes
+
+        ordinariness[i] = sum_j Z(x_i, y_j) * p_j
+
+    where p_j is the normalized abundance of y_j in Y.
+
+    Parameters
+    ----------
+    X : numpy.ndarray or pandas.DataFrame
+        Feature vectors for the elements whose ordinariness is being
+        calculated. One row per element.
+
+    Y : numpy.ndarray or pandas.DataFrame
+        Feature vectors for the reference set. One row per element.
+
+    Y_abundance : array-like
+        Counts for the elements in Y. May be one-dimensional with
+        shape (n_Y,) or two-dimensional with shape
+        (n_Y, n_distributions).
+
+        For a two-dimensional array, each column is normalized
+        independently to sum to one.
+
+    similarity : callable
+        Function taking one row from X and one row from Y and
+        returning their similarity.
+
+    chunk_size : int, default=100
+        Number of rows of X to process at a time.
+
+    parallelize : bool, default=True
+        Whether to use Ray for parallel computation.
+
+    max_inflight_tasks : int, default=64
+        Maximum number of Ray tasks allowed to be in flight.
+
+    backend : str, default="numpy"
+        Computational backend.
+
+    device : str, default="cpu"
+        Device used by the computational backend.
+
+    Returns
+    -------
+    ndarray
+        If Y_abundance is one-dimensional, returns an array with
+        shape (n_X,).
+
+        If Y_abundance is two-dimensional, returns an array with
+        shape (n_X, n_distributions).
+    """
+    backend = get_backend(backend, device=device)
+
+    # Convert abundance counts to the backend's array type.
+    Y_abundance = backend.asarray(Y_abundance)
+
+    # Keep track of whether the user supplied a single distribution.
+    one_dimensional = Y_abundance.ndim == 1
+
+    if one_dimensional:
+        Y_abundance = Y_abundance.reshape(-1, 1)
+    elif Y_abundance.ndim != 2:
+        raise ValueError(
+            "Y_abundance must be a one- or two-dimensional array."
+        )
+
+    if Y_abundance.shape[0] != Y.shape[0]:
+        raise ValueError(
+            "Y_abundance must contain one count for every element of Y. "
+            f"Got {Y.shape[0]} elements in Y but "
+            f"{Y_abundance.shape[0]} abundance values."
+        )
+
+    # Normalize counts independently for each abundance distribution.
+    abundance_totals = backend.sum(Y_abundance, axis=0)
+
+    if backend.any(abundance_totals <= 0):
+        raise ValueError(
+            "Each column of Y_abundance must have a positive total."
+        )
+
+    Y_abundance = Y_abundance / abundance_totals
+
+    if parallelize:
+        from sentropy.ray import _interset_weighted_abundances_ray
+        if max_inflight_tasks is None:
+            raise ValueError(
+                "max_inflight_tasks cannot be None when parallelize=True."
+            )
+
+        result = _interset_weighted_abundances_ray(
+            similarity=similarity,
+            X=X,
+            Y=Y,
+            relative_abundance=Y_abundance,
+            chunk_size=chunk_size,
+            max_inflight_tasks=max_inflight_tasks,
+            backend=backend,
+        )
+    else:
+        result_chunks = []
+
+        for chunk_index in range(0, X.shape[0], chunk_size):
+            _, result_chunk, _ = weighted_similarity_chunk_nonsymmetric(
+                similarity=similarity,
+                X=X,
+                Y=Y,
+                relative_abundance=Y_abundance,
+                backend=backend,
+                chunk_size=chunk_size,
+                chunk_index=chunk_index,
+                return_Z=False,
+            )
+            result_chunks.append(result_chunk)
+
+        result = backend.concatenate(result_chunks)
+
+    if one_dimensional:
+        return result[:, 0]
+
+    return result

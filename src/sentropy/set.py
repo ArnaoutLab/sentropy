@@ -16,7 +16,7 @@ from sentropy.similarity import (
     SimilarityFromSymmetricFunction,
     SimilarityFromFile,
 )
-from sentropy.ray import SimilarityFromRayFunction, SimilarityFromSymmetricRayFunction
+
 from sentropy.components import Components
 from sentropy.powermean import power_mean
 from sentropy.backend import get_backend
@@ -30,7 +30,7 @@ def build_similarity(
     symmetric: bool = False,
     X=None,
     chunk_size: Optional[int] = 10,
-    parallelize: bool = False,
+    parallelize: bool = True,
     max_inflight_tasks: Optional[int] = 64,
     backend=None,
 ) -> Similarity:
@@ -59,6 +59,7 @@ def build_similarity(
             raise ValueError("chunk_size cannot be None when similarity is a callable.")
         if symmetric:
             if parallelize:
+                from sentropy.ray import SimilarityFromRayFunction, SimilarityFromSymmetricRayFunction
                 if max_inflight_tasks is None:  # pragma: no cover
                     raise ValueError("max_inflight_task cannot be None when parallelizing.")
                 return SimilarityFromSymmetricRayFunction(
@@ -70,6 +71,7 @@ def build_similarity(
             )
         else:
             if parallelize:
+                from sentropy.ray import SimilarityFromRayFunction, SimilarityFromSymmetricRayFunction
                 if max_inflight_tasks is None:  # pragma: no cover
                     raise ValueError("max_inflight_task cannot be None when parallelizing.")
                 return SimilarityFromRayFunction(
@@ -107,7 +109,7 @@ class Set:
         symmetric: Optional[bool] = False,
         X: Optional[Union[ndarray, DataFrame]] = None,
         chunk_size: Optional[int] = 10,
-        parallelize: Optional[bool] = False,
+        parallelize: Optional[bool] = True,
         max_inflight_tasks: Optional[int] = 64,
         backend: str = "numpy",
         device: Optional[str] = None,

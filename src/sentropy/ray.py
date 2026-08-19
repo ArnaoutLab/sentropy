@@ -17,7 +17,6 @@ from sentropy.similarity import (
 )
 from sentropy.backend import get_backend
 
-
 def weighted_similarity_chunk_nonsymmetric(
     similarity: Callable,
     X: Union[_np.ndarray, DataFrame],
@@ -37,6 +36,11 @@ def weighted_similarity_chunk_nonsymmetric(
 
     if Y is None:
         Y = X
+    elif isinstance(Y, DataFrame):
+        Y = Y.to_numpy()
+    else:
+        Y = _np.asarray(Y)
+        
     chunk = X[chunk_index : chunk_index + chunk_size]
     similarities_chunk = backend.empty(shape=(chunk.shape[0], Y.shape[0]))
     for i, row_i in enumerate(chunk):
@@ -90,6 +94,54 @@ def weighted_similarity_chunk_symmetric(
         return chunk_index, result, similarities_chunk
     else:
         return chunk_index, result, None
+
+def _interset_weighted_abundances_ray(
+    similarity,
+    X,
+    Y,
+    relative_abundance,
+    chunk_size,
+    max_inflight_tasks,
+    backend,
+):
+    weighted_similarity_chunk = ray.remote(
+        weighted_similarity_chunk_nonsymmetric
+    )
+
+    X_ref = ray.put(X)
+    Y_ref = ray.put(Y)
+    abundance_ref = ray.put(relative_abundance)
+
+    futures = []
+    results = []
+
+    def process_refs(refs):
+        for chunk_index, abundance_chunk, _ in ray.get(refs):
+            results.append((chunk_index, abundance_chunk))
+
+    for chunk_index in range(0, X.shape[0], chunk_size):
+        if len(futures) >= max_inflight_tasks:
+            ready_refs, futures = ray.wait(futures)
+            process_refs(ready_refs)
+
+        futures.append(
+            weighted_similarity_chunk.remote(
+                similarity=similarity,
+                X=X_ref,
+                Y=Y_ref,
+                relative_abundance=abundance_ref,
+                backend=backend,
+                chunk_size=chunk_size,
+                chunk_index=chunk_index,
+                return_Z=False,
+            )
+        )
+
+    process_refs(futures)
+
+    results.sort(key=lambda x: x[0])
+
+    return backend.concatenate([result for _, result in results])
 
 
 class SimilarityFromRayFunction(SimilarityFromFunction):
