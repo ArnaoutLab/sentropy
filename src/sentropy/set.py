@@ -31,7 +31,6 @@ def build_similarity(
     X=None,
     chunk_size: Optional[int] = 10,
     parallelize: bool = True,
-    max_inflight_tasks: Optional[int] = 64,
     backend=None,
 ) -> Similarity:
     """Build a Similarity object from the flexible `similarity` argument.
@@ -60,11 +59,8 @@ def build_similarity(
         if symmetric:
             if parallelize:
                 from sentropy.ray import SimilarityFromRayFunction, SimilarityFromSymmetricRayFunction
-                if max_inflight_tasks is None:  # pragma: no cover
-                    raise ValueError("max_inflight_task cannot be None when parallelizing.")
                 return SimilarityFromSymmetricRayFunction(
-                    func=similarity, X=X, chunk_size=chunk_size,
-                    max_inflight_tasks=max_inflight_tasks, backend=backend,
+                    func=similarity, X=X, backend=backend,
                 )
             return SimilarityFromSymmetricFunction(
                 func=similarity, X=X, chunk_size=chunk_size, backend=backend,
@@ -72,11 +68,8 @@ def build_similarity(
         else:
             if parallelize:
                 from sentropy.ray import SimilarityFromRayFunction, SimilarityFromSymmetricRayFunction
-                if max_inflight_tasks is None:  # pragma: no cover
-                    raise ValueError("max_inflight_task cannot be None when parallelizing.")
                 return SimilarityFromRayFunction(
-                    func=similarity, X=X, chunk_size=chunk_size,
-                    max_inflight_tasks=max_inflight_tasks, backend=backend,
+                    func=similarity, X=X, backend=backend,
                 )
             return SimilarityFromFunction(
                 func=similarity, X=X, chunk_size=chunk_size, backend=backend,
@@ -110,7 +103,6 @@ class Set:
         X: Optional[Union[ndarray, DataFrame]] = None,
         chunk_size: Optional[int] = 10,
         parallelize: Optional[bool] = True,
-        max_inflight_tasks: Optional[int] = 64,
         backend: str = "numpy",
         device: Optional[str] = None,
         subsets_names: Optional[Iterable[Union[str,int]]] = None,
@@ -139,9 +131,6 @@ class Set:
         parallelize:
             Whether or not to parallelize with ray.
             Only relevant when similarity is callable.
-        max_inflight_tasks:
-            How many inflight tasks to submit to ray at a time.
-            Only relevant when similarity is callable and parallelize is True.
         backend:
             whether to use numpy or torch
         device:
@@ -159,7 +148,6 @@ class Set:
             X=X,
             chunk_size=chunk_size,
             parallelize=parallelize,
-            max_inflight_tasks=max_inflight_tasks,
             backend=self.backend,
         )
 

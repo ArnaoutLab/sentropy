@@ -2,7 +2,8 @@
 
 from typing import List, Any, Callable, Union, Tuple
 import numpy as _np
-from numpy import ndarray, concatenate
+from numpy import ndarray, concatenate, ceil
+from os import cpu_count
 from pandas import DataFrame
 from sentropy.exceptions import InvalidArgumentError
 
@@ -16,6 +17,25 @@ from sentropy.similarity import (
     SimilarityFromSymmetricFunction,
 )
 from sentropy.backend import get_backend
+
+def _recommend_chunk_params(n_X, n_Y, t_sim_estimate=None):
+    num_cpus = cpu_count() or 4
+    
+    if t_sim_estimate is not None:
+        # Aim for ~500ms per task
+        chunk_size = max(1, int(ceil(0.5 / (n_Y * t_sim_estimate))))
+    else:
+        # Fall back: target enough tasks for 4× CPU parallelism,
+        # but at least 256 pairs per chunk
+        chunk_size = max(
+            max(1, n_X // (4 * num_cpus)),
+            max(1, 1024 // n_Y) if n_Y > 0 else 1
+        )
+    
+    chunk_size = min(chunk_size, n_X)  # can't exceed n_X
+    max_inflight = min(4 * num_cpus, 256)  # cap at 256 to limit memory
+    
+    return chunk_size, max_inflight
 
 def weighted_similarity_chunk_nonsymmetric(
     similarity: Callable,
@@ -152,11 +172,10 @@ class SimilarityFromRayFunction(SimilarityFromFunction):
         self,
         func: Callable,
         X: Union[ndarray, DataFrame],
-        chunk_size: int = 100,
-        max_inflight_tasks: int = 64,
         similarities_out: Union[ndarray, None] = None,
         backend=None,
     ) -> None:
+        chunk_size, max_inflight_tasks = _recommend_chunk_params(X.shape[0], X.shape[0])
         super().__init__(func, X, chunk_size, similarities_out)
         self.max_inflight_tasks = max_inflight_tasks
         self.backend = backend or get_backend("numpy")
@@ -212,11 +231,10 @@ class SimilarityFromSymmetricRayFunction(SimilarityFromSymmetricFunction):
         self,
         func: Callable,
         X: Union[ndarray, DataFrame],
-        chunk_size: int = 100,
-        max_inflight_tasks: int = 64,
         similarities_out: Union[ndarray, None] = None,
         backend=None,
     ) -> None:
+        chunk_size, max_inflight_tasks = _recommend_chunk_params(X.shape[0], X.shape[0])
         super().__init__(func, X, chunk_size, similarities_out)
         self.max_inflight_tasks = max_inflight_tasks
         self.backend = backend or get_backend("numpy")

@@ -139,7 +139,6 @@ def sentropy_single_abundance(
     sfargs=None,
     chunk_size=10,
     parallelize= True,
-    max_inflight_tasks=64,
     return_dataframe=False,
     level="both",
     eff_no=True,
@@ -158,7 +157,6 @@ def sentropy_single_abundance(
         sfargs,
         chunk_size,
         parallelize,
-        max_inflight_tasks,
         backend,
         device,
         subsets_names,
@@ -293,7 +291,6 @@ def sentropy_two_abundances(
     sfargs=None,
     chunk_size=10,
     parallelize=True,
-    max_inflight_tasks=64,
     return_dataframe=False,
     level="both",
     eff_no=True,
@@ -314,7 +311,6 @@ def sentropy_two_abundances(
         X=sfargs,
         chunk_size=chunk_size,
         parallelize=parallelize,
-        max_inflight_tasks=max_inflight_tasks,
         backend=backend_obj,
     )
 
@@ -361,7 +357,6 @@ def sentropy(
     sfargs=None,
     chunk_size=10,
     parallelize=True,
-    max_inflight_tasks=64,
     return_dataframe=False,
     level="overall",
     eff_no=True,
@@ -383,7 +378,6 @@ def sentropy(
             sfargs=sfargs,
             chunk_size=chunk_size,
             parallelize=parallelize,
-            max_inflight_tasks=max_inflight_tasks,
             return_dataframe=return_dataframe,
             level=level,
             eff_no=eff_no,
@@ -405,32 +399,12 @@ def sentropy(
             sfargs=sfargs,
             chunk_size=chunk_size,
             parallelize=parallelize,
-            max_inflight_tasks=max_inflight_tasks,
             return_dataframe=return_dataframe,
             level=level,
             eff_no=eff_no,
             backend=backend,
             device=device,
         )
-
-def _recommend_chunk_params(n_X, n_Y, t_sim_estimate=None):
-    num_cpus = os.cpu_count() or 4
-    
-    if t_sim_estimate is not None:
-        # Aim for ~500ms per task
-        chunk_size = max(1, int(np.ceil(0.5 / (n_Y * t_sim_estimate))))
-    else:
-        # Fall back: target enough tasks for 4× CPU parallelism,
-        # but at least 256 pairs per chunk
-        chunk_size = max(
-            max(1, n_X // (4 * num_cpus)),
-            max(1, 1024 // n_Y) if n_Y > 0 else 1
-        )
-    
-    chunk_size = min(chunk_size, n_X)  # can't exceed n_X
-    max_inflight = min(4 * num_cpus, 256)  # cap at 256 to limit memory
-    
-    return chunk_size, max_inflight
 
 def interset_ordinariness(
     X,
@@ -504,7 +478,7 @@ def interset_ordinariness(
 
     Y_abundance = Y_abundance / abundance_totals
 
-    from sentropy.ray import _interset_weighted_abundances_ray
+    from sentropy.ray import _interset_weighted_abundances_ray, _recommend_chunk_params
     chunk_size, max_inflight_tasks = _recommend_chunk_params(X.shape[0], Y.shape[0])
 
     result = _interset_weighted_abundances_ray(
