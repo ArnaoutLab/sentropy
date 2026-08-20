@@ -14,6 +14,8 @@ from numpy import (
     column_stack,
 )
 from pandas import DataFrame
+import os
+import numpy as np
 
 from sentropy.abundance import Abundance, joint_ordinariness
 from sentropy.backend import get_backend
@@ -411,13 +413,30 @@ def sentropy(
             device=device,
         )
 
+def _recommend_chunk_params(n_X, n_Y, t_sim_estimate=None):
+    num_cpus = os.cpu_count() or 4
+    
+    if t_sim_estimate is not None:
+        # Aim for ~500ms per task
+        chunk_size = max(1, int(np.ceil(0.5 / (n_Y * t_sim_estimate))))
+    else:
+        # Fall back: target enough tasks for 4× CPU parallelism,
+        # but at least 256 pairs per chunk
+        chunk_size = max(
+            max(1, n_X // (4 * num_cpus)),
+            max(1, 1024 // n_Y) if n_Y > 0 else 1
+        )
+    
+    chunk_size = min(chunk_size, n_X)  # can't exceed n_X
+    max_inflight = min(4 * num_cpus, 256)  # cap at 256 to limit memory
+    
+    return chunk_size, max_inflight
+
 def interset_ordinariness(
     X,
     Y,
     Y_abundance,
     similarity,
-    chunk_size=100,
-    max_inflight_tasks=64,
     backend="numpy",
     device="cpu",
 ):
@@ -454,12 +473,6 @@ def interset_ordinariness(
         Function taking one row from X and one row from Y and
         returning their similarity.
 
-    chunk_size : int, default=100
-        Number of rows of X to process at a time.
-
-    max_inflight_tasks : int, default=64
-        Maximum number of Ray tasks allowed to be in flight.
-
     backend : str, default="numpy"
         Computational backend.
 
@@ -485,33 +498,14 @@ def interset_ordinariness(
 
     if one_dimensional:
         Y_abundance = Y_abundance.reshape(-1, 1)
-    elif Y_abundance.ndim != 2:
-        raise ValueError(
-            "Y_abundance must be a one- or two-dimensional array."
-        )
-
-    if Y_abundance.shape[0] != Y.shape[0]:
-        raise ValueError(
-            "Y_abundance must contain one count for every element of Y. "
-            f"Got {Y.shape[0]} elements in Y but "
-            f"{Y_abundance.shape[0]} abundance values."
-        )
 
     # Normalize counts independently for each abundance distribution.
     abundance_totals = backend.sum(Y_abundance, axis=0)
 
-    if backend.any(abundance_totals <= 0):
-        raise ValueError(
-            "Each column of Y_abundance must have a positive total."
-        )
-
     Y_abundance = Y_abundance / abundance_totals
 
     from sentropy.ray import _interset_weighted_abundances_ray
-    if max_inflight_tasks is None:
-        raise ValueError(
-            "max_inflight_tasks cannot be None when parallelize=True."
-        )
+    chunk_size, max_inflight_tasks = _recommend_chunk_params(X.shape[0], Y.shape[0])
 
     result = _interset_weighted_abundances_ray(
         similarity=similarity,
@@ -524,6 +518,6 @@ def interset_ordinariness(
     )
 
     if one_dimensional:
-        return result[:, 0]
+        result = result[:, 0]
 
     return result
