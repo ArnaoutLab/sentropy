@@ -4,6 +4,7 @@ from typing import Callable, Iterable, Optional, Union, List
 
 from pandas import DataFrame, Index, Series, concat
 from numpy import array, atleast_1d, broadcast_to, zeros as np_zeros, ndarray
+from scipy.sparse import issparse
 from sentropy.exceptions import InvalidArgumentError
 
 from sentropy.abundance import Abundance
@@ -16,7 +17,7 @@ from sentropy.similarity import (
     SimilarityFromSymmetricFunction,
     SimilarityFromFile,
 )
-from sentropy.ray import SimilarityFromRayFunction, SimilarityFromSymmetricRayFunction
+
 from sentropy.components import Components
 from sentropy.powermean import power_mean
 from sentropy.backend import get_backend
@@ -30,8 +31,7 @@ def build_similarity(
     symmetric: bool = False,
     X=None,
     chunk_size: Optional[int] = 10,
-    parallelize: bool = False,
-    max_inflight_tasks: Optional[int] = 64,
+    parallelize: bool = True,
     backend=None,
 ) -> Similarity:
     """Build a Similarity object from the flexible `similarity` argument.
@@ -48,6 +48,8 @@ def build_similarity(
         return SimilarityFromArray(similarity=similarity, backend=backend)
     elif isinstance(similarity, DataFrame):
         return SimilarityFromArray(similarity=similarity.values, backend=backend)
+    elif issparse(similarity):
+        return SimilarityFromArray(similarity=similarity, backend=backend)
     elif isinstance(similarity, str):
         if chunk_size is None:  # pragma: no cover
             raise ValueError("chunk_size cannot be None when similarity is a file.")
@@ -59,22 +61,18 @@ def build_similarity(
             raise ValueError("chunk_size cannot be None when similarity is a callable.")
         if symmetric:
             if parallelize:
-                if max_inflight_tasks is None:  # pragma: no cover
-                    raise ValueError("max_inflight_task cannot be None when parallelizing.")
+                from sentropy.ray import SimilarityFromRayFunction, SimilarityFromSymmetricRayFunction
                 return SimilarityFromSymmetricRayFunction(
-                    func=similarity, X=X, chunk_size=chunk_size,
-                    max_inflight_tasks=max_inflight_tasks, backend=backend,
+                    func=similarity, X=X, backend=backend,
                 )
             return SimilarityFromSymmetricFunction(
                 func=similarity, X=X, chunk_size=chunk_size, backend=backend,
             )
         else:
             if parallelize:
-                if max_inflight_tasks is None:  # pragma: no cover
-                    raise ValueError("max_inflight_task cannot be None when parallelizing.")
+                from sentropy.ray import SimilarityFromRayFunction, SimilarityFromSymmetricRayFunction
                 return SimilarityFromRayFunction(
-                    func=similarity, X=X, chunk_size=chunk_size,
-                    max_inflight_tasks=max_inflight_tasks, backend=backend,
+                    func=similarity, X=X, backend=backend,
                 )
             return SimilarityFromFunction(
                 func=similarity, X=X, chunk_size=chunk_size, backend=backend,
@@ -107,8 +105,7 @@ class Set:
         symmetric: Optional[bool] = False,
         X: Optional[Union[ndarray, DataFrame]] = None,
         chunk_size: Optional[int] = 10,
-        parallelize: Optional[bool] = False,
-        max_inflight_tasks: Optional[int] = 64,
+        parallelize: Optional[bool] = True,
         backend: str = "numpy",
         device: Optional[str] = None,
         subsets_names: Optional[Iterable[Union[str,int]]] = None,
@@ -137,9 +134,6 @@ class Set:
         parallelize:
             Whether or not to parallelize with ray.
             Only relevant when similarity is callable.
-        max_inflight_tasks:
-            How many inflight tasks to submit to ray at a time.
-            Only relevant when similarity is callable and parallelize is True.
         backend:
             whether to use numpy or torch
         device:
@@ -157,7 +151,6 @@ class Set:
             X=X,
             chunk_size=chunk_size,
             parallelize=parallelize,
-            max_inflight_tasks=max_inflight_tasks,
             backend=self.backend,
         )
 

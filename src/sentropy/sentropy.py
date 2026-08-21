@@ -14,6 +14,8 @@ from numpy import (
     column_stack,
 )
 from pandas import DataFrame
+import os
+import numpy as np
 
 from sentropy.abundance import Abundance, joint_ordinariness
 from sentropy.backend import get_backend
@@ -24,11 +26,6 @@ from sentropy.similarity import (
     SimilarityFromFile,
     SimilarityFromSymmetricFunction,
     SimilarityFromFunction,
-)
-
-from sentropy.ray import (
-    SimilarityFromSymmetricRayFunction,
-    SimilarityFromRayFunction,
 )
 
 from sentropy.set import Set, build_similarity
@@ -142,7 +139,6 @@ def sentropy_single_abundance(
     sfargs=None,
     chunk_size=10,
     parallelize= True,
-    max_inflight_tasks=64,
     return_dataframe=False,
     level="both",
     eff_no=True,
@@ -161,7 +157,6 @@ def sentropy_single_abundance(
         sfargs,
         chunk_size,
         parallelize,
-        max_inflight_tasks,
         backend,
         device,
         subsets_names,
@@ -296,7 +291,6 @@ def sentropy_two_abundances(
     sfargs=None,
     chunk_size=10,
     parallelize=True,
-    max_inflight_tasks=64,
     return_dataframe=False,
     level="both",
     eff_no=True,
@@ -317,7 +311,6 @@ def sentropy_two_abundances(
         X=sfargs,
         chunk_size=chunk_size,
         parallelize=parallelize,
-        max_inflight_tasks=max_inflight_tasks,
         backend=backend_obj,
     )
 
@@ -364,7 +357,6 @@ def sentropy(
     sfargs=None,
     chunk_size=10,
     parallelize=True,
-    max_inflight_tasks=64,
     return_dataframe=False,
     level="overall",
     eff_no=True,
@@ -386,7 +378,6 @@ def sentropy(
             sfargs=sfargs,
             chunk_size=chunk_size,
             parallelize=parallelize,
-            max_inflight_tasks=max_inflight_tasks,
             return_dataframe=return_dataframe,
             level=level,
             eff_no=eff_no,
@@ -408,10 +399,99 @@ def sentropy(
             sfargs=sfargs,
             chunk_size=chunk_size,
             parallelize=parallelize,
-            max_inflight_tasks=max_inflight_tasks,
             return_dataframe=return_dataframe,
             level=level,
             eff_no=eff_no,
             backend=backend,
             device=device,
         )
+
+def interset_ordinariness(
+    X,
+    Y,
+    Y_abundance,
+    similarity,
+    backend="numpy",
+    device="cpu",
+):
+    """
+    Calculate the ordinariness of elements of X with respect to Y.
+
+    Y_abundance is interpreted as counts and normalized so that each
+    abundance distribution sums to one.
+
+    For each x_i in X, computes
+
+        ordinariness[i] = sum_j Z(x_i, y_j) * p_j
+
+    where p_j is the normalized abundance of y_j in Y.
+
+    Parameters
+    ----------
+    X : numpy.ndarray or pandas.DataFrame
+        Feature vectors for the elements whose ordinariness is being
+        calculated. One row per element.
+
+    Y : numpy.ndarray or pandas.DataFrame
+        Feature vectors for the reference set. One row per element.
+
+    Y_abundance : array-like
+        Counts for the elements in Y. May be one-dimensional with
+        shape (n_Y,) or two-dimensional with shape
+        (n_Y, n_distributions).
+
+        For a two-dimensional array, each column is normalized
+        independently to sum to one.
+
+    similarity : callable
+        Function taking one row from X and one row from Y and
+        returning their similarity.
+
+    backend : str, default="numpy"
+        Computational backend.
+
+    device : str, default="cpu"
+        Device used by the computational backend.
+
+    Returns
+    -------
+    ndarray
+        If Y_abundance is one-dimensional, returns an array with
+        shape (n_X,).
+
+        If Y_abundance is two-dimensional, returns an array with
+        shape (n_X, n_distributions).
+    """
+    backend = get_backend(backend, device=device)
+
+    # Convert abundance counts to the backend's array type.
+    Y_abundance = backend.asarray(Y_abundance)
+
+    # Keep track of whether the user supplied a single distribution.
+    one_dimensional = Y_abundance.ndim == 1
+
+    if one_dimensional:
+        Y_abundance = Y_abundance.reshape(-1, 1)
+
+    # Normalize counts independently for each abundance distribution.
+    abundance_totals = backend.sum(Y_abundance, axis=0)
+
+    Y_abundance = Y_abundance / abundance_totals
+
+    from sentropy.ray import _interset_weighted_abundances_ray, _recommend_chunk_params
+    chunk_size, max_inflight_tasks = _recommend_chunk_params(X.shape[0], Y.shape[0])
+
+    result = _interset_weighted_abundances_ray(
+        similarity=similarity,
+        X=X,
+        Y=Y,
+        relative_abundance=Y_abundance,
+        chunk_size=chunk_size,
+        max_inflight_tasks=max_inflight_tasks,
+        backend=backend,
+    )
+
+    if one_dimensional:
+        result = result[:, 0]
+
+    return result

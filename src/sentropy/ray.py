@@ -2,7 +2,8 @@
 
 from typing import List, Any, Callable, Union, Tuple
 import numpy as _np
-from numpy import ndarray, concatenate
+from numpy import ndarray, concatenate, ceil
+from os import cpu_count
 from pandas import DataFrame
 from sentropy.exceptions import InvalidArgumentError
 
@@ -17,6 +18,24 @@ from sentropy.similarity import (
 )
 from sentropy.backend import get_backend
 
+def _recommend_chunk_params(n_X, n_Y, t_sim_estimate=None):
+    num_cpus = cpu_count() or 4
+    
+    if t_sim_estimate is not None:
+        # Aim for ~500ms per task
+        chunk_size = max(1, int(ceil(0.5 / (n_Y * t_sim_estimate))))
+    else:
+        # Fall back: target enough tasks for 4× CPU parallelism,
+        # but at least 256 pairs per chunk
+        chunk_size = max(
+            max(1, n_X // (4 * num_cpus)),
+            max(1, 1024 // n_Y) if n_Y > 0 else 1
+        )
+    
+    chunk_size = min(chunk_size, n_X)  # can't exceed n_X
+    max_inflight = min(4 * num_cpus, 256)  # cap at 256 to limit memory
+    
+    return chunk_size, max_inflight
 
 def weighted_similarity_chunk_nonsymmetric(
     similarity: Callable,
@@ -37,6 +56,11 @@ def weighted_similarity_chunk_nonsymmetric(
 
     if Y is None:
         Y = X
+    elif isinstance(Y, DataFrame):
+        Y = Y.to_numpy()
+    else:
+        Y = _np.asarray(Y)
+        
     chunk = X[chunk_index : chunk_index + chunk_size]
     similarities_chunk = backend.empty(shape=(chunk.shape[0], Y.shape[0]))
     for i, row_i in enumerate(chunk):
@@ -91,6 +115,54 @@ def weighted_similarity_chunk_symmetric(
     else:
         return chunk_index, result, None
 
+def _interset_weighted_abundances_ray(
+    similarity,
+    X,
+    Y,
+    relative_abundance,
+    chunk_size,
+    max_inflight_tasks,
+    backend,
+):
+    weighted_similarity_chunk = ray.remote(
+        weighted_similarity_chunk_nonsymmetric
+    )
+
+    X_ref = ray.put(X)
+    Y_ref = ray.put(Y)
+    abundance_ref = ray.put(relative_abundance)
+
+    futures = []
+    results = []
+
+    def process_refs(refs):
+        for chunk_index, abundance_chunk, _ in ray.get(refs):
+            results.append((chunk_index, abundance_chunk))
+
+    for chunk_index in range(0, X.shape[0], chunk_size):
+        if len(futures) >= max_inflight_tasks:
+            ready_refs, futures = ray.wait(futures)
+            process_refs(ready_refs)
+
+        futures.append(
+            weighted_similarity_chunk.remote(
+                similarity=similarity,
+                X=X_ref,
+                Y=Y_ref,
+                relative_abundance=abundance_ref,
+                backend=backend,
+                chunk_size=chunk_size,
+                chunk_index=chunk_index,
+                return_Z=False,
+            )
+        )
+
+    process_refs(futures)
+
+    results.sort(key=lambda x: x[0])
+
+    return backend.concatenate([result for _, result in results])
+
 
 class SimilarityFromRayFunction(SimilarityFromFunction):
     """Implements Similarity by calculating similarities with a callable
@@ -100,11 +172,10 @@ class SimilarityFromRayFunction(SimilarityFromFunction):
         self,
         func: Callable,
         X: Union[ndarray, DataFrame],
-        chunk_size: int = 100,
-        max_inflight_tasks: int = 64,
         similarities_out: Union[ndarray, None] = None,
         backend=None,
     ) -> None:
+        chunk_size, max_inflight_tasks = _recommend_chunk_params(X.shape[0], X.shape[0])
         super().__init__(func, X, chunk_size, similarities_out)
         self.max_inflight_tasks = max_inflight_tasks
         self.backend = backend or get_backend("numpy")
@@ -160,11 +231,10 @@ class SimilarityFromSymmetricRayFunction(SimilarityFromSymmetricFunction):
         self,
         func: Callable,
         X: Union[ndarray, DataFrame],
-        chunk_size: int = 100,
-        max_inflight_tasks: int = 64,
         similarities_out: Union[ndarray, None] = None,
         backend=None,
     ) -> None:
+        chunk_size, max_inflight_tasks = _recommend_chunk_params(X.shape[0], X.shape[0])
         super().__init__(func, X, chunk_size, similarities_out)
         self.max_inflight_tasks = max_inflight_tasks
         self.backend = backend or get_backend("numpy")

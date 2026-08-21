@@ -241,7 +241,6 @@ def test_weighted_abundances_from_function(relative_abundance, X, chunk_size):
     similarity = SimilarityFromRayFunction(
         func=similarity_function,
         X=X,
-        chunk_size=chunk_size,
         similarities_out=similarities_out,
     )
     weighted_abundances = similarity.weighted_abundances(
@@ -261,8 +260,7 @@ def test_comparisons():
     ]:
         if "Ray" in simclass.__name__:
             similarity = simclass(
-                func=similarity_function, X=X_large, chunk_size=4, max_inflight_tasks=2
-            )
+                func=similarity_function, X=X_large)
         else:
             similarity = simclass(func=similarity_function, X=X_large, chunk_size=4)
         m = Set(abundances_large, similarity)
@@ -285,8 +283,6 @@ def test_similarities_out():
             similarity = simclass(
                 func=similarity_function,
                 X=X_large,
-                chunk_size=7,
-                max_inflight_tasks=5,
                 similarities_out=similarities_out,
             )
         else:
