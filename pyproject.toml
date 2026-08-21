@@ -14,7 +14,7 @@ maintainers = [
     { name = "Phuc Nguyen", email = "pnguye10@bidmc.harvard.edu" },
     { name = "Miao Li", email = "miaoli.dev@gmail.com" },
 ]
-version = "1.3.0"
+version = "1.4.0"
 description = "A Python package for measuring the composition of complex datasets"
 readme = "README.md"
 requires-python = ">=3.9"
