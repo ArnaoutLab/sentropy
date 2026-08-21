@@ -389,8 +389,10 @@ ordinariness = interset_ordinariness(
 )
 print(ordinariness)
 ```
-The expected output is [0.7375, 0.2625, 0.7].
-
+The expected output is
+```[0.7375, 0.2625, 0.7]
+```
+.
 ## Using torch and the GPU
 
 To utilize torch instead of numpy, pass `backend="torch"`. To have the computation run on the GPU, pass `backend="torch"` and either `device="mps"` or `device="cuda"`.
