@@ -1,40 +1,49 @@
 from numpy import (
-    sum,
     sqrt,
+    all as np_all,
     allclose,
     ndarray,
     array,
     dtype,
     memmap,
     inf,
+    isfinite,
     float32,
     zeros,
     empty,
     dot,
+    random
 )
+
 from pandas import DataFrame
 from numpy.linalg import norm
+from pytest import fixture, raises, mark
 import ray
+
+from sentropy import Set
+from sentropy.backend import get_backend
+from sentropy.exceptions import InvalidArgumentError
+from sentropy.ray import (
+    _interset_weighted_abundances_ray,
+    SimilarityFromRayFunction,
+    SimilarityFromSymmetricRayFunction,
+    weighted_similarity_chunk_nonsymmetric
+)
 from sentropy.similarity import (
     SimilarityFromArray,
     SimilarityFromFunction,
     SimilarityFromSymmetricFunction,
 )
-from sentropy.ray import (
-    SimilarityFromRayFunction,
-    SimilarityFromSymmetricRayFunction,
-)
+
 import sentropy.tests.mockray as mockray
 from sentropy.tests.base_tests.similarity_test import similarity_from_distance
-from pytest import fixture, raises, mark
+
 from sentropy.tests.base_tests.similarity_test import (
     relative_abundance_3by2,
     relative_abundance_3by1,
     X_3by1,
     X_3by2,
 )
-from sentropy import Set
-from sentropy.exceptions import InvalidArgumentError
 
 
 def ray_fix(monkeypatch):
@@ -296,3 +305,100 @@ def test_similarities_out():
         computed_similarity_matrices.append(similarities_out)
     for matrix in computed_similarity_matrices[1:]:
         assert allclose(computed_similarity_matrices[0], matrix)
+
+# ── Helper ──────────────────────────────────────────────
+
+def _dot_similarity(x, y):
+    """Simple inner-product similarity for testing."""
+    return float(dot(x, y))
+
+
+# ── 1. _interset_weighted_abundances_ray ─────────────────
+def test_interset_weighted_abundances_ray_triggers_backpressure():
+    """Force max_inflight_tasks < number of chunks so the
+    `if len(futures) >= max_inflight_tasks` branch executes."""
+    backend = get_backend("numpy")
+    rng = random.default_rng(42)
+    X = rng.random((10, 3))
+    Y = rng.random((10, 3))
+    abundance = rng.random((10, 2))
+
+    # chunk_size=2  → 5 chunks
+    # max_inflight=2 → after 2 futures are in flight, backpressure triggers
+    result = _interset_weighted_abundances_ray(
+        similarity=_dot_similarity,
+        X=X,
+        Y=Y,
+        relative_abundance=abundance,
+        chunk_size=2,
+        max_inflight_tasks=2,
+        backend=backend,
+    )
+
+    assert result.shape == (10, 2)
+    # Sanity: result should be finite
+    assert np_all(isfinite(result))
+
+
+# ── 2. SimilarityFromRayFunction.weighted_abundances ────
+
+def test_similarity_from_ray_function_backpressure():
+    """Override max_inflight_tasks to 1 so backpressure fires on the
+    very second chunk."""
+    rng = random.default_rng(42)
+    X = rng.random((10, 3))
+
+    obj = SimilarityFromRayFunction(func=_dot_similarity, X=X)
+
+    # Override to force small values
+    obj.chunk_size = 2          # 5 chunks for 10 rows
+    obj.max_inflight_tasks = 1  # backpressure after 1st future
+
+    abundance = rng.random((10, 2))
+    result = obj.weighted_abundances(abundance)
+
+    assert result.shape == (10, 2)
+    assert np_all(isfinite(result))
+
+
+# ── 3. SimilarityFromSymmetricRayFunction.weighted_abundances
+
+def test_similarity_from_symmetric_ray_function_backpressure():
+    """Same strategy — override max_inflight_tasks and chunk_size."""
+    rng = random.default_rng(42)
+    X = rng.random((10, 3))
+
+    obj = SimilarityFromSymmetricRayFunction(func=_dot_similarity, X=X)
+
+    obj.chunk_size = 2
+    obj.max_inflight_tasks = 1
+
+    abundance = rng.random((10, 2))
+    result = obj.weighted_abundances(abundance)
+
+    assert result.shape == (10, 2)
+    assert np_all(isfinite(result))
+
+def test_weighted_similarity_chunk_nonsymmetric_with_dataframe_y():
+    """Cover the `elif isinstance(Y, DataFrame): Y = Y.to_numpy()` branch."""
+    backend = get_backend("numpy")
+    rng = random.default_rng(42)
+
+    X = DataFrame(rng.random((6, 3)))
+    Y = DataFrame(rng.random((6, 3)))          # <-- DataFrame, not ndarray
+    abundance = rng.random((6, 2))
+
+    chunk_index, result, similarities = weighted_similarity_chunk_nonsymmetric(
+        similarity=_dot_similarity,
+        X=X,
+        Y=Y,
+        relative_abundance=abundance,
+        backend=backend,
+        chunk_size=6,        # single chunk covering all rows
+        chunk_index=0,
+        return_Z=True,
+    )
+
+    assert result.shape == (6, 2)
+    assert similarities.shape == (6, 6)
+    assert np_all(isfinite(result))
