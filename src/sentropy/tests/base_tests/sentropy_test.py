@@ -8,6 +8,7 @@ from sentropy.similarity import (
 )
 import numpy as np
 import pandas as pd
+import scipy.sparse as sp
 import torch
 import pytest
 
@@ -145,6 +146,7 @@ def test_arguments_symmetric_and_parallelize():
         similarity=similarity_function,
         sfargs=sfargs,
         chunk_size=10,
+        parallelize=False,
         return_dataframe=True,
     )
 
@@ -154,7 +156,6 @@ def test_arguments_symmetric_and_parallelize():
         similarity=similarity_function,
         sfargs=sfargs,
         chunk_size=10,
-        parallelize=True,
         return_dataframe=True,
     )
 
@@ -165,6 +166,7 @@ def test_arguments_symmetric_and_parallelize():
         sfargs=sfargs,
         chunk_size=10,
         symmetric=True,
+        parallelize=False,
         return_dataframe=True,
     )
 
@@ -175,7 +177,6 @@ def test_arguments_symmetric_and_parallelize():
         sfargs=sfargs,
         chunk_size=10,
         symmetric=True,
-        parallelize=True,
         return_dataframe=True,
     )
 
@@ -202,6 +203,25 @@ def test_torch_backend():
 
     assert torch.allclose(R1, torch.tensor([0.6695], dtype=R1.dtype), rtol=1e-3, atol=1e-4)
     assert torch.allclose(R2, torch.tensor([0.3750], dtype=R2.dtype), rtol=1e-3, atol=1e-4)
+
+def test_sparse_similarity():
+    P = np.array([12, 3, 1, 1])
+    S = np.array([[1,0.7,0,0],[0.7,1,0,0],[0,0,1,0.9],[0,0,0.9,1]])
+    # Three arrays for COO format
+    row_idx = [0, 0, 1, 1, 2, 2, 3, 3]      # row positions
+    col_idx = [0, 1, 0, 1, 2, 3, 2, 3]      # column positions  
+    data    = [1.0, 0.7, 0.7, 1.0, 1.0, 0.9, 0.9, 1.0]  # the actual values
+
+    # Build COO matrix, then convert to CSR
+    S_coo = sp.coo_matrix((data, (row_idx, col_idx)), shape=(4, 4))
+    S_csr = S_coo.tocsr()  # Convert to CSR for efficient row slicing/multiplication
+
+    answer1 = sentropy(P, similarity=S)
+    answer2 = sentropy(P, similarity=S_coo)
+    answer3 = sentropy(P, similarity=S_csr)
+
+    assert np.allclose(answer1, answer2)
+    assert np.allclose(answer2, answer3)
 
 def test_sre_no_similarity():
     counts_1 = np.array([[9 / 25], [12 / 25], [4 / 25]])
@@ -267,18 +287,13 @@ def test_sre_with_similarity_from_array():
     )
     assert np.allclose(result_default_viewpoint[0], 1.0004668803029282)
 
-
 def test_sre_with_similarity_from_function():
     sfargs = np.array([[1, 2], [3, 4], [5, 6]])
-
-    def similarity_function(species_i, species_j):
-        return np.exp(-np.linalg.norm(species_i - species_j))
-
     counts_1 = pd.DataFrame({"community_1": [1, 1, 0], "community_2": [1, 0, 1]})
     counts_2 = pd.DataFrame({"community_1": [2, 1, 0], "community_2": [2, 0, 1]})
 
     results = sentropy(
-        counts_2, counts_1, similarity=similarity_function, sfargs=sfargs, level="both"
+        counts_2, counts_1, similarity=lambda species_i, species_j: np.exp(-np.linalg.norm(species_i - species_j)), sfargs=sfargs, level="both"
     )
 
     assert np.allclose(results[0], 1.0655322169685402, atol=1e-8)
@@ -388,14 +403,11 @@ def test_interset_ordinariness():
     # Raw counts for the four elements of Y.
     Y_counts = np.array([100, 50, 25, 25])
 
-    # A simple similarity function.
-    def similarity(x, y):
-        return np.dot(x, y)
     ordinariness = interset_ordinariness(
         X=X,
         Y=Y,
         Y_abundance=Y_counts,
-        similarity=similarity,
+        similarity=lambda x,y : np.dot(x,y),
     )
     expected = np.array([0.7375, 0.2625, 0.7   ])
     assert np.allclose(ordinariness, expected)

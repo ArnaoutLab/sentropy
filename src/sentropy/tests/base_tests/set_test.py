@@ -475,19 +475,16 @@ def test_effective_counts():
 def test_symmetric_similarity_function():
     X = array([[1, 2], [3, 4], [5, 6]])
 
-    def similarity_function(species_i, species_j):
-        return 1 / (1 + norm(species_i - species_j))
-
     set1 = Set(
         array([[1, 1], [1, 0], [0, 1]]),
-        similarity=similarity_function,
+        similarity=lambda species_i, species_j: 1 / (1 + norm(species_i - species_j)),
         X=X,
         chunk_size=10,
     )
 
     set2 = Set(
         array([[1, 1], [1, 0], [0, 1]]),
-        similarity=similarity_function,
+        similarity=lambda species_i, species_j: 1 / (1 + norm(species_i - species_j)),
         X=X,
         chunk_size=10,
         symmetric=True,
@@ -516,9 +513,6 @@ def test_property1():
         index=["apple", "orange", "banana", "pear", "blueberry"],
     )
 
-    def similarity_function(species_i, species_j):
-        return 1 / (1 + norm(species_i - species_j) / 100)
-
     num_species = communities.shape[0]
     viewpoints = [0, 1, 2, 4, 88, inf]
     measures = [
@@ -534,7 +528,7 @@ def test_property1():
 
     def get_result():
         superset = Set(
-            communities, similarity=similarity_function, X=X.to_numpy(), symmetric=True
+            communities, similarity=lambda species_i, species_j: 1 / (1 + norm(species_i - species_j) / 100), X=X.to_numpy(), symmetric=True
         )
         return superset.to_dataframe(qs=viewpoints, ms=measures).set_index(
             ["level", "viewpoint"]

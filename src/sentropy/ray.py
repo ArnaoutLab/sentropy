@@ -18,19 +18,15 @@ from sentropy.similarity import (
 )
 from sentropy.backend import get_backend
 
-def _recommend_chunk_params(n_X, n_Y, t_sim_estimate=None):
+def _recommend_chunk_params(n_X, n_Y):
     num_cpus = cpu_count() or 4
     
-    if t_sim_estimate is not None:
-        # Aim for ~500ms per task
-        chunk_size = max(1, int(ceil(0.5 / (n_Y * t_sim_estimate))))
-    else:
-        # Fall back: target enough tasks for 4× CPU parallelism,
-        # but at least 256 pairs per chunk
-        chunk_size = max(
-            max(1, n_X // (4 * num_cpus)),
-            max(1, 1024 // n_Y) if n_Y > 0 else 1
-        )
+    # Fall back: target enough tasks for 4× CPU parallelism,
+    # but at least 256 pairs per chunk
+    chunk_size = max(
+        max(1, n_X // (4 * num_cpus)),
+        max(1, 1024 // n_Y) if n_Y > 0 else 1
+    )
     
     chunk_size = min(chunk_size, n_X)  # can't exceed n_X
     max_inflight = min(4 * num_cpus, 256)  # cap at 256 to limit memory
