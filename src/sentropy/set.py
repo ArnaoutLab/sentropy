@@ -4,6 +4,7 @@ from typing import Callable, Iterable, Optional, Union, List
 
 from pandas import DataFrame, Index, Series, concat
 from numpy import array, atleast_1d, broadcast_to, zeros as np_zeros, ndarray
+from scipy.sparse import issparse
 from sentropy.exceptions import InvalidArgumentError
 
 from sentropy.abundance import Abundance
@@ -47,6 +48,8 @@ def build_similarity(
         return SimilarityFromArray(similarity=similarity, backend=backend)
     elif isinstance(similarity, DataFrame):
         return SimilarityFromArray(similarity=similarity.values, backend=backend)
+    elif issparse(similarity):
+        return SimilarityFromArray(similarity=similarity, backend=backend)
     elif isinstance(similarity, str):
         if chunk_size is None:  # pragma: no cover
             raise ValueError("chunk_size cannot be None when similarity is a file.")
