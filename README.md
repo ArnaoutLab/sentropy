@@ -124,6 +124,7 @@ Expected output:
 D1Z = 1.55 elements, which corresponds to H1Z = 0.44 nats
 ```
 Non-zero similarity between elements 1 and 2 reduces the overall entropy of the system relative to the [first example above](#vanilla-shannon-entropy), in which there was zero similarity between the two elements. This can be thought of as a reduction in diversity (whence the "D" in D-number). The "Z" is a convention that means "non-trivial similarity."
+In this example, the similarity matrix is a numpy array. It can also be a pandas data frame or various kinds of spicy sparse matrices, e.g. COO or CSR matrices.
 
 ## Multiple measures and multiple *q*
 
@@ -337,7 +338,7 @@ The syntax to compute the similarity-sensitive analog of the cross entropy is an
 
 ## Ordinariness
 
-Suppose you have two datasets of animals. The first dataset consists of fish and ladybugs: a vertebrate and an invertebrate. The second dataset consists of bees, butterflies, and lobsters: all invertebrates. The two datasets are disjoint: there are no fish or ladybugs in the second dataset, and vice versa. However, there are genetic similarities between all these species even though they are in separate datasets. Therefore we can define the similarity between them based on genetic relatedness. Now: suppose you want some measure of how similar each element of the first dataset is to the second dataset, i.e. how much each element would "belong" in the second dataset. This is measured by *ordinariness*: ladybugs would be more "ordinary" in the second dataset, since ladybugs are invertebrates. Strictly speaking this can be calculated without `sentropy` (below), but `sentropy` provides speedups (see documentation).
+Suppose you have two datasets of animals. The first dataset consists of fish and ladybugs: a vertebrate and an invertebrate. The second dataset consists of bees, butterflies, and lobsters: all invertebrates. The two datasets are disjoint: there are no fish or ladybugs in the second dataset, and vice versa. However, there are genetic similarities between all these species even though they are in separate datasets. Therefore we can define the similarity between them based on genetic relatedness. Now: suppose you want some measure of how similar each element of the first dataset is to the second dataset, i.e. how much each element would "belong" in the second dataset. This is measured by *ordinariness*: ladybugs would be more "ordinary" in the second dataset, since ladybugs are invertebrates. Strictly speaking this can be calculated without `sentropy`:
 
 ```
 import numpy as np
@@ -357,6 +358,38 @@ In this bee-butterfly-lobster dataset, with genetics-based similarity, how ordin
   a fish?    0.25
   a ladybug? 0.55
 ```
+
+but `sentropy` provides speedup with Ray parallelization:
+
+```
+from sentropy import interset_ordinariness
+# Three objects in X whose ordinariness we want to calculate.
+X = np.array([
+    [1.0, 0.0],
+    [0.0, 1.0],
+    [0.7, 0.7],
+])
+
+# Four objects in the reference set Y.
+Y = np.array([
+    [1.0, 0.0],
+    [0.9, 0.1],
+    [0.0, 1.0],
+    [0.1, 0.9],
+])
+
+# Raw counts for the four elements of Y.
+Y_counts = np.array([100, 50, 25, 25])
+
+ordinariness = interset_ordinariness(
+    X=X,
+    Y=Y,
+    Y_abundance=Y_counts,
+    similarity=lambda x,y : np.dot(x,y),
+)
+print(ordinariness)
+```
+The expected output is [0.7375, 0.2625, 0.7].
 
 ## Using torch and the GPU
 
@@ -421,6 +454,7 @@ To date, we know of no other python package that implements all the measures def
 
 
 # Release history
-- Version 1.2.1: sped up the SKL computation.
+- Version 1.4.0: implemented interset ordinariness, auto-tuning Ray hyperparameters, slight improvement to sparse matrix API.
+- Version 1.3.0: sped up the SKL computation.
 - Version 1.2.0: implemented the Vendi score.
 - Version 1.1.0: implemented the similarity-sensitive crossentropy.
