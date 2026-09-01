@@ -198,7 +198,22 @@ D1Z = 1.18 elements, which corresponds to H1Z = 0.16 nats
 ```
 The strings in this example are amino acid sequences, such as might exist in a next-generation sequencing dataset. CARDYW outnumbers the other two 10:1; CTRDYW and CAKDYW might be sequencing errors or mutations. The three sequences are very similar. The combination of these two factors—a big difference in relative frequencies and small differences in sequence—results in this three-element dataset having an effective number of only 1.18 elements. 
 
-To parallelize the computation with the `ray` package, pass `parallelize=True`. If the similarity function is known to be symmetric, a twofold speedup can be obtained by passing `symmetric=True`.
+By default, when a callable is passed to the `similarity` argument of `sentropy`, the computation is parallelized with the `ray` package. In order to turn off the parallelization, pass `parallelize=False`. If the similarity function is known to be symmetric, a twofold speedup can be obtained by passing `symmetric=True`.
+
+Furthermore, by default, Ray uses all available CPU cores. To limit it to `N` cores, initialize Ray yourself *before* calling `sentropy`:
+
+```
+import ray
+ray.init(num_cpus=N)
+```
+
+Ray keeps its worker processes persistent after the computation finishes, so the memory they occupy is not freed by default. If you prefer to free up that memory, shut Ray down afterwards:
+
+```
+ray.shutdown()
+```
+
+Note that shutting Ray down means the *next* parallelized computation with `sentropy` will re-initialize it with all cores again, so you would need to repeat `ray.init(num_cpus=N)` as well.
 
 ## Representativeness
 
