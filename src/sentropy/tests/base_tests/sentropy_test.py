@@ -342,26 +342,26 @@ def test_vendi_2():
     assert np.allclose(VS, expected_VS)
 
 def test_vendi_3():
-    """Test that the Vendi score at viewpoint=2 is same as LCR alpha with the elementwise squared similarity matrix
-    as proved by Claude.
-    """
+    """Vendi score at viewpoint=2 equals LCR normalized alpha with the
+    elementwise-squared similarity matrix."""
     counts = np.array([[10,5],[5,10],[0,2]])
     Z = np.array([
         [1.0, 0.5, 0.2],
         [0.5, 1.0, 0.3],
         [0.2, 0.3, 1.0],
         ])
-    VS = sentropy(counts, similarity=Z, measure='vendi', q=2, level='class')
-    VS1, VS2 = VS.raw_dict['subset_vendi_q=2'][0], VS.raw_dict['subset_vendi_q=2'][1]
-    alpha = sentropy(counts, similarity=Z**2, measure='normalized_alpha', q=2, level='class', return_dataframe=True)
+    VS = sentropy(counts, similarity=Z, measure='vendi', q=2, level='subset')
+    VS1, VS2 = VS[0], VS[1]
+    alpha = sentropy(counts, similarity=Z**2, measure='normalized_alpha', q=2,
+                     level='subset', return_dataframe=True)
     alpha1, alpha2 = alpha['normalized_alpha'][0], alpha['normalized_alpha'][1]
     assert np.allclose(VS1, alpha1)
     assert np.allclose(VS2, alpha2)
 
-    VE = sentropy(counts, similarity=Z, measure='vendi', q=2, level='class', eff_no=False, backend='torch')
-    VE1, VE2 = VE.raw_dict['subset_vendi_q=2'][0], VE.raw_dict['subset_vendi_q=2'][1]
-    assert np.allclose(np.exp(VE1), VS1)
-    assert np.allclose(np.exp(VE2), VS2)
+    VE = sentropy(counts, similarity=Z, measure='vendi', q=2, level='subset',
+                  eff_no=False, backend='torch')
+    assert np.allclose(np.exp(VE[0]), VS1)
+    assert np.allclose(np.exp(VE[1]), VS2)
 
 def test_vendi_4():
     """Test that an error is raised if we pass a function to the similarity argument, when computing the Vendi score"""

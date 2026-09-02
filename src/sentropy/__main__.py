@@ -53,6 +53,11 @@ def main(args):
             "normalized_beta",
             "rho_hat",
             "beta_hat"]
+        if args.ms and "vendi" in args.ms and len(args.ms) > 1:
+            raise SystemExit(
+                "Measure 'vendi' cannot be combined with other measures "
+                "in a single call."
+            )
             
         df = sentropy(
             counts,
@@ -81,6 +86,11 @@ def main(args):
         )
         if args.ms is None:
             args.ms = 'sre'
+        elif any(m not in ('sre', 'sce') for m in args.ms):
+            raise SystemExit(
+                "With two input files, -ms must be 'sre' or 'sce' "
+                f"(got: {' '.join(args.ms)})."
+            )
         result = sentropy(
             counts_a,
             counts_b,
