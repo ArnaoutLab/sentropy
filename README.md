@@ -454,7 +454,7 @@ R2 using torch and GPU: tensor(0.3750, device='mps:0')
 ```
 
 ## Vendi score
-This package also computes Vendi scores, which is an alternative definition of similarity-sensitive diversity in addition to the Leinster-Cobbold-Reeve diversity framework. To compute Vendi scores, we simply pass `measure='vendi'` to the `sentropy` function.
+This package also computes [Vendi scores](https://arxiv.org/abs/2210.02410), which is an alternative definition of similarity-sensitive diversity in addition to the Leinster-Cobbold-Reeve diversity framework. To compute Vendi scores, we simply pass `measure='vendi'` to the `sentropy` function.
 
 # More applications
 
@@ -468,7 +468,10 @@ In [this preprint](https://arxiv.org/abs/2401.00102) of ours, we appled `sentrop
 
 # Alternatives
 
-To date, we know of no other python package that implements all the measures defined by [Reeve at al.](https://arxiv.org/abs/1404.6520), only [R](https://github.com/boydorr/rdiversity) and [Julia packages](https://github.com/EcoJulia/Diversity.jl), which enable some of the capabilities of `sentropy`.
+To date, we know of no other python package that implements all the measures defined by [Reeve at al.](https://arxiv.org/abs/1404.6520)
+ - packeages in other languages that enable some of the capabilities of `sentropy`: [R](https://github.com/boydorr/rdiversity) and [Julia](https://github.com/EcoJulia/Diversity.jl)
+ - [`cdiversity`](https://github.com/AI-SysBio/cdiversity) package calculates Hill-number diversity but without similarity for immune repertoires
+ - [`vendi`](https://pypi.org/project/vendi-score/#description): alternative for `measure='vendi'` to the `sentropy` function
 
 
 # Release history
