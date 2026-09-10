@@ -475,6 +475,7 @@ To date, we know of no other python package that implements all the measures def
 
 
 # Release history
+- Version 1.5.0: optimized interset ordinariness to include deduplication, redefined Vendi score of overall set not to be the power mean of subsets' Vendi score
 - Version 1.4.0: implemented interset ordinariness, auto-tuning Ray hyperparameters, slight improvement to sparse matrix API.
 - Version 1.3.0: sped up the SKL computation.
 - Version 1.2.0: implemented the Vendi score.
