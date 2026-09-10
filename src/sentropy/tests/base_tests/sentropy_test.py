@@ -411,3 +411,30 @@ def test_interset_ordinariness():
     )
     expected = np.array([0.7375, 0.2625, 0.7   ])
     assert np.allclose(ordinariness, expected)
+def test_interset_ordinariness_uniqueness():
+    # Three objects in X whose ordinariness we want to calculate.
+    X = np.array([
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [0.7, 0.7],
+    ])
+
+    # Four objects in the reference set Y.
+    Y = np.array([
+        [1.0, 0.0],
+        [0.9, 0.1],
+        [0.9, 0.1],
+        [0.1, 0.9],
+    ])
+
+    # Raw counts for the four elements of Y.
+    Y_counts = np.array([100, 50, 25, 25])
+
+    ordinariness = interset_ordinariness(
+        X=X,
+        Y=Y,
+        Y_abundance=Y_counts,
+        similarity=lambda x,y : np.dot(x,y),
+    )
+    expected = np.array([0.9625, 0.9625, 0.7])
+    assert np.allclose(ordinariness, expected)
