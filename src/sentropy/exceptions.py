@@ -27,3 +27,7 @@ class InvalidArgumentError(DiversityError):
 
 class ArgumentWarning(DiversityWarning):
     pass
+
+class SpectralError(InvalidArgumentError):
+    """Raised when a spectral measure cannot be computed."""
+    pass

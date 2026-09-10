@@ -11,11 +11,10 @@ from sentropy.abundance import Abundance
 from sentropy.similarity import (
     Similarity,
     SimilarityFromArray,
-    SimilarityFromDataFrame,
-    SimilarityIdentity,
     SimilarityFromFunction,
     SimilarityFromSymmetricFunction,
     SimilarityFromFile,
+    SimilarityIdentity,
 )
 
 from sentropy.components import Components
@@ -95,7 +94,6 @@ class Set:
         "normalized_beta",
         "rho_hat",
         "beta_hat",
-        "vendi",
     )
 
     def __init__(
@@ -166,57 +164,6 @@ class Set:
             )
         return self._components
 
-    def _spectral_diversity(self, similarity_obj, p, q, eff_no, backend):
-        """
-        Internal helper to compute Vendi/Renyi spectral diversity.
-        similarity_obj: The Similarity object (not just the matrix)
-        p: Abundance vector (n,)
-        q: Viewpoint parameter
-        """
-        Z = None
-        
-        # Check if we have a materialized similarity matrix
-        if isinstance(similarity_obj, (SimilarityFromArray, SimilarityFromDataFrame)):
-            Z = similarity_obj.similarity  # Get the raw matrix
-        elif isinstance(similarity_obj, SimilarityIdentity):
-            # Create identity matrix on the fly
-            Z = backend.identity(p.shape[0])
-        else:
-            raise InvalidArgumentError(
-                "Vendi score requires a pre-computed similarity matrix. "
-                "Please pass a numpy array or pandas DataFrame as the 'similarity' argument. "
-                "Function-based or file-based similarities are not supported for Vendi scores "
-                "because eigenvalue decomposition requires the full similarity matrix."
-            )
-
-        # 1. Construct Z_p = D^{1/2} Z D^{1/2}
-        
-        sqrt_p = backend.sqrt(p)
-        outer_product = backend.outer(sqrt_p, sqrt_p)
-        Z_p = backend.multiply(Z, outer_product)
-        eigenvalues = backend.eigvalsh(Z_p)
-        
-        # Filter non-zero eigenvalues for numerical stability
-        # Use a small tolerance
-        tol = 0
-        probs = eigenvalues[eigenvalues > tol]
-        
-        if q == 1:
-            # Shannon Entropy
-            # H = - sum(p * ln(p))
-            entropy = -backend.sum(backend.multiply(probs, backend.log(probs)))
-            if eff_no:
-                return backend.exp(entropy)
-            return entropy
-        else:
-            # Renyi Entropy
-            # H_q = 1/(1-q) * ln(sum(p^q))
-            sum_pow = backend.sum(backend.power(probs, q))
-            entropy = backend.log(sum_pow) / (1.0 - q)
-            if eff_no:
-                return backend.exp(entropy)
-            return entropy
-
     def subset_diversity(
         self, q: float, m: str, eff_no: bool = True
     ) -> Union[ndarray, Tensor]:
@@ -243,14 +190,6 @@ class Set:
                     f"{', '.join(self.MEASURES)}"
                 )
             )
-
-        if m == 'vendi':
-            results = []
-            for i in range(self.abundance.num_subsets):
-                p = self.abundance.normalized_subset_abundance[:,i]
-                val = self._spectral_diversity(self.similarity, p, q, eff_no, self.backend)
-                results.append(val)
-            return self.backend.array(results)
 
         if f"subset_{m}_q={q}" in self.subset_diversity_hash.keys():
             diversity_measure = self.subset_diversity_hash[f"subset_{m}_q={q}"]

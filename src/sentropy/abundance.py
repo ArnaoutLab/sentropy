@@ -9,12 +9,23 @@ Abundance
 
 from typing import Iterable, Union, Tuple, Optional
 
-from numpy import ndarray
+from numpy import ndarray, column_stack
 from torch import Tensor
 from pandas import DataFrame
 
 from sentropy.backend import get_backend, BaseBackend
 from sentropy.similarity import Similarity
+
+def normalize_counts(counts):
+    """Convert counts to ndarray and extract subset names."""
+    if isinstance(counts, DataFrame):
+        return counts.to_numpy(), counts.columns.to_list()
+    elif isinstance(counts, dict):
+        return column_stack(list(counts.values())), list(counts.keys())
+    elif isinstance(counts, ndarray):
+        if counts.ndim == 1:
+            counts = counts.reshape(-1, 1)
+        return counts, list(range(counts.shape[1]))
 
 def joint_ordinariness(P: "Abundance", Q: "Abundance", similarity: Similarity):
     """Compute (set, subset, normalized_subset) ordinariness for two

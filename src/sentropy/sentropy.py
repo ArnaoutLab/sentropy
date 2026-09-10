@@ -17,8 +17,9 @@ from pandas import DataFrame
 import os
 import numpy as np
 
-from sentropy.abundance import Abundance, joint_ordinariness
+from sentropy.abundance import Abundance, joint_ordinariness, normalize_counts as _normalize_counts
 from sentropy.backend import get_backend
+from sentropy.exceptions import InvalidArgumentError
 
 from sentropy.similarity import (
     SimilarityIdentity,
@@ -29,6 +30,7 @@ from sentropy.similarity import (
 )
 
 from sentropy.set import Set, build_similarity
+from sentropy.spectral import vendi_score
 from sentropy.powermean import power_mean
 
 # ----------------------------------------------------------------------
@@ -49,24 +51,6 @@ MEASURES = (
     "sre", #similarity-sensitive relative entropy
     "vendi", #vendi score
 )
-
-
-# ----------------------------------------------------------------------
-# Utility helpers
-# ----------------------------------------------------------------------
-
-
-def _normalize_counts(counts):
-    """Convert counts to ndarray and extract subset names."""
-    if isinstance(counts, DataFrame):
-        return counts.to_numpy(), counts.columns.to_list()
-    elif isinstance(counts, dict):
-        return column_stack(list(counts.values())), list(counts.keys())
-    elif isinstance(counts, ndarray):
-        if counts.ndim == 1:
-            counts = counts.reshape(-1, 1)
-        return counts, list(range(counts.shape[1]))
-
 
 # ----------------------------------------------------------------------
 # Result container
@@ -130,7 +114,7 @@ def _compute_lcr_measures(superset, qs, ms, level, eff_no):
 # ----------------------------------------------------------------------
 
 
-def sentropy_single_abundance(
+def LCR(
     counts: Union[DataFrame, ndarray],
     similarity=None,
     qs=1,
@@ -369,7 +353,24 @@ def sentropy(
     if counts_b is None:
         if measure is None:
             measure = 'alpha'
-        return sentropy_single_abundance(
+        ms = atleast_1d(measure)
+        if "vendi" in ms:
+            if len(ms) > 1:
+                raise InvalidArgumentError("Measure 'vendi' cannot be combined with LCR measures \
+                    in a single call; it has different result semantics.")
+            else:
+                return vendi_score(
+                counts=counts_a,
+                similarity=similarity,
+                q=q if isinstance(q, (int, float)) else q[0],
+                level=level,
+                eff_no=eff_no,
+                return_dataframe=return_dataframe,
+                backend=backend,
+                device=device,
+            )
+        else:
+            return LCR(
             counts=counts_a,
             similarity=similarity,
             qs=q,
@@ -390,21 +391,21 @@ def sentropy(
         if measure is None:
             measure = 'sre'
         return sentropy_two_abundances(
-            P_abundance=counts_a,
-            Q_abundance=counts_b,
-            similarity=similarity,
-            q=q,
-            m=measure,
-            symmetric=symmetric,
-            sfargs=sfargs,
-            chunk_size=chunk_size,
-            parallelize=parallelize,
-            return_dataframe=return_dataframe,
-            level=level,
-            eff_no=eff_no,
-            backend=backend,
-            device=device,
-        )
+        P_abundance=counts_a,
+        Q_abundance=counts_b,
+        similarity=similarity,
+        q=q,
+        m=measure,
+        symmetric=symmetric,
+        sfargs=sfargs,
+        chunk_size=chunk_size,
+        parallelize=parallelize,
+        return_dataframe=return_dataframe,
+        level=level,
+        eff_no=eff_no,
+        backend=backend,
+        device=device,
+    )
 
 def interset_ordinariness(
     X,

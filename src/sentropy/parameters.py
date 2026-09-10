@@ -100,8 +100,15 @@ def configure_arguments():
         nargs="+",
         type=str,
         help=(
-            "A list of diversity measures to be computed. Must be in 'alpha', 'rho', 'beta',"
-            "'gamma', 'normalized_alpha', 'normalized_rho', 'normalized_beta', 'rho_hat', 'beta_hat'."
+            "A list of diversity measures to be computed. "
+            "With one input file (-i file): any of 'alpha', 'rho', 'beta', "
+            "'gamma', 'normalized_alpha', 'normalized_rho', 'normalized_beta', "
+            "'rho_hat', 'beta_hat', or 'vendi' (which cannot be combined "
+            "with the others in a single call). "
+            "With two input files (-i file_a file_b): 'sre' or 'sce' "
+            "(similarity-sensitive relative entropy and cross-entropy). "
+            "Defaults to all LCR measures (one input file) or 'sre' "
+            "(two input files)."
         )
     )
 
