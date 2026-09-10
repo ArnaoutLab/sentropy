@@ -18,14 +18,9 @@ from torch import Tensor
 
 from sentropy.abundance import Abundance, normalize_counts
 from sentropy.backend import get_backend
-from sentropy.exceptions import InvalidArgumentError
+from sentropy.exceptions import SpectralError
 from sentropy.set import build_similarity
 from sentropy.similarity import SimilarityFromArray, SimilarityIdentity
-
-
-class SpectralError(InvalidArgumentError):
-    """Raised when a spectral measure cannot be computed."""
-
 
 def _dense_similarity(similarity, n: int, backend) -> ndarray:
     """Materialize the similarity as a dense backend array.
@@ -40,15 +35,6 @@ def _dense_similarity(similarity, n: int, backend) -> ndarray:
         return sim
     if isinstance(similarity, SimilarityIdentity):
         return backend.identity(n)
-    raise SpectralError(
-        "Vendi scores require a materialized similarity matrix "
-        "(numpy array, pandas DataFrame, or scipy sparse matrix). "
-        "Function- and file-based similarities are not supported "
-        "because the eigendecomposition needs the full matrix. "
-        "If your similarity is defined by a function over features, "
-        "evaluate it into an array first and pass that array as "
-        "`similarity`."
-    )
 
 
 def _spectral_entropy(Z, p, q: float, backend) -> float:
