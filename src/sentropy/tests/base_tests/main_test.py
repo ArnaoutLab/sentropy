@@ -4,10 +4,11 @@ from argparse import Namespace
 
 from numpy import inf, allclose
 from pandas import read_csv
-from pytest import mark
+from pytest import fixture, mark, raises
 from pathlib import Path
 
 from sentropy.__main__ import main
+from sentropy.parameters import configure_arguments
 import pickle
 
 MEASURES = (
@@ -196,3 +197,32 @@ def test_main_with_2_counts(tmp_path):
 
     assert result[0] == 1
     assert allclose(result[1], [[1.661012, 1.548891], [1.431594, 1.556117]])
+
+def make_args(argv): # pragma: no cover
+    """Parse a command-line-style argument list the same way __main__ does."""
+    return configure_arguments().parse_args(argv)
+
+
+@fixture
+def counts_file(tmp_path):
+    """Two-subset counts CSV: 3 species x 2 subsets, comma-delimited."""
+    path = tmp_path / "counts.csv"
+    path.write_text("A,B\n10,5\n5,2\n2,1\n")
+    return path
+
+def test_main_vendi_cannot_be_combined(counts_file):
+    argv = ["-i", str(counts_file), "-ms", "vendi", "alpha"]
+    args = configure_arguments().parse_args(argv)
+    with raises(SystemExit, match="cannot be combined"):
+        main(args)
+
+def test_main_two_files_rejects_non_sre_sce(tmp_path):
+    fa = tmp_path / "counts_a.csv"
+    fb = tmp_path / "counts_b.csv"
+    fa.write_text("A,B\n10,5\n5,2\n")
+    fb.write_text("A,B\n7,3\n2,4\n")
+
+    argv = ["-i", str(fa), str(fb), "-ms", "alpha"]
+    args = configure_arguments().parse_args(argv)
+    with raises(SystemExit, match="must be 'sre' or 'sce'"):
+        main(args)

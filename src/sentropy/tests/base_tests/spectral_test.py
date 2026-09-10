@@ -1,9 +1,10 @@
 from scipy.sparse import csr_matrix
-from sentropy.exceptions import SpectralError
+from sentropy.exceptions import InvalidArgumentError, SpectralError
 from sentropy.spectral import vendi_score
 from sentropy.sentropy import sentropy
 from numpy import array, allclose, zeros, sum as np_sum, log as np_log, sqrt as np_sqrt, exp as np_exp, max as np_max
 from numpy.linalg import eigvals
+from pandas import DataFrame
 from pytest import raises
 
 def test_spectral_diversity():
@@ -41,6 +42,12 @@ def test_vendi_no_positive_eigenvalues():
     with raises(SpectralError):
         sentropy(P, similarity=Z, measure='vendi')
 
+def test_vendi_no_mixing_with_lcr():
+    P = array([20, 1, 1])
+    Z = array([[1,0.1,0.1],[0.1,1,0.1],[0.1,0.1,1]])
+    with raises(InvalidArgumentError):
+        sentropy(P, similarity=Z, measure=['alpha','vendi'])
+
 def test_vendi_infinite_viewpoint():
     sim = array([[1.        , 0.24311673, 0.10687793],
        [0.24311673, 1.        , 0.10687793],
@@ -50,3 +57,15 @@ def test_vendi_infinite_viewpoint():
     expected = -np_log(np_max(eigvals(sim)/np_sum(eigvals(sim))))
     assert allclose(VE, expected)
 
+def test_vendi_superset_df():
+    points = array([[0, 0], [1, 1], [-1, 2]])
+    diff = points[:, None, :] - points[None, :, :]   # shape (3, 3, 2)
+    dist = np_sqrt((diff ** 2).sum(axis=-1))         # shape (3, 3)
+    sim = np_exp(-dist)
+    count1 = [1,1,1]
+    count2 = [1,2,3]
+    count = DataFrame({'subset 1': count1, 'subset 2': count2})
+    result_df = sentropy(count, similarity=sim, eff_no=False, measure='vendi', level='both', return_dataframe=True)
+    assert allclose(result_df.loc[0,'vendi'], 1.0375540865233082)
+    result_no_df = sentropy(count, similarity=sim, eff_no=False, measure='vendi', level='both')
+    assert allclose(result_no_df['overall'], result_df.loc[0, 'vendi'])
