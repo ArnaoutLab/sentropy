@@ -473,25 +473,33 @@ def interset_ordinariness(
 
     if one_dimensional:
         Y_abundance = Y_abundance.reshape(-1, 1)
-
+    #Get unique elements
+    X_unique, X_inverse = np.unique(X, axis = 0, return_inverse=True)
+    Y_unique, Y_inverse = np.unique(Y, axis = 0, return_inverse=True)
+    
+    #Sum counts for duplicate elements
+    Y_abundance_unique = np.zeros((len(Y_unique), Y_abundance.shape[1]))
+    np.add.at(Y_abundance_unique, Y_inverse, Y_abundance)
+    
+    Y_abundance_unique = backend.asarray(Y_abundance_unique)
     # Normalize counts independently for each abundance distribution.
-    abundance_totals = backend.sum(Y_abundance, axis=0)
+    abundance_totals = backend.sum(Y_abundance_unique, axis=0)
 
-    Y_abundance = Y_abundance / abundance_totals
-
+    Y_abundance_unique = Y_abundance_unique / abundance_totals
+    
     from sentropy.ray import _interset_weighted_abundances_ray, _recommend_chunk_params
     chunk_size, max_inflight_tasks = _recommend_chunk_params(X.shape[0], Y.shape[0])
 
-    result = _interset_weighted_abundances_ray(
+    result_unique = _interset_weighted_abundances_ray(
         similarity=similarity,
-        X=X,
-        Y=Y,
-        relative_abundance=Y_abundance,
+        X=X_unique,
+        Y=Y_unique,
+        relative_abundance=Y_abundance_unique,
         chunk_size=chunk_size,
         max_inflight_tasks=max_inflight_tasks,
         backend=backend,
     )
-
+    result = result_unique[X_inverse]
     if one_dimensional:
         result = result[:, 0]
 

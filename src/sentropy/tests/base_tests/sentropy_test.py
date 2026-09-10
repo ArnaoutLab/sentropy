@@ -411,3 +411,37 @@ def test_interset_ordinariness():
     )
     expected = np.array([0.7375, 0.2625, 0.7   ])
     assert np.allclose(ordinariness, expected)
+def test_interset_ordinariness_uniqueness():
+    X = np.array([
+        [0],
+        [1],
+        [0],
+        [2],
+    ])
+
+    Y = np.array([
+        [0],
+        [1],
+        [0], 
+        [2],
+        [1],
+    ])
+
+    Y_abundance = np.array([2, 1, 3, 4, 2,])
+    def similarity_function(x,y):
+        if x==y:
+            return 1
+        else:
+            return 0
+    result = interset_ordinariness(
+        X=X,
+        Y=Y,
+        Y_abundance=Y_abundance,
+        similarity=similarity_function,
+        backend="numpy",
+        device="cpu",
+    )
+
+    expected = np.array([5/12, 3/12, 5/12, 4/12])
+
+    assert np.allclose(result, expected)
