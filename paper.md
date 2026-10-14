@@ -97,6 +97,7 @@ The authors used GitHub Copilot for inline code suggestions. The authors reviewe
 - Elliot D. Hill: Software (original greylock implementation), Writing
 - Jasper Braun: Software (original greylock implementation), Investigation (immunomics section), Writing
 - Alexandra Morgan: Software (original greylock implementation), Investigation (metagenomics section), Writing
+- Miao Li: Software
 - Liza M. Quintana: Writing
 - Gabrielle Mazzon: Writing
 - Ghee Rye Lee: Writing
