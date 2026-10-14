@@ -90,4 +90,18 @@ Since its initial release, `sentropy` (originally called *greylock*) has been ad
 # AI usage disclosure
 The authors used GitHub Copilot for inline code suggestions. The authors reviewed and validated all AI-suggested edits and bear full responsibility for the final work.
 
+# Author contribution statement
+
+- Phuc Nguyen: Software (major refactor of the greylock API into the sentropy API), Investigation (medical imaging and pathology sections), Writing
+- Rohit Arora: Software (original greylock implementation)
+- Elliot D. Hill: Software (original greylock implementation), Writing
+- Jasper Braun: Software (original greylock implementation), Investigation (immunomics section), Writing
+- Alexandra Morgan: Software (original greylock implementation), Investigation (metagenomics section), Writing
+- Liza M. Quintana: Writing
+- Gabrielle Mazzon: Writing
+- Ghee Rye Lee: Writing
+- Rima Arnaout: Supervision, Funding acquisition
+- Ramy Arnaout: Conceptualization, Supervision, Writing – original draft, Funding acquisition
+
+
 # References
