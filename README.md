@@ -278,9 +278,8 @@ Expected output:
 1  oranges          1        0.375035
 ```
 
-## Relative sentropy and cross-sentropy
-
-Shannon-type relative entropy *without* similarity is called the Kullback-Leibler divergence and is used throughout machine learning (and elsewhere). `sentropy` lets us calculate the similarity-sensitive version by passing two `P` arguments:
+## Relative sentropy and cross-sentropy between subset pairs
+The beta diversity in the LCR framework is basically the relative entropy (i.e. the Kullback-Leibler divergence) between a subset and the overall set. Similarly, the gamma diversity in the LCR framework is basically the cross-entropy between a subset and the overall set. Because the ordinary (i.e. similarity-insensitive) Kullback-Leibler divergence and the ordinary cross-entropy are used throughout machine learning (and elsewhere), we deem it important that the `sentropy` package can compute relative sentropies and cross-sentropies for any pair of subsets. This can be down by passing two `P` arguments, for example we can compute the similarity-sensitive KL divergence as follows:
 ```
 from sentropy import sentropy
 import numpy as np
@@ -348,8 +347,14 @@ As a numpy array:
 [[1.         7.84258081]
  [8.02896542 1.        ]]
 ```
+We note that the two abundance matrices passed to `sentropy` need not be the same overall set; `sentropy` calculates the the relative sentropy for any two subsets, one from the first overall set and one from the other overall set. We also note that by default, `sentropy` calculates the effective number form of the relative sentropy (i.e. the exponentiated relative sentropy), unless we pass `eff_no=False`.
 
-The syntax to compute the similarity-sensitive analog of the cross entropy is analogous, except that we need to pass `measure="sce"`.
+The syntax to compute the similarity-sensitive analog of the cross entropy is completely analogous, except that we need to pass `measure="sce"`. We summarize in the table below the relationships between calling `sentropy` with 2 abundance matrices and calling it with only one:
+
+| Leinster–Reeve framework (one abundance matrix) | Two-matrix extension | Relationship |
+| --- | --- | --- |
+| **Beta diversity** | **Relative sentropy** (similarity-sensitive KL divergence, SKL) | Beta diversity is the exponentiated relative entropy between a subcommunity and its metacommunity. Relative sentropy generalizes this comparison to any pair of subcommunities. |
+| **Gamma diversity** | **Cross-sentropy** (similarity-sensitive cross-entropy) | Gamma diversity is the exponentiated cross-entropy between a subcommunity and its metacommunity. Cross-sentropy generalizes this comparison to any pair of subcommunities. |
 
 ## Ordinariness
 
