@@ -279,7 +279,7 @@ Expected output:
 ```
 
 ## Relative sentropy and cross-sentropy between subset pairs
-The beta diversity in the LCR framework is basically the relative entropy (i.e. the Kullback-Leibler divergence) between a subset and the overall set. Similarly, the gamma diversity in the LCR framework is basically the cross-entropy between a subset and the overall set. Because the ordinary (i.e. similarity-insensitive) Kullback-Leibler divergence and the ordinary cross-entropy are used throughout machine learning (and elsewhere), we deem it important that the `sentropy` package can compute relative sentropies and cross-sentropies for any pair of subsets. This can be down by passing two `P` arguments, for example we can compute the similarity-sensitive KL divergence as follows:
+The beta diversity in the LCR framework is basically the relative entropy (i.e. the Kullback-Leibler divergence) between a subset and the overall set. Similarly, the gamma diversity in the LCR framework is basically the cross-entropy between a subset and the overall set. Because the ordinary (i.e. similarity-insensitive) Kullback-Leibler divergence and the ordinary cross-entropy are used throughout machine learning (and elsewhere), we deem it important that the `sentropy` package can compute relative sentropies and cross-sentropies for any pair of subsets. This can be done by passing two `P` arguments, for example we can compute the similarity-sensitive KL divergence as follows:
 ```
 from sentropy import sentropy
 import numpy as np
