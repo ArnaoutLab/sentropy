@@ -353,8 +353,8 @@ The syntax to compute the similarity-sensitive analog of the cross entropy for a
 
 | Leinster–Reeve framework (one abundance matrix) | Two-matrix extension | Relationship |
 | --- | --- | --- |
-| **Beta diversity** | **Relative sentropy** (similarity-sensitive KL divergence, SKL) | Beta diversity is the exponentiated relative (s)entropy between a subcommunity and its metacommunity. The 2-matrix relative sentropy generalizes this comparison to any pair of subcommunities. |
-| **Gamma diversity** | **Cross-sentropy** (similarity-sensitive cross-entropy) | Gamma diversity is the exponentiated cross-(s)entropy between a subcommunity and its metacommunity. The 2-matrix cross-sentropy generalizes this comparison to any pair of subcommunities. |
+| **Beta diversity** | **Relative sentropy** (similarity-sensitive KL divergence, SKL) | Beta diversity is the exponentiated relative (s)entropy between a subset and its overall set. The 2-matrix relative sentropy generalizes this comparison to any pair of subsets. |
+| **Gamma diversity** | **Cross-sentropy** (similarity-sensitive cross-entropy) | Gamma diversity is the exponentiated cross-(s)entropy between a subset and its overall set. The 2-matrix cross-sentropy generalizes this comparison to any pair of subsets. |
 
 ## Ordinariness
 
