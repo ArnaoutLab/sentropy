@@ -461,6 +461,62 @@ R2 using torch and GPU: tensor(0.3750, device='mps:0')
 ## Vendi score
 This package also computes [Vendi scores](https://arxiv.org/abs/2210.02410), which is an alternative definition of similarity-sensitive diversity in addition to the Leinster-Cobbold-Reeve diversity framework. To compute Vendi scores, we simply pass `measure='vendi'` to the `sentropy` function.
 
+# Command-line interface tool
+The sentropy package can also be used from the command line as the `sentropy` command. For all the CLI options, run
+```
+sentropy -h
+```
+
+## Input and similarity files
+The input file (`-i`) is a csv file or tsv file of the same format as the counts matrices expected by the `sentropy` function, saved with `index=False`, for example:
+```
+import pandas as pd
+
+pd.DataFrame(
+    {
+        "apples": [2, 4, 0],
+        "oranges": [4, 0, 6],
+    },
+    index=["ladybug", "bee", "fish"],
+).to_csv("counts.csv", index=False)
+```
+If a similarity matrix is used, the `-similarity` flag points to a csv or tsv file containing the pairwise similarities for the species in the input file. The file must have a header listing the species names corresponding to each column, and the column and row ordering must match the row order of the counts file, for example:
+```
+pd.DataFrame(
+    [
+        [1.0, 0.60, 0.22],
+        [0.60, 1.0, 0.27],
+        [0.22, 0.27, 1.0],
+    ],
+    index=["ladybug", "bee", "fish"],
+    columns=["ladybug", "bee", "fish"],
+).to_csv("similarity.csv", index=False)
+```
+If `-similarity` is omitted, the identity similarity is used.
+
+## One input file: LCR measures and the Vendi score
+
+From the command line:
+```
+sentropy -i counts.csv -similarity similarity.csv -q 0 1 2 inf -measure alpha beta normalized_rho
+```
+The output is a table with the requested measures for each viewpoint `q`. If no `-measure` flag is passed, all LCR measures are computed. If no `-q` flag is passed, the viewpoint parameter 1 is computed. The Vendi score can also be computed, but it cannot be combined with the other measures in a single call, for example:
+```
+sentropy -i counts.csv -similarity similarity.csv -measure vendi -q 1
+```
+To sace the result table to a file, pass `-o` (note that the output is always tab-delimited):
+```
+sentropy -i counts.csv -similarity similarity.csv -q 0 1 inf -o results.tsv
+```
+
+## Two input files: relative sentropy and cross-sentropy
+With two input files, the CLI computes similarity-sensitive relative sentropy (`-measure sre`, the default in this mode) or similarity-sensitive cross-sentropy (`-measure sce`) between the two subsets, for example:
+```
+sentropy -i counts_a.csv counts_b.csv -similarity similarity.csv -q 1 -measure sre
+```
+Both files must follow the same format (one column per subset, one row per species), and both must list their species in the same order as the similarity matrix. Exactly one or two input files must be given. 
+
+
 # More applications
 
 In [this preprint](https://arxiv.org/abs/2401.00102) of ours, we appled `sentropy` to various fields, including immunomics, metagenomics, medical imaging, and digital pathology. The code for each of these applications is in the following Jupyter notebooks. Please follow along with the paper:

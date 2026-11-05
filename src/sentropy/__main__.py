@@ -1,22 +1,29 @@
-"""Main module for executing diversity on command-line.
+"""Main module for executing sentropy on the command line.
 
 Functions
 ---------
 main
     Calculates diversities according to command-line specifications.
+cli
+    Console-script entry point: parses arguments and calls main().
 """
 
 from sys import argv
 from platform import python_version
 from logging import captureWarnings, getLogger
-from numpy import int64
+import pickle
 
+from numpy import int64
 from pandas import read_csv
 
-from sentropy.log import LOG_HANDLER, LOGGER
 from sentropy import sentropy
-from sentropy.parameters import configure_arguments
-import json, pickle
+from sentropy.log import LOG_HANDLER, LOGGER
+from sentropy.parameters import (
+    configure_arguments,
+    LCR_MEASURES,
+    ONE_INPUT_MEASURES,
+    TWO_INPUT_MEASURES,
+)
 
 # Ensure warnings are handled properly.
 captureWarnings(True)
@@ -30,40 +37,43 @@ def main(args):
     ----------
     args: argparse.Namespace
         Return object of argparse.ArgumentParser object created by
-        diversity.parameters.configure_arguments and applied to command
+        sentropy.parameters.configure_arguments and applied to command
         line arguments.
     """
     LOGGER.setLevel(args.log_level)
     LOGGER.info(" ".join([f"python{python_version()}", *argv]))
     LOGGER.debug(f"args: {args}")
 
-    if len(args.input_filepath) == 1:
+    measures = args.measure
+    num_inputs = len(args.input_filepath)
+
+    if num_inputs == 1:
+        if measures is None:
+            measures = list(LCR_MEASURES)
+        else:
+            invalid = [m for m in measures if m not in ONE_INPUT_MEASURES]
+            if invalid:
+                raise SystemExit(
+                    f"Unknown measure(s) with one input file: "
+                    f"'{' '.join(invalid)}'. With one input file, -measure "
+                    f"must be one or more of: "
+                    f"{', '.join(ONE_INPUT_MEASURES)}."
+                )
+            if "vendi" in measures and len(measures) > 1:
+                raise SystemExit(
+                    "Measure 'vendi' cannot be combined with other "
+                    "measures in a single call."
+                )
+
         counts = read_csv(
             args.input_filepath[0], sep=None, engine="python", dtype=int64
         )
 
-        if args.ms is None: #pragma: no cover
-            args.ms =[
-            "alpha",
-            "rho",
-            "beta",
-            "gamma",
-            "normalized_alpha",
-            "normalized_rho",
-            "normalized_beta",
-            "rho_hat",
-            "beta_hat"]
-        if args.ms and "vendi" in args.ms and len(args.ms) > 1:
-            raise SystemExit(
-                "Measure 'vendi' cannot be combined with other measures "
-                "in a single call."
-            )
-            
         df = sentropy(
             counts,
             similarity=args.similarity,
-            q=args.qs,
-            measure=args.ms,
+            q=args.q,
+            measure=measures,
             chunk_size=args.chunk_size,
             return_dataframe=True,
             level=args.level,
@@ -75,28 +85,48 @@ def main(args):
         print(df)
 
         if args.output_filepath is not None:
-            df.to_csv(args.output_filepath, sep="\t", float_format="%.4f", index=False)
+            df.to_csv(
+                args.output_filepath,
+                sep="\t",
+                float_format="%.4f",
+                index=False,
+            )
 
-    else:
+    elif num_inputs == 2:
+        # Mirror the Python API: with two input files, sentropy() accepts
+        # exactly ONE measure ('sre' or 'sce'), as a plain string.
+        if measures is None:
+            measure = "sre"
+        else:
+            invalid = [m for m in measures if m not in TWO_INPUT_MEASURES]
+            if invalid:
+                raise SystemExit(
+                    f"Unknown measure(s) with two input files: "
+                    f"'{' '.join(invalid)}'. With two input files, "
+                    "-measure must be exactly one of: "
+                    f"{', '.join(TWO_INPUT_MEASURES)}."
+                )
+            if len(measures) > 1:
+                raise SystemExit(
+                    "With two input files, -measure accepts exactly one "
+                    f"measure ({', '.join(TWO_INPUT_MEASURES)}), not "
+                    "several. Run separate calls to compute both."
+                )
+            measure = measures[0]
+
         counts_a = read_csv(
             args.input_filepath[0], sep=None, engine="python", dtype=int64
         )
         counts_b = read_csv(
             args.input_filepath[1], sep=None, engine="python", dtype=int64
         )
-        if args.ms is None:
-            args.ms = 'sre'
-        elif any(m not in ('sre', 'sce') for m in args.ms):
-            raise SystemExit(
-                "With two input files, -ms must be 'sre' or 'sce' "
-                f"(got: {' '.join(args.ms)})."
-            )
+
         result = sentropy(
             counts_a,
             counts_b,
             similarity=args.similarity,
-            q=args.qs,
-            measure=args.ms,
+            q=args.q,
+            measure=measure,
             chunk_size=args.chunk_size,
             return_dataframe=True,
             level=args.level,
@@ -111,10 +141,25 @@ def main(args):
             with open(args.output_filepath, "wb") as f:
                 pickle.dump(result, f)
 
+    else:
+        raise SystemExit(
+            f"Expected exactly one or two input files with -i (got "
+            f"{num_inputs})."
+        )
+
     LOGGER.info("Done!")
 
 
+def cli():
+    """Console-script entry point.
+
+    Register in pyproject.toml as:
+
+        [project.scripts]
+        sentropy = "sentropy.__main__:cli"
+    """
+    main(configure_arguments().parse_args())
+
+
 if __name__ == "__main__":  # pragma: no cover
-    parser = configure_arguments()
-    args = parser.parse_args()
-    main(args)
+    cli()

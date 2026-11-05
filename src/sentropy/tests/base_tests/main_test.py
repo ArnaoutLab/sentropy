@@ -30,10 +30,10 @@ MAIN_TEST_CASES = [
             input_filepath=["counts.tsv"],
             output_filepath="diversities.tsv",
             similarity="similarities.tsv",
-            qs=[0],
+            q=[0],
             log_level="WARNING",
             chunk_size=1,
-            ms=MEASURES,
+            measure=MEASURES,
             level="both",
             eff_no=1,
             backend="numpy",
@@ -64,10 +64,10 @@ MAIN_TEST_CASES = [
             input_filepath=["foo_counts.tsv"],
             output_filepath="bar_counts.tsv",
             similarity="baz_similarities.tsv",
-            qs=[2, 101, 102, inf],
+            q=[2, 101, 102, inf],
             log_level="WARNING",
             chunk_size=1,
-            ms=MEASURES,
+            measure=MEASURES,
             level="both",
             eff_no=1,
             backend="numpy",
@@ -102,10 +102,10 @@ MAIN_TEST_CASES = [
             input_filepath=["foo_counts.tsv"],
             output_filepath="bar_counts.tsv",
             similarity="baz_similarities.tsv",
-            qs=[2, 101, 102, inf],
+            q=[2, 101, 102, inf],
             log_level="WARNING",
             chunk_size=2,
-            ms=MEASURES,
+            measure=MEASURES,
             level="both",
             eff_no=1,
             backend="numpy",
@@ -179,8 +179,8 @@ def test_main_with_2_counts(tmp_path):
             Path(__file__).parent / "test_material/counts_2b_2.csv",
         ],
         similarity=read_csv(Path(__file__).parent / "test_material/S_2b.csv"),
-        qs=[1],
-        ms=None,
+        q=[1],
+        measure=None,
         chunk_size=1,
         level="both",
         eff_no=True,
@@ -211,7 +211,7 @@ def counts_file(tmp_path):
     return path
 
 def test_main_vendi_cannot_be_combined(counts_file):
-    argv = ["-i", str(counts_file), "-ms", "vendi", "alpha"]
+    argv = ["-i", str(counts_file), "-measure", "vendi", "alpha"]
     args = configure_arguments().parse_args(argv)
     with raises(SystemExit, match="cannot be combined"):
         main(args)
@@ -222,7 +222,7 @@ def test_main_two_files_rejects_non_sre_sce(tmp_path):
     fa.write_text("A,B\n10,5\n5,2\n")
     fb.write_text("A,B\n7,3\n2,4\n")
 
-    argv = ["-i", str(fa), str(fb), "-ms", "alpha"]
+    argv = ["-i", str(fa), str(fb), "-measure", "alpha"]
     args = configure_arguments().parse_args(argv)
-    with raises(SystemExit, match="must be 'sre' or 'sce'"):
+    with raises(SystemExit, match="exactly one of"):
         main(args)
