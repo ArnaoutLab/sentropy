@@ -135,6 +135,7 @@ def configure_arguments():
         dest="q",
         nargs="+",
         type=float,
+        default=[1],
         action=ValidateViewpoint,
         help=(
             "One or more viewpoint parameters. Any non-negative number "
@@ -153,8 +154,8 @@ def configure_arguments():
             f"call). With two input files: exactly one of "
             f"{', '.join(TWO_INPUT_MEASURES)} per call "
             "(similarity-sensitive relative sentropy or cross-entropy), "
-            "matching the sentropy() Python API. Defaults to all LCR "
-            "measures (one input file) or 'sre' (two input files)."
+            "matching the sentropy() Python API. Defaults to 'alpha'"
+            "(one input file) or 'sre' (two input files)."
         ),
     )
     parser.add_argument(

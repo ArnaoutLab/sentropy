@@ -20,7 +20,6 @@ from sentropy import sentropy
 from sentropy.log import LOG_HANDLER, LOGGER
 from sentropy.parameters import (
     configure_arguments,
-    LCR_MEASURES,
     ONE_INPUT_MEASURES,
     TWO_INPUT_MEASURES,
 )
@@ -49,7 +48,7 @@ def main(args):
 
     if num_inputs == 1:
         if measures is None:
-            measures = list(LCR_MEASURES)
+            measures = ['alpha']
         else:
             invalid = [m for m in measures if m not in ONE_INPUT_MEASURES]
             if invalid:
@@ -69,9 +68,28 @@ def main(args):
             args.input_filepath[0], sep=None, engine="python", dtype=int64
         )
 
+        if "vendi" in measures and args.similarity is not None:
+            # Vendi scores require the FULL similarity matrix for the
+            # eigendecomposition, so materialize the similarity file into a
+            # DataFrame instead of streaming it via a filepath.
+            similarity = read_csv(args.similarity, sep=None, engine="python")
+            if similarity.shape[0] != similarity.shape[1]:
+                # Retry assuming species names in the first column.
+                similarity = read_csv(
+                    args.similarity, sep=None, engine="python", index_col=0
+                )
+            if similarity.shape[0] != similarity.shape[1]:
+                raise SystemExit(
+                    f"Similarity file '{args.similarity}' does not contain a "
+                    f"square matrix (got {similarity.shape[0]}x"
+                    f"{similarity.shape[1]} after header/label handling)."
+                )
+        else:
+            similarity = args.similarity
+
         df = sentropy(
             counts,
-            similarity=args.similarity,
+            similarity=similarity,
             q=args.q,
             measure=measures,
             chunk_size=args.chunk_size,

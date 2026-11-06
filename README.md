@@ -5,7 +5,7 @@
 [![Python version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11-blue)](https://www.python.org/downloads/release/python-380/)
 [![Tests](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml/badge.svg)](https://github.com/ArnaoutLab/sentropy/actions/workflows/tests.yml)
 
-[About](#about) | [Key terms](#key-terms) | [How to cite](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type sentropy](#shannon-type-sentropy) | [Multiple measures, *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) |[Relative sentropy and Cross-sentropy between subset pairs](#relative-sentropy-and-cross-sentropy-between-subset-pairs) | [Ordinariness](#ordinariness) | [Torch, GPU](#using-torch-and-the-gpu) | [Vendi score](#vendi-score) | [More applications](#more-applications) | [Alternatives](#alternatives) | [Release history](#release-history)
+[About](#about) | [Key terms](#key-terms) | [How to cite](#how-to-cite-this-work) | [Installation](#installation) | [Basic usage](#basic-usage) | [Shannon entropy](#shannon-entropy) | [Shannon-type sentropy](#shannon-type-sentropy) | [Multiple measures, *q*](#multiple-measures-and-multiple-q) | [Passing a similarity function](#passing-a-similarity-function) | [Representativeness](#representativeness) | [Results as a pandas dataframe](#results-as-a-pandas-dataframe) |[Relative sentropy and Cross-sentropy between subset pairs](#relative-sentropy-and-cross-sentropy-between-subset-pairs) | [Ordinariness](#ordinariness) | [Torch, GPU](#using-torch-and-the-gpu) | [Vendi score](#vendi-score) | [Command-line interface](#command-line-interface) | [More applications](#more-applications) | [Alternatives](#alternatives) | [Release history](#release-history)
 
 # About
 
@@ -461,7 +461,7 @@ R2 using torch and GPU: tensor(0.3750, device='mps:0')
 ## Vendi score
 This package also computes [Vendi scores](https://arxiv.org/abs/2210.02410), which is an alternative definition of similarity-sensitive diversity in addition to the Leinster-Cobbold-Reeve diversity framework. To compute Vendi scores, we simply pass `measure='vendi'` to the `sentropy` function.
 
-# Command-line interface tool
+# Command-line interface
 The sentropy package can also be used from the command line as the `sentropy` command. For all the CLI options, run
 ```
 sentropy -h
@@ -492,7 +492,7 @@ pd.DataFrame(
     columns=["ladybug", "bee", "fish"],
 ).to_csv("similarity.csv", index=False)
 ```
-If `-similarity` is omitted, the identity similarity is used.
+If `-similarity` is omitted, the identity similarity is used. Note: the CLI currently accepts precomputed similarity matrices only; the more flexible similarity-function interface (see Passing a similarity function) is available through the Python API.
 
 ## One input file: LCR measures and the Vendi score
 
@@ -500,7 +500,7 @@ From the command line:
 ```
 sentropy -i counts.csv -similarity similarity.csv -q 0 1 2 inf -measure alpha beta normalized_rho
 ```
-The output is a table with the requested measures for each viewpoint `q`. If no `-measure` flag is passed, all LCR measures are computed. If no `-q` flag is passed, the viewpoint parameter 1 is computed. The Vendi score can also be computed, but it cannot be combined with the other measures in a single call, for example:
+The output is a table with the requested measures for each viewpoint `q`. If no `-measure` flag is passed, then the measure `alpha` will be computed. If no `-q` flag is passed, the viewpoint parameter 1 is computed. The Vendi score can also be computed, but it cannot be combined with the other measures in a single call, for example:
 ```
 sentropy -i counts.csv -similarity similarity.csv -measure vendi -q 1
 ```
