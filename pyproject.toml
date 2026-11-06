@@ -30,6 +30,9 @@ tests = ["pytest>=7.2.1", "pytest-cov>=3.0.0"]
 lint = ["black>=24.3.0"]
 ray = ["ray>=2.42.1"]
 
+[project.scripts]
+sentropy="sentropy.__main__:cli"
+
 [project.urls]
 "Homepage" = "https://github.com/ArnaoutLab/sentropy"
 "Bug Tracker" = "https://github.com/ArnaoutLab/sentropy/issues"
