@@ -2,7 +2,7 @@
 
 from argparse import Namespace
 
-from numpy import inf, allclose
+from numpy import inf, allclose, array
 from pandas import read_csv
 from pytest import fixture, mark, raises
 from pathlib import Path
@@ -11,7 +11,7 @@ from sentropy.__main__ import main
 from sentropy.parameters import configure_arguments
 import pickle
 
-MEASURES = (
+LCR_MEASURES = (
     "alpha",
     "rho",
     "beta",
@@ -33,7 +33,7 @@ MAIN_TEST_CASES = [
             q=[0],
             log_level="WARNING",
             chunk_size=1,
-            measure=MEASURES,
+            measure=None,
             level="both",
             eff_no=1,
             backend="numpy",
@@ -52,10 +52,10 @@ MAIN_TEST_CASES = [
             "0.7\t0.7\t0.7\t0.5\t0.5\t1.0\n"
         ),
         "output_filecontents": (
-            "level\tviewpoint\talpha\trho\tbeta\tgamma\tnormalized_alpha\tnormalized_rho\tnormalized_beta\trho_hat\tbeta_hat\n"
-            "overall\t0\t3.0000\t2.0500\t0.4878\t1.4634\t1.5000\t1.0250\t0.9756\t1.0500\t-0.0244\n"
-            "subset_1\t0\t3.0000\t2.0500\t0.4878\t1.4634\t1.5000\t1.0250\t0.9756\t1.0500\t-0.0244\n"
-            "subset_2\t0\t3.0000\t2.0500\t0.4878\t1.4634\t1.5000\t1.0250\t0.9756\t1.0500\t-0.0244\n"
+            "level\tviewpoint\talpha\n"
+            "overall\t0\t3.0000\n"
+            "subset_1\t0\t3.0000\n"
+            "subset_2\t0\t3.0000\n"
         ),
     },
     {
@@ -67,7 +67,7 @@ MAIN_TEST_CASES = [
             q=[2, 101, 102, inf],
             log_level="WARNING",
             chunk_size=1,
-            measure=MEASURES,
+            measure=LCR_MEASURES,
             level="both",
             eff_no=1,
             backend="numpy",
@@ -105,7 +105,7 @@ MAIN_TEST_CASES = [
             q=[2, 101, 102, inf],
             log_level="WARNING",
             chunk_size=2,
-            measure=MEASURES,
+            measure=LCR_MEASURES,
             level="both",
             eff_no=1,
             backend="numpy",
@@ -210,10 +210,46 @@ def counts_file(tmp_path):
     path.write_text("A,B\n10,5\n5,2\n2,1\n")
     return path
 
+def test_main_vendi(tmp_path):
+    counts_file = tmp_path / "counts.csv"
+    similarity_file = tmp_path / "similarity.csv"
+    counts_file.write_text("A,B\n2,4\n4,0\n0,6\n")
+    similarity_file.write_text("ladybug,bee,fish\n1,0.6,0.22\n0.6,1,0.27\n0.22,0.27,1\n")
+    results_file = tmp_path / "results.tsv"
+    argv = ["-i", str(counts_file), "-similarity", str(similarity_file), "-measure", "vendi", "-o", str(results_file)]
+    args = configure_arguments().parse_args(argv)
+    main(args)
+    with open(results_file, "r") as file:
+        results = file.read()
+    expected = ("level\tviewpoint\tvendi\n"
+                "overall\t1\t2.5411\n"
+                "A\t1\t1.5818\n"
+                "B\t1\t1.9141\n")
+    assert results==expected
+
 def test_main_vendi_cannot_be_combined(counts_file):
     argv = ["-i", str(counts_file), "-measure", "vendi", "alpha"]
     args = configure_arguments().parse_args(argv)
     with raises(SystemExit, match="cannot be combined"):
+        main(args)
+
+def test_main_vendi_nonsquare_similarity_matrix(tmp_path):
+    counts_file = tmp_path / "counts.csv"
+    similarity_file = tmp_path / "similarity.csv"
+    counts_file.write_text("A,B\n2,4\n4,0\n0,6\n")
+    similarity_file.write_text("ladybug,bee,fish\n1,0.6,0.22\n0.6,1,0.27\n0.22,0.27,1\n0.15,0.1,0.2\n")
+    argv = ["-i", str(counts_file), "-similarity", str(similarity_file), "-measure", "vendi"]
+    args = configure_arguments().parse_args(argv)
+    with raises(SystemExit, match="does not contain a square matrix"):
+        main(args)
+
+def test_main_one_file_rejects_invalid_measure(tmp_path):
+    fa = tmp_path / "counts_a.csv"
+    fa.write_text("A,B\n10,5\n5,2\n")
+
+    argv = ["-i", str(fa), "-measure", "sce"]
+    args = configure_arguments().parse_args(argv)
+    with raises(SystemExit, match="must be one or more of"):
         main(args)
 
 def test_main_two_files_rejects_non_sre_sce(tmp_path):
@@ -225,4 +261,33 @@ def test_main_two_files_rejects_non_sre_sce(tmp_path):
     argv = ["-i", str(fa), str(fb), "-measure", "alpha"]
     args = configure_arguments().parse_args(argv)
     with raises(SystemExit, match="exactly one of"):
+        main(args)
+
+def test_main_two_files_rejects_both_sre_sce(tmp_path):
+    fa = tmp_path / "counts_a.csv"
+    fb = tmp_path / "counts_b.csv"
+    fa.write_text("A,B\n10,5\n5,2\n")
+    fb.write_text("A,B\n7,3\n2,4\n")
+
+    argv = ["-i", str(fa), str(fb), "-measure", "sre", "sce"]
+    args = configure_arguments().parse_args(argv)
+    with raises(SystemExit, match="With two input files, -measure accepts exactly one"):
+        main(args)
+
+def test_main_sre(tmp_path):
+    counts_file = tmp_path / "counts.csv"
+    counts_file.write_text("A,B\n2,4\n4,0\n0,6\n")
+    results_file = tmp_path / "results.pkl"
+    argv = ["-i", str(counts_file), str(counts_file), "-o", str(results_file), "-measure", "sre", "-level", "subset"]
+    args = configure_arguments().parse_args(argv)
+    main(args)
+    with open(results_file, 'rb') as file:
+        results = pickle.load(file)
+    expected = array([[1, inf],[inf, 1]])
+    assert allclose(results.to_numpy(), expected)
+
+def test_main_rejects_no_counts():
+    argv = ["-i", "a.csv", "b.csv", "c.csv"]
+    args = configure_arguments().parse_args(argv)
+    with raises(SystemExit, match="Expected exactly one or two input files"):
         main(args)

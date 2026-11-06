@@ -74,11 +74,6 @@ def main(args):
             # DataFrame instead of streaming it via a filepath.
             similarity = read_csv(args.similarity, sep=None, engine="python")
             if similarity.shape[0] != similarity.shape[1]:
-                # Retry assuming species names in the first column.
-                similarity = read_csv(
-                    args.similarity, sep=None, engine="python", index_col=0
-                )
-            if similarity.shape[0] != similarity.shape[1]:
                 raise SystemExit(
                     f"Similarity file '{args.similarity}' does not contain a "
                     f"square matrix (got {similarity.shape[0]}x"
@@ -168,7 +163,7 @@ def main(args):
     LOGGER.info("Done!")
 
 
-def cli():
+def cli(): # pragma: no cover
     """Console-script entry point.
 
     Register in pyproject.toml as:
