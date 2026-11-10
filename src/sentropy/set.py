@@ -171,12 +171,14 @@ class Set:
 
         Parameters
         ----------
-        viewpoint:
+        q:
             Viewpoint parameter for diversity measure.
-        measure:
+        m:
             Name of the diversity measure. Valid measures include:
             "alpha", "rho", "beta", "gamma", "normalized_alpha",
-            "normalized_rho", and "normalized_beta"
+            "normalized_rho", and "normalized_beta".
+        eff_no:
+            Whether to compute effective numbers or entropies.
 
         Returns
         -------
@@ -242,12 +244,14 @@ class Set:
 
         Parameters
         ----------
-        viewpoint:
+        q:
             Viewpoint parameter for diversity measure.
-        measure:
+        m:
             Name of the diversity measure. Valid measures include:
             "alpha", "rho", "beta", "gamma", "normalized_alpha",
-            "normalized_rho", and "normalized_beta"
+            "normalized_rho", and "normalized_beta".
+        eff_no:
+            Whether to compute effective numbers or entropies.
 
         Returns
         -------
@@ -273,11 +277,15 @@ class Set:
 
         Parameters
         ----------
-        viewpoint:
-            Affects the contribution of rare species to the diversity
-            measure. When viewpoint = 0 all species (rare or frequent)
-            contribute equally. When viewpoint = infinity, only the
+        q:
+            Viewpoint parameters. Affects the contribution of rare species to the diversity
+            measure. When q = 0 all species (rare or frequent)
+            contribute equally. When q = infinity, only the
             single most frequent species contribute.
+        ms:
+            Measures to compute.
+        eff_no:
+            Whether to compute effective numbers or entropies.
 
         Returns
         -------
@@ -303,11 +311,15 @@ class Set:
         """Table containing all set diversity values.
         Parameters
         ----------
-        viewpoint:
+        q:
             Affects the contribution of rare species to the diversity
-            measure. When viewpoint = 0 all species (rare or frequent)
-            contribute equally. When viewpoint = infinity, only the
+            measure. When q = 0 all species (rare or frequent)
+            contribute equally. When q = infinity, only the
             single most frequent species contributes.
+        ms:
+            Measures to compute.
+        eff_no:
+            Whether to compute effective numbers or entropies.
 
         Returns
         -------
@@ -336,18 +348,24 @@ class Set:
         return df
 
     def to_dataframe(
-        self, qs: Iterable[float], ms=MEASURES, level: str = "both", eff_no: bool = True
+        self, qs: Iterable[float], ms=MEASURES, level: str = "overall", eff_no: bool = True
     ):
         """Table containing all set and subset diversity
         values.
 
         Parameters
         ----------
-        viewpoint:
-            Affects the contribution of rare species to the diversity
+        qs:
+            Viewpoint parameters. Affects the contribution of rare species to the diversity
             measure. When viewpoint = 0 all species (rare or frequent)
             contribute equally. When viewpoint = infinity, only the
             single most frequent species contributes.
+        ms:
+            Measures to compute.
+        level:
+            Whether to compute subset-level diversities or overall set level ones, or both.
+        eff_no:
+            Whether to compute effective numbers or entropies.
 
         Returns
         -------

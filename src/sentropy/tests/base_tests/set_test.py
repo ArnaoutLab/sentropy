@@ -395,7 +395,7 @@ def test_to_dataframe(data):
         counts=data.counts, similarity=data.similarity, subsets_names=subsets_names
     )
     expected = concat([data.set_results, data.subset_results]).reset_index(drop=True)
-    assert_frame_equal(superset.to_dataframe(qs=[data.viewpoint], ms=LCR), expected)
+    assert_frame_equal(superset.to_dataframe(qs=[data.viewpoint], ms=LCR, level="both"), expected)
 
 
 @mark.parametrize("data", set_data)
@@ -432,7 +432,7 @@ def test_effective_counts():
     first_df = None
     for sim in [None, SimilarityIdentity(), identity(5)]:
         m = Set(counts, sim, subsets_names=["A", "B"])
-        df = m.to_dataframe(ms=["alpha", "normalized_alpha"], qs=viewpoints)
+        df = m.to_dataframe(ms=["alpha", "normalized_alpha"], qs=viewpoints, level="both")
         df.set_index(["level", "viewpoint"], inplace=True)
         if first_df is None:
             first_df = df
@@ -459,7 +459,7 @@ def test_effective_counts():
     ]:
         sim[i, j] = sim[j, i] = val
     m = Set(counts, sim, subsets_names=["A", "B"])
-    df = m.to_dataframe(qs=viewpoints, ms=LCR)
+    df = m.to_dataframe(qs=viewpoints, ms=LCR, level="both")
     df.set_index(["level", "viewpoint"], inplace=True)
     for col in first_df:
         for ind in first_df.index:
