@@ -163,6 +163,6 @@ def _to_dataframe(results, subsets_names, q) -> DataFrame:
 
 
 def _scalar(x):
-    if isinstance(x, Tensor):  # pragma: no cover
+    if isinstance(x, Tensor):
         return x.item()
     return float(x)

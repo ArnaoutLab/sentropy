@@ -296,3 +296,27 @@ def test_get_backend():
     assert isinstance(get_backend(), NumpyBackend)
     assert isinstance(get_backend("numpy"), NumpyBackend)
     assert isinstance(get_backend("torch"), TorchBackend)
+
+def test_numpy_backend_round():
+    backend = NumpyBackend()
+
+    result = backend.round(np.array([1.234, 2.567, -1.456]))
+
+    np.testing.assert_array_equal(
+        result,
+        np.array([1., 3., -1.])
+    )
+
+
+def test_torch_backend_round():
+    backend = TorchBackend(device="cpu")
+    result = backend.round([1.234, 2.567, -1.456])
+
+    expected = torch.tensor([1., 3., -1.], dtype=backend.dtype)
+
+    torch.testing.assert_close(result, expected)
+
+
+def test_get_backend_invalid_name():
+    with raises(ValueError, match="Unsupported backend"):
+        get_backend("invalid_backend")

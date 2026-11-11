@@ -18,6 +18,7 @@ from sentropy.similarity import (
     SimilarityFromFunction,
 )
 from sentropy import Set
+from sentropy.set import build_similarity
 from sentropy.backend import get_backend
 from sentropy.tests.base_tests.similarity_test import similarity_dataframe_3by3
 from sentropy.tests.base_tests.similarity_test import similarity_array_3by3_1
@@ -658,3 +659,55 @@ def test_figure_1():
         assert naive_alpha <= 4.0
         assert before_alpha <= 3.0
         assert (nonnaive_alpha - before_alpha) < 0.2
+
+def test_build_similarity_file_without_chunk_size():
+    with raises(
+        ValueError,
+        match="chunk_size cannot be None"
+    ):
+        build_similarity(
+            similarity="similarity.csv",
+            chunk_size=None,
+        )
+
+def test_build_similarity_callable_without_X():
+    with raises(
+        ValueError,
+        match="X cannot be None"
+    ):
+        build_similarity(
+            similarity=lambda x,y: 1.0,
+            X=None,
+        )
+
+def test_build_similarity_callable_without_chunk_size():
+    X = array([[1., 0.], [0., 1.]])
+
+    with raises(
+        ValueError,
+        match="chunk_size cannot be None"
+    ):
+        build_similarity(
+            similarity=lambda x,y: 1.0,
+            X=X,
+            chunk_size=None,
+        )
+
+def test_subsets_to_dataframe_torch():
+    counts = array([
+        [10, 5],
+        [5, 10],
+    ])
+
+    diversity_set = Set(
+        counts=counts,
+        backend="torch",
+    )
+
+    result = diversity_set.subsets_to_dataframe(
+        q=1,
+        ms=["alpha"],
+    )
+
+    assert result.shape[0] == 2
+    assert "alpha" in result.columns

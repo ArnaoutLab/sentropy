@@ -5,6 +5,7 @@ from sentropy.sentropy import sentropy
 from numpy import array, allclose, zeros, sum as np_sum, log as np_log, sqrt as np_sqrt, exp as np_exp, max as np_max
 from numpy.linalg import eigvals
 from pandas import DataFrame
+from pandas.testing import assert_frame_equal
 from pytest import raises
 
 def test_spectral_diversity():
@@ -69,3 +70,29 @@ def test_vendi_superset_df():
     assert allclose(result_df.loc[0,'vendi'], 1.0375540865233082)
     result_no_df = sentropy(count, similarity=sim, eff_no=False, measure='vendi', level='both')
     assert allclose(result_no_df['overall'], result_df.loc[0, 'vendi'])
+
+def test_vendi_score_torch_matches_numpy():
+    counts = array([
+        [10, 5],
+        [5, 10],
+    ])
+
+    numpy_result = vendi_score(
+        counts=counts,
+        backend="numpy",
+        return_dataframe=True,
+    )
+
+    torch_result = vendi_score(
+        counts=counts,
+        backend="torch",
+        return_dataframe=True,
+    )
+
+    assert_frame_equal(
+        torch_result,
+        numpy_result,
+        check_exact=False,
+        rtol=1e-5,
+        atol=1e-7,
+    )

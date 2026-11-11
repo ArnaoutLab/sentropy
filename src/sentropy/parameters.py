@@ -212,9 +212,5 @@ def configure_arguments():
 
 
 def __get_version__() -> str:
-    try:
-        from importlib.metadata import version
-
-        return f"sentropy {version('sentropy')}"
-    except Exception:  # pragma: no cover
-        return "sentropy (unknown version)"
+    from importlib.metadata import version
+    return f"sentropy {version('sentropy')}"
