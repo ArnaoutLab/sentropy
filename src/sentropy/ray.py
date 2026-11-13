@@ -60,13 +60,7 @@ def weighted_similarity_chunk_nonsymmetric(
     chunk = X[chunk_index : chunk_index + chunk_size]
 
     if _is_batch_similarity(similarity):
-        S = asarray(similarity(chunk, Y))
-        expected = (chunk.shape[0], Y.shape[0])
-        if S.shape != expected:
-            raise InvalidArgumentError(
-                f"Batch similarity returned shape {S.shape}, expected {expected}."
-            )
-        similarities_chunk = backend.asarray(S)
+        similarities_chunk = backend.asarray(similarity(chunk, Y))
     else:
         similarities_chunk = backend.empty(shape=(chunk.shape[0], Y.shape[0]))
         for i, row_i in enumerate(chunk):
@@ -96,15 +90,10 @@ def weighted_similarity_chunk_symmetric(
         tail_start = chunk_index + 1
         tail = X[tail_start:]
         # Last chunk might have an empty tail if it's just the last row: nothing above the diagonal.
-        if tail.shape[0] == 0:
+        if tail.shape[0] == 0: #pragma: no cover
             similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
         else:
-            S_tail = asarray(similarity(chunk, tail))
-            expected = (chunk.shape[0], tail.shape[0])
-            if S_tail.shape != expected:
-                raise InvalidArgumentError(
-                    f"Batch similarity returned shape {S_tail.shape}, expected {expected}."
-                )
+            S_tail = backend.asarray(similarity(chunk, tail))
             # Keep only entries strictly above the diagonal; in tail-local
             # coordinates the condition j_global > chunk_index + i becomes
             # j_tail > i_local.

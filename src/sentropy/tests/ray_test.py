@@ -12,15 +12,17 @@ from numpy import (
     zeros,
     empty,
     dot,
-    random
+    random,
 )
+from numpy.random import default_rng
+from numpy.linalg import norm
 
 from pandas import DataFrame
 from numpy.linalg import norm
 from pytest import fixture, raises, mark
 import ray
 
-from sentropy import Set
+from sentropy import Set, sentropy
 from sentropy.backend import get_backend
 from sentropy.exceptions import InvalidArgumentError
 from sentropy.ray import (
@@ -33,6 +35,7 @@ from sentropy.similarity import (
     SimilarityFromArray,
     SimilarityFromFunction,
     SimilarityFromSymmetricFunction,
+    batch_similarity,
 )
 
 import sentropy.tests.mockray as mockray
@@ -402,3 +405,31 @@ def test_weighted_similarity_chunk_nonsymmetric_with_dataframe_y():
     assert result.shape == (6, 2)
     assert similarities.shape == (6, 6)
     assert np_all(isfinite(result))
+
+def test_batch_cosine_similarity_agrees_with_scalar_cosine_similarity_with_ray():
+    rng = default_rng(0)
+    n, d = 300, 16
+    counts = rng.integers(1, 50, size=(n, 1))
+    X = rng.uniform(0.1, 5.0, size=(n, d))   # nonneg features → cosine ∈ [0, 1]
+
+    def cos_scalar(a, b):                               # scalar cosine similarity
+        na, nb = norm(a), norm(b)
+        return float(a @ b / (na * nb)) if na and nb else 0.0
+
+    @batch_similarity
+    def cos_batch(A, B):                                # rows of A x rows of B
+        A = A / norm(A, axis=1, keepdims=True)
+        B = B / norm(B, axis=1, keepdims=True)
+        return A @ B.T
+
+    val_scalar = sentropy(counts, similarity=cos_scalar, symmetric=True, 
+        sfargs=X, measure="alpha", q=1, parallelize=True)
+    val_batch = sentropy(counts, similarity=cos_batch, symmetric=True, 
+        sfargs=X, measure="alpha", q=1, parallelize=True)
+    assert allclose(val_scalar, val_batch)
+
+    val_scalar_2 = sentropy(counts, similarity=cos_scalar, symmetric=False, 
+        sfargs=X, measure="alpha", q=1, parallelize=True)
+    val_batch_2 = sentropy(counts, similarity=cos_batch, symmetric=False, 
+        sfargs=X, measure="alpha", q=1, parallelize=True)
+    assert allclose(val_scalar_2, val_batch_2)

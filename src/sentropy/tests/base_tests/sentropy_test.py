@@ -461,26 +461,14 @@ def test_batch_cosine_similarity_agrees_with_scalar_cosine_similarity():
         B = B / np.linalg.norm(B, axis=1, keepdims=True)
         return A @ B.T
 
-    val_scalar_1 = sentropy(counts, similarity=cos_scalar, symmetric=True, 
-        sfargs=X, measure="alpha", q=1, parallelize=True)
-    val_batch_1 = sentropy(counts, similarity=cos_batch, symmetric=True, 
-        sfargs=X, measure="alpha", q=1, parallelize=True)
-    assert np.allclose(val_scalar_1, val_batch_1)
+    val_scalar = sentropy(counts, similarity=cos_scalar, symmetric=True, 
+        sfargs=X, measure="alpha", q=1, parallelize=False)
+    val_batch = sentropy(counts, similarity=cos_batch, symmetric=True, 
+        sfargs=X, measure="alpha", q=1, parallelize=False)
+    assert np.allclose(val_scalar, val_batch)
 
     val_scalar_2 = sentropy(counts, similarity=cos_scalar, symmetric=False, 
-        sfargs=X, measure="alpha", q=1, parallelize=True)
+        sfargs=X, measure="alpha", q=1, parallelize=False)
     val_batch_2 = sentropy(counts, similarity=cos_batch, symmetric=False, 
-        sfargs=X, measure="alpha", q=1, parallelize=True)
+        sfargs=X, measure="alpha", q=1, parallelize=False)
     assert np.allclose(val_scalar_2, val_batch_2)
-
-    val_scalar_3 = sentropy(counts, similarity=cos_scalar, symmetric=True, 
-        sfargs=X, measure="alpha", q=1, parallelize=False)
-    val_batch_3 = sentropy(counts, similarity=cos_batch, symmetric=True, 
-        sfargs=X, measure="alpha", q=1, parallelize=False)
-    assert np.allclose(val_scalar_3, val_batch_3)
-
-    val_scalar_4 = sentropy(counts, similarity=cos_scalar, symmetric=False, 
-        sfargs=X, measure="alpha", q=1, parallelize=False)
-    val_batch_4 = sentropy(counts, similarity=cos_batch, symmetric=False, 
-        sfargs=X, measure="alpha", q=1, parallelize=False)
-    assert np.allclose(val_scalar_4, val_batch_4)
