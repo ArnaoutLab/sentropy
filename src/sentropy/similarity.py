@@ -215,7 +215,7 @@ class SimilarityFromSymmetricFunction(Similarity):
             tail = X[tail_start:]
             # Last chunk might have an empty tail if it's just the last row: nothing above the diagonal.
             if tail.shape[0] == 0:
-                similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
+                similarities_chunk = self.backend.zeros(shape=(chunk.shape[0], X.shape[0]))
             else:
                 S_tail = asarray(similarity(chunk, tail))
                 expected = (chunk.shape[0], tail.shape[0])
@@ -228,7 +228,7 @@ class SimilarityFromSymmetricFunction(Similarity):
                 # j_tail > i_local.
                 i_local = arange(chunk.shape[0])[:, None]
                 j_tail = arange(tail.shape[0])[None, :]
-                keep = (j_tail > i_local).astype(S_tail.dtype)
+                keep = (j_tail >= i_local).astype(S_tail.dtype)
                 # Allocate the full-width chunk (cheap) so ALL downstream code —
                 # row padding, cols_result matmul, similarities_out — is unchanged.
                 similarities_chunk = self.backend.zeros(shape=(chunk.shape[0], X.shape[0]))

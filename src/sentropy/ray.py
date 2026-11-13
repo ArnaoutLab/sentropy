@@ -111,7 +111,7 @@ def weighted_similarity_chunk_symmetric(
             # j_tail > i_local.
             i_local = _np.arange(chunk.shape[0])[:, None]
             j_tail = _np.arange(tail.shape[0])[None, :]
-            keep = (j_tail > i_local).astype(S_tail.dtype)
+            keep = (j_tail >= i_local).astype(S_tail.dtype)
             # Allocate the full-width chunk (cheap) so ALL downstream code —
             # row padding, cols_result matmul, similarities_out — is unchanged.
             similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
