@@ -614,6 +614,7 @@ To date, we know of no other python package that implements all the measures def
 
 
 # Release history
+- Version 1.7.0: implemented batch similarity function
 - Version 1.6.0: revamped CLI usage
 - Version 1.5.0: optimized interset ordinariness to include deduplication, redefined Vendi score of overall set not to be the power mean of subsets' Vendi score
 - Version 1.4.0: implemented interset ordinariness, auto-tuning Ray hyperparameters, slight improvement to sparse matrix API.
