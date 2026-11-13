@@ -217,7 +217,7 @@ class SimilarityFromSymmetricFunction(Similarity):
             if tail.shape[0] == 0:
                 similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
             else:
-                S_tail = _np.asarray(similarity(chunk, tail))
+                S_tail = asarray(similarity(chunk, tail))
                 expected = (chunk.shape[0], tail.shape[0])
                 if S_tail.shape != expected:
                     raise InvalidArgumentError(
@@ -226,13 +226,13 @@ class SimilarityFromSymmetricFunction(Similarity):
                 # Keep only entries strictly above the diagonal; in tail-local
                 # coordinates the condition j_global > chunk_index + i becomes
                 # j_tail > i_local.
-                i_local = _np.arange(chunk.shape[0])[:, None]
-                j_tail = _np.arange(tail.shape[0])[None, :]
+                i_local = arange(chunk.shape[0])[:, None]
+                j_tail = arange(tail.shape[0])[None, :]
                 keep = (j_tail > i_local).astype(S_tail.dtype)
                 # Allocate the full-width chunk (cheap) so ALL downstream code —
                 # row padding, cols_result matmul, similarities_out — is unchanged.
-                similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
-                similarities_chunk[:, tail_start:] = backend.asarray(S_tail * keep)
+                similarities_chunk = self.backend.zeros(shape=(chunk.shape[0], X.shape[0]))
+                similarities_chunk[:, tail_start:] = self.backend.asarray(S_tail * keep)
         else:
             similarities_chunk = self.backend.zeros(shape=(chunk.shape[0], X.shape[0]))
             for i, row_i in enumerate(enum_helper(chunk)):
@@ -326,7 +326,7 @@ class SimilarityFromFunction(SimilarityFromSymmetricFunction):
                 raise InvalidArgumentError(
                     f"Batch similarity returned shape {S.shape}, expected {expected}."
                 )
-            similarities_chunk = backend.asarray(S)
+            similarities_chunk = self.backend.asarray(S)
         else:
             similarities_chunk = self.backend.empty(shape=(chunk.shape[0], Y.shape[0]))
             for i, row_i in enumerate(enum_helper(chunk)):
