@@ -11,10 +11,27 @@ from pandas import DataFrame, read_csv
 from sentropy.exceptions import InvalidArgumentError
 from sentropy.backend import get_backend
 
-from numpy import ndarray
+from numpy import arange, asarray, ndarray, vstack, zeros as _zeros
 from torch import Tensor
 
 # Note: We keep many implementation details but route array ops via backend.
+
+def batch_similarity(func: Callable) -> Callable:
+    """Tag `func` as vectorizable over pairs of rows.
+
+    A batch similarity function must accept two 2-D arrays
+    A of shape (n_A, d) and B of shape (n_B, d) and return an
+    (n_A, n_B) array S such that S[p, q] == func(A[p], B[q]).
+
+    Chunks of the similarity matrix are then computed with one
+    vectorized call per chunk instead of an element-wise double loop.
+    """
+    func.is_batch_similarity = True
+    return func
+
+
+def _is_batch_similarity(similarity: Callable) -> bool:
+    return bool(getattr(similarity, "is_batch_similarity", False))
 
 
 class Similarity(ABC):
@@ -191,17 +208,43 @@ class SimilarityFromSymmetricFunction(Similarity):
             return X[start_index:]
 
         chunk = X[chunk_index : chunk_index + chunk_size]
-        similarities_chunk = self.backend.zeros(shape=(chunk.shape[0], X.shape[0]))
-        for i, row_i in enumerate(enum_helper(chunk)):
-            for j, row_j in enumerate(enum_helper(X, chunk_index + i + 1)):
-                similarities_chunk[i, i + j + chunk_index + 1] = similarity(
-                    row_i, row_j
-                )
+
+
+        if _is_batch_similarity(similarity):
+            tail_start = chunk_index + 1
+            tail = X[tail_start:]
+            # Last chunk might have an empty tail if it's just the last row: nothing above the diagonal.
+            if tail.shape[0] == 0:
+                similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
+            else:
+                S_tail = _np.asarray(similarity(chunk, tail))
+                expected = (chunk.shape[0], tail.shape[0])
+                if S_tail.shape != expected:
+                    raise InvalidArgumentError(
+                        f"Batch similarity returned shape {S_tail.shape}, expected {expected}."
+                    )
+                # Keep only entries strictly above the diagonal; in tail-local
+                # coordinates the condition j_global > chunk_index + i becomes
+                # j_tail > i_local.
+                i_local = _np.arange(chunk.shape[0])[:, None]
+                j_tail = _np.arange(tail.shape[0])[None, :]
+                keep = (j_tail > i_local).astype(S_tail.dtype)
+                # Allocate the full-width chunk (cheap) so ALL downstream code —
+                # row padding, cols_result matmul, similarities_out — is unchanged.
+                similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
+                similarities_chunk[:, tail_start:] = backend.asarray(S_tail * keep)
+        else:
+            similarities_chunk = self.backend.zeros(shape=(chunk.shape[0], X.shape[0]))
+            for i, row_i in enumerate(enum_helper(chunk)):
+                for j, row_j in enumerate(enum_helper(X, chunk_index + i + 1)):
+                    similarities_chunk[i, i + j + chunk_index + 1] = similarity(
+                        row_i, row_j
+                    )
+
         rows_result = self.backend.matmul(similarities_chunk, relative_abundance)
         rows_after_count = max(
             0, relative_abundance.shape[0] - (chunk_index + chunk_size)
         )
-        from numpy import vstack, zeros as _zeros
 
         rows_result = self.backend.vstack(
             (
@@ -275,10 +318,20 @@ class SimilarityFromFunction(SimilarityFromSymmetricFunction):
         if Y is None:
             Y = X
         chunk = X[chunk_index : chunk_index + chunk_size]
-        similarities_chunk = self.backend.empty(shape=(chunk.shape[0], Y.shape[0]))
-        for i, row_i in enumerate(enum_helper(chunk)):
-            for j, row_j in enumerate(enum_helper(Y)):
-                similarities_chunk[i, j] = similarity(row_i, row_j)
+
+        if _is_batch_similarity(similarity):
+            S = asarray(similarity(chunk, Y))
+            expected = (chunk.shape[0], Y.shape[0])
+            if S.shape != expected:
+                raise InvalidArgumentError(
+                    f"Batch similarity returned shape {S.shape}, expected {expected}."
+                )
+            similarities_chunk = backend.asarray(S)
+        else:
+            similarities_chunk = self.backend.empty(shape=(chunk.shape[0], Y.shape[0]))
+            for i, row_i in enumerate(enum_helper(chunk)):
+                for j, row_j in enumerate(enum_helper(Y)):
+                    similarities_chunk[i, j] = similarity(row_i, row_j)
 
         result = self.backend.matmul(similarities_chunk, relative_abundance)
         if return_Z:
