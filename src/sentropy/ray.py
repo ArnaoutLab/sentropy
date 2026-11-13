@@ -1,8 +1,7 @@
 # ray.py
 
 from typing import List, Any, Callable, Union, Tuple
-import numpy as _np
-from numpy import ndarray, concatenate, ceil, vstack, zeros as _zeros
+from numpy import arange, array, asarray, ndarray, concatenate, ceil, vstack, zeros as _zeros
 from os import cpu_count
 from pandas import DataFrame
 from sentropy.exceptions import InvalidArgumentError
@@ -36,32 +35,32 @@ def _recommend_chunk_params(n_X, n_Y):
 
 def weighted_similarity_chunk_nonsymmetric(
     similarity: Callable,
-    X: Union[_np.ndarray, DataFrame],
-    Y: Union[_np.ndarray, DataFrame, None],
+    X: Union[ndarray, DataFrame],
+    Y: Union[ndarray, DataFrame, None],
     relative_abundance,
     backend,
     chunk_size: int,
     chunk_index: int,
     return_Z: bool = True,
-) -> Tuple[int, _np.ndarray, Union[_np.ndarray, None]]:
+) -> Tuple[int, ndarray, Union[ndarray, None]]:
     """
     Calculates some rows of the matrix product of Z @ p,
     where Z is not given explicitly but rather each entry
     Z[i,j] is calculated by a function.
     """
-    X = _np.array(X)
+    X = array(X)
 
     if Y is None:
         Y = X
     elif isinstance(Y, DataFrame):
         Y = Y.to_numpy()
     else:
-        Y = _np.asarray(Y)
+        Y = asarray(Y)
         
     chunk = X[chunk_index : chunk_index + chunk_size]
 
     if _is_batch_similarity(similarity):
-        S = _np.asarray(similarity(chunk, Y))
+        S = asarray(similarity(chunk, Y))
         expected = (chunk.shape[0], Y.shape[0])
         if S.shape != expected:
             raise InvalidArgumentError(
@@ -83,14 +82,14 @@ def weighted_similarity_chunk_nonsymmetric(
 
 def weighted_similarity_chunk_symmetric(
     similarity: Callable,
-    X: Union[_np.ndarray, DataFrame],
+    X: Union[ndarray, DataFrame],
     relative_abundance,
     backend,
     chunk_size: int,
     chunk_index: int,
     return_Z: bool = True,
 ):
-    X = _np.array(X)
+    X = array(X)
     chunk = X[chunk_index : chunk_index + chunk_size]
 
     if _is_batch_similarity(similarity):
@@ -100,7 +99,7 @@ def weighted_similarity_chunk_symmetric(
         if tail.shape[0] == 0:
             similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
         else:
-            S_tail = _np.asarray(similarity(chunk, tail))
+            S_tail = asarray(similarity(chunk, tail))
             expected = (chunk.shape[0], tail.shape[0])
             if S_tail.shape != expected:
                 raise InvalidArgumentError(
@@ -109,8 +108,8 @@ def weighted_similarity_chunk_symmetric(
             # Keep only entries strictly above the diagonal; in tail-local
             # coordinates the condition j_global > chunk_index + i becomes
             # j_tail > i_local.
-            i_local = _np.arange(chunk.shape[0])[:, None]
-            j_tail = _np.arange(tail.shape[0])[None, :]
+            i_local = arange(chunk.shape[0])[:, None]
+            j_tail = arange(tail.shape[0])[None, :]
             keep = (j_tail >= i_local).astype(S_tail.dtype)
             # Allocate the full-width chunk (cheap) so ALL downstream code —
             # row padding, cols_result matmul, similarities_out — is unchanged.
