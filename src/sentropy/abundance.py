@@ -22,10 +22,12 @@ def normalize_counts(counts):
         return counts.to_numpy(), counts.columns.to_list()
     elif isinstance(counts, dict):
         return column_stack(list(counts.values())), list(counts.keys())
-    elif isinstance(counts, ndarray):
+    elif isinstance(counts, ndarray) or isinstance(counts, Tensor):
         if counts.ndim == 1:
             counts = counts.reshape(-1, 1)
         return counts, list(range(counts.shape[1]))
+    else:
+        raise TypeError("counts must be a numpy ndarray, pandas DataFrame, dict, or torch Tensor.")
 
 def joint_ordinariness(P: "Abundance", Q: "Abundance", similarity: Similarity):
     """Compute (set, subset, normalized_subset) ordinariness for two

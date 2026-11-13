@@ -43,7 +43,7 @@ def build_similarity(
     """
     if similarity is None:
         return SimilarityIdentity(backend=backend)
-    elif isinstance(similarity, ndarray):
+    elif isinstance(similarity, ndarray) or isinstance(similarity, Tensor):
         return SimilarityFromArray(similarity=similarity, backend=backend)
     elif isinstance(similarity, DataFrame):
         return SimilarityFromArray(similarity=similarity.values, backend=backend)

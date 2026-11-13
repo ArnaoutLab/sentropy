@@ -6,7 +6,7 @@ from pandas import DataFrame
 from pytest import fixture, mark, raises
 from scipy.sparse import coo_array  # type: ignore[import]
 
-from sentropy.abundance import Abundance
+from sentropy.abundance import Abundance, normalize_counts
 
 
 def counts_array_3by2():
@@ -222,3 +222,7 @@ class TestAbundance:
             abundance.normalized_subset_abundance,
             test_case.normalized_subset_abundance,
         )
+
+def test_TypeError_in_normalize_counts():
+    with raises(TypeError, match="numpy ndarray"):
+        normalize_counts([[1,2],[3,4]])
