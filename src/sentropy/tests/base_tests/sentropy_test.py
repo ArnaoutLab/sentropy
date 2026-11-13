@@ -5,6 +5,7 @@ from sentropy.similarity import (
     SimilarityFromSymmetricFunction,
     SimilarityFromFile,
     SimilarityFromDataFrame,
+    batch_similarity,
 )
 import numpy as np
 import pandas as pd
@@ -443,3 +444,31 @@ def test_interset_ordinariness_uniqueness():
     expected = np.array([5/12, 3/12, 5/12, 4/12])
 
     assert np.allclose(result, expected)
+
+def test_batch_cosine_similarity_agrees_with_scalar_cosine_similarity():
+    rng = np.random.default_rng(0)
+    n, d = 300, 16
+    counts = rng.integers(1, 50, size=(n, 1))
+    X = rng.uniform(0.1, 5.0, size=(n, d))   # nonneg features → cosine ∈ [0, 1]
+
+    def cos_scalar(a, b):                               # scalar cosine similarity
+        na, nb = np.linalg.norm(a), np.linalg.norm(b)
+        return float(a @ b / (na * nb)) if na and nb else 0.0
+
+    @batch_similarity
+    def cos_batch(A, B):                                # rows of A x rows of B
+        A = A / np.linalg.norm(A, axis=1, keepdims=True)
+        B = B / np.linalg.norm(B, axis=1, keepdims=True)
+        return A @ B.T
+
+    val_scalar = sentropy(counts, similarity=cos_scalar, symmetric=True, 
+        sfargs=X, measure="alpha", q=1, parallelize=False)
+    val_batch = sentropy(counts, similarity=cos_batch, symmetric=True, 
+        sfargs=X, measure="alpha", q=1, parallelize=False)
+    assert np.allclose(val_scalar, val_batch)
+
+    val_scalar_2 = sentropy(counts, similarity=cos_scalar, symmetric=False, 
+        sfargs=X, measure="alpha", q=1, parallelize=False)
+    val_batch_2 = sentropy(counts, similarity=cos_batch, symmetric=False, 
+        sfargs=X, measure="alpha", q=1, parallelize=False)
+    assert np.allclose(val_scalar_2, val_batch_2)

@@ -1,8 +1,7 @@
 # ray.py
 
 from typing import List, Any, Callable, Union, Tuple
-import numpy as _np
-from numpy import ndarray, concatenate, ceil
+from numpy import arange, array, asarray, ndarray, concatenate, ceil, vstack, zeros as _zeros
 from os import cpu_count
 from pandas import DataFrame
 from sentropy.exceptions import InvalidArgumentError
@@ -15,6 +14,7 @@ from torch import Tensor
 from sentropy.similarity import (
     SimilarityFromFunction,
     SimilarityFromSymmetricFunction,
+    _is_batch_similarity,
 )
 from sentropy.backend import get_backend
 
@@ -35,33 +35,37 @@ def _recommend_chunk_params(n_X, n_Y):
 
 def weighted_similarity_chunk_nonsymmetric(
     similarity: Callable,
-    X: Union[_np.ndarray, DataFrame],
-    Y: Union[_np.ndarray, DataFrame, None],
+    X: Union[ndarray, DataFrame],
+    Y: Union[ndarray, DataFrame, None],
     relative_abundance,
     backend,
     chunk_size: int,
     chunk_index: int,
     return_Z: bool = True,
-) -> Tuple[int, _np.ndarray, Union[_np.ndarray, None]]:
+) -> Tuple[int, ndarray, Union[ndarray, None]]:
     """
     Calculates some rows of the matrix product of Z @ p,
     where Z is not given explicitly but rather each entry
     Z[i,j] is calculated by a function.
     """
-    X = _np.array(X)
+    X = array(X)
 
     if Y is None:
         Y = X
     elif isinstance(Y, DataFrame):
         Y = Y.to_numpy()
     else:
-        Y = _np.asarray(Y)
+        Y = asarray(Y)
         
     chunk = X[chunk_index : chunk_index + chunk_size]
-    similarities_chunk = backend.empty(shape=(chunk.shape[0], Y.shape[0]))
-    for i, row_i in enumerate(chunk):
-        for j, row_j in enumerate(Y):
-            similarities_chunk[i, j] = similarity(row_i, row_j)
+
+    if _is_batch_similarity(similarity):
+        similarities_chunk = backend.asarray(similarity(chunk, Y))
+    else:
+        similarities_chunk = backend.empty(shape=(chunk.shape[0], Y.shape[0]))
+        for i, row_i in enumerate(chunk):
+            for j, row_j in enumerate(Y):
+                similarities_chunk[i, j] = similarity(row_i, row_j)
 
     result = backend.matmul(similarities_chunk, relative_abundance)
     if return_Z:
@@ -72,22 +76,42 @@ def weighted_similarity_chunk_nonsymmetric(
 
 def weighted_similarity_chunk_symmetric(
     similarity: Callable,
-    X: Union[_np.ndarray, DataFrame],
+    X: Union[ndarray, DataFrame],
     relative_abundance,
     backend,
     chunk_size: int,
     chunk_index: int,
     return_Z: bool = True,
 ):
-    X = _np.array(X)
+    X = array(X)
     chunk = X[chunk_index : chunk_index + chunk_size]
-    similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
-    for i, row_i in enumerate(chunk):
-        for j, row_j in enumerate(X[chunk_index + i + 1 :]):
-            similarities_chunk[i, i + j + chunk_index + 1] = similarity(row_i, row_j)
+
+    if _is_batch_similarity(similarity):
+        tail_start = chunk_index + 1
+        tail = X[tail_start:]
+        # Last chunk might have an empty tail if it's just the last row: nothing above the diagonal.
+        if tail.shape[0] == 0: #pragma: no cover
+            similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
+        else:
+            S_tail = backend.asarray(similarity(chunk, tail))
+            # Keep only entries strictly above the diagonal; in tail-local
+            # coordinates the condition j_global > chunk_index + i becomes
+            # j_tail > i_local.
+            i_local = arange(chunk.shape[0])[:, None]
+            j_tail = arange(tail.shape[0])[None, :]
+            keep = (j_tail >= i_local).astype(S_tail.dtype)
+            # Allocate the full-width chunk (cheap) so ALL downstream code —
+            # row padding, cols_result matmul, similarities_out — is unchanged.
+            similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
+            similarities_chunk[:, tail_start:] = backend.asarray(S_tail * keep)
+    else:
+        similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
+        for i, row_i in enumerate(chunk):
+            for j, row_j in enumerate(X[chunk_index + i + 1 :]):
+                similarities_chunk[i, i + j + chunk_index + 1] = similarity(row_i, row_j)
+
     rows_result = backend.matmul(similarities_chunk, relative_abundance)
     rows_after_count = max(0, relative_abundance.shape[0] - (chunk_index + chunk_size))
-    from numpy import vstack, zeros as _zeros
 
     rows_result = backend.vstack(
         (

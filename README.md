@@ -215,6 +215,84 @@ ray.shutdown()
 
 Note that shutting Ray down means the *next* parallelized computation with `sentropy` will re-initialize it with all cores again, so you would need to repeat `ray.init(num_cpus=N)` as well.
 
+## Passing a batch similarity function
+It's also possible to pass a batch similarity function instead of a scalar one. To do this, we apply the decorator `@batch_similarity` imported from `sentropy.similarity` to the similarity function. For example, let's re-use the example of 3 amino-acid sequences from above and use the `rapidfuzz` package to vectorize the calculation of Levenshtein distances:
+
+```
+import numpy as np
+from rapidfuzz import process
+from rapidfuzz.distance import Levenshtein
+from sentropy import sentropy
+from sentropy.similarity import batch_similarity
+
+elements = np.array(['CARDYW', 'CTRDYW', 'CAKDYW'])   # amino-acid sequences
+P = np.array([20, 1, 1])                              # individuals per sequence
+
+@batch_similarity
+def similarity_function(A, B):
+    # A, B: arrays of sequences; returns the similarity matrix 0.3 ** edit distance
+    distances = process.cdist(
+        list(A), list(B),
+        scorer=Levenshtein.distance,
+        workers=-1,                     # use all CPU cores
+    )
+    return 0.3 ** distances             # same decay as the scalar version
+
+D1Z = sentropy(
+    P,
+    similarity=similarity_function,
+    symmetric=True,                     # Levenshtein distance is symmetric
+    sfargs=elements,
+    q=1,
+    measure="alpha",
+)
+
+print(f"D1Z = {D1Z:.2f} effective sequences")
+```
+We get the same answer 1.18 as using the scalar similarity of course. Here's another example with calculating the diversity of MNIST datasets using a similarity based on the pixelwise RMSE between images:
+
+```
+import numpy as np
+from sklearn.datasets import load_digits
+from sentropy import sentropy
+from sentropy.similarity import batch_similarity
+
+images, labels = load_digits(return_X_y=True)
+X = images / 16.0                      # (1797, 64), pixels rescaled to [0, 1]
+d = X.shape[1]
+
+counts = np.stack([
+    (labels == k).sum() for k in range(10)      # individuals per digit class
+])
+X_species = np.stack([
+    X[labels == k].mean(axis=0) for k in range(10)   # mean image of each class
+])
+
+@batch_similarity
+def rmse_similarity(A, B):
+    # squared Euclidean distances via the Gram matrix, then RMSE = ||a - b|| / sqrt(d)
+    sq = (
+        (A * A).sum(axis=1)[:, None]
+        + (B * B).sum(axis=1)[None, :]
+        - 2.0 * (A @ B.T)
+    )
+    np.maximum(sq, 0.0, out=sq)          # guard tiny negatives from rounding
+    return np.exp(-np.sqrt(sq / d))      # exp(−RMSE) ∈ (0, 1]
+
+result = sentropy(
+    counts,
+    similarity=rmse_similarity,
+    symmetric=True,
+    sfargs=X_species,
+    q=1,
+    measure=["alpha", "beta", "gamma"],
+    return_dataframe=True
+)
+
+print(result)
+```
+Even though there are 10 classes in MNIST, in this example we get an alpha diversity of only 1.257, indicating the great visual similarity between images.
+
 ## Representativeness
 
 Suppose you have a dataset of fruits that has two classes, apples and oranges, and you want to know how representative each class is of the whole dataset. `sentropy` lets you do this by measuring the representativeness of each class (*𝜌*, "rho"), which is the reciprocal of *β* diversity (which measures distinctiveness):
