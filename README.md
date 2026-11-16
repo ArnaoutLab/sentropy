@@ -264,9 +264,6 @@ d = X.shape[1]
 counts = np.stack([
     (labels == k).sum() for k in range(10)      # individuals per digit class
 ])
-X_species = np.stack([
-    X[labels == k].mean(axis=0) for k in range(10)   # mean image of each class
-])
 
 @batch_similarity
 def rmse_similarity(A, B):
@@ -538,6 +535,7 @@ R2 using torch and GPU: tensor(0.3750, device='mps:0')
 
 ## Vendi score
 This package also computes [Vendi scores](https://arxiv.org/abs/2210.02410), which is an alternative definition of similarity-sensitive diversity in addition to the Leinster-Cobbold-Reeve diversity framework. To compute Vendi scores, we simply pass `measure='vendi'` to the `sentropy` function.
+The computation of the Vendi score assumes that the similarity matrix is symmetric and positive semi-definite. No error is raised if the similarity matrix does not obey those two assumptions.
 
 # Command-line interface
 The sentropy package can also be used from the command line as the `sentropy` command. For all the CLI options, run

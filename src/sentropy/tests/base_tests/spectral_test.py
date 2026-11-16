@@ -2,7 +2,7 @@ from scipy.sparse import csr_matrix
 from sentropy.exceptions import InvalidArgumentError, SpectralError
 from sentropy.spectral import vendi_score
 from sentropy.sentropy import sentropy
-from numpy import array, allclose, zeros, sum as np_sum, log as np_log, sqrt as np_sqrt, exp as np_exp, max as np_max
+from numpy import array, allclose, zeros, sum as np_sum, log as np_log, sqrt as np_sqrt, exp as np_exp, max as np_max, min as np_min
 from numpy.linalg import eigvals
 from pandas import DataFrame
 from pandas.testing import assert_frame_equal
@@ -56,6 +56,15 @@ def test_vendi_infinite_viewpoint():
     p = array([[1], [1], [1]]) / 3
     VE = sentropy(p, similarity=sim, q=1000, eff_no=False, measure='vendi')
     expected = -np_log(np_max(eigvals(sim)/np_sum(eigvals(sim))))
+    assert allclose(VE, expected)
+
+def test_vendi_negative_infinite_viewpoint():
+    sim = array([[1.        , 0.24311673, 0.10687793],
+       [0.24311673, 1.        , 0.10687793],
+       [0.10687793, 0.10687793, 1.        ]])
+    p = array([[1], [1], [1]]) / 3
+    VE = sentropy(p, similarity=sim, q=-1000, eff_no=False, measure='vendi')
+    expected = -np_log(np_min(eigvals(sim)/np_sum(eigvals(sim))))
     assert allclose(VE, expected)
 
 def test_vendi_superset_df():

@@ -58,9 +58,11 @@ def _spectral_entropy(Z, p, q: float, backend) -> float:
             "matrix; cannot compute a Vendi score."
         )
 
-    if q > 100 or isinf(q):
+    if q > 100:
         # Rényi entropy of order ∞ = -log(max_i p_i)
         return -backend.log(backend.amax(probs))
+    if q < -100:
+        return -backend.log(backend.amin(probs))
     if isclose(q, 1.0):
         return -backend.sum(backend.multiply(probs, backend.log(probs)))
     sum_pow = backend.sum(backend.power(probs, q))
