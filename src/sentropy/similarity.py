@@ -8,10 +8,9 @@ from pathlib import Path
 from pandas import DataFrame, read_csv
 
 # from scipy.sparse import spmatrix, issparse  # type: ignore[import]
-from sentropy.exceptions import InvalidArgumentError
 from sentropy.backend import get_backend
 
-from numpy import arange, asarray, ndarray, tril_indices, vstack, zeros as _zeros
+from numpy import ndarray, tril_indices
 from torch import Tensor
 
 # Note: We keep many implementation details but route array ops via backend.

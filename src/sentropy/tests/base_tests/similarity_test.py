@@ -4,7 +4,6 @@ from collections import defaultdict
 
 from numpy import (
     allclose,
-    ndarray,
     array,
     dtype,
     memmap,
@@ -21,9 +20,8 @@ from numpy import (
 from numpy.linalg import norm
 from pandas import DataFrame, read_csv
 import scipy.sparse  # type: ignore[import]
-from pytest import fixture, raises, mark
+from pytest import fixture, mark
 
-from sentropy.log import LOGGER
 from sentropy.similarity import (
     SimilarityIdentity,
     SimilarityFromArray,
@@ -33,7 +31,6 @@ from sentropy.similarity import (
     SimilarityFromSymmetricFunction,
 )
 from sentropy import Set
-from sentropy.exceptions import InvalidArgumentError
 from sentropy.abundance import Abundance
 
 

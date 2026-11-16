@@ -1,13 +1,11 @@
 # ray.py
 
-from typing import List, Any, Callable, Union, Tuple
-from numpy import arange, array, asarray, ndarray, concatenate, ceil, tril_indices, vstack, zeros as _zeros
+from typing import List, Any, Callable, Union
+from numpy import ndarray
 from os import cpu_count
 from pandas import DataFrame
-from sentropy.exceptions import InvalidArgumentError
 
 # avoid mypy error: see https://github.com/jorenham/scipy-stubs/issues/100
-from scipy.sparse import spmatrix  # type: ignore
 import ray  # type: ignore
 from torch import Tensor
 

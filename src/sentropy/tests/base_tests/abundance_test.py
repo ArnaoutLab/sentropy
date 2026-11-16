@@ -3,8 +3,7 @@
 from dataclasses import dataclass, field
 from numpy import allclose, array, ndarray
 from pandas import DataFrame
-from pytest import fixture, mark, raises
-from scipy.sparse import coo_array  # type: ignore[import]
+from pytest import mark, raises
 
 from sentropy.abundance import Abundance, normalize_counts
 

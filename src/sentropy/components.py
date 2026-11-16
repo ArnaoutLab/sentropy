@@ -1,5 +1,3 @@
-from functools import cached_property
-from numpy import ndarray
 
 from sentropy.abundance import Abundance
 from sentropy.similarity import Similarity
