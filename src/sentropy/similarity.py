@@ -11,7 +11,7 @@ from pandas import DataFrame, read_csv
 from sentropy.exceptions import InvalidArgumentError
 from sentropy.backend import get_backend
 
-from numpy import arange, asarray, ndarray, vstack, zeros as _zeros
+from numpy import arange, asarray, ndarray, tril_indices, vstack, zeros as _zeros
 from torch import Tensor
 
 # Note: We keep many implementation details but route array ops via backend.
@@ -32,6 +32,111 @@ def batch_similarity(func: Callable) -> Callable:
 
 def _is_batch_similarity(similarity: Callable) -> bool:
     return bool(getattr(similarity, "is_batch_similarity", False))
+
+def weighted_similarity_chunk_nonsymmetric(
+    similarity: Callable,
+    X: Union[ndarray, DataFrame],
+    Y: Union[ndarray, DataFrame, None],
+    relative_abundance,
+    backend,
+    chunk_size: int,
+    chunk_index: int,
+    return_Z: bool = True,
+) -> Tuple[int, ndarray, Union[ndarray, None]]:
+    """
+    Calculates some rows of the matrix product of Z @ p,
+    where Z is not given explicitly but rather each entry
+    Z[i,j] is calculated by a function.
+    """
+    def enum_helper(A):
+        if isinstance(A, DataFrame):
+            return A.itertuples()
+        return A
+
+    if Y is None:
+        Y = X
+    chunk = X[chunk_index : chunk_index + chunk_size]
+
+    if _is_batch_similarity(similarity):
+        similarities_chunk = backend.asarray(similarity(chunk, Y))
+    else:
+        similarities_chunk = backend.empty(shape=(chunk.shape[0], Y.shape[0]))
+        for i, row_i in enumerate(enum_helper(chunk)):
+            for j, row_j in enumerate(enum_helper(Y)):
+                similarities_chunk[i, j] = similarity(row_i, row_j)
+
+    result = backend.matmul(similarities_chunk, relative_abundance)
+    if return_Z:
+        return chunk_index, result, similarities_chunk
+    return chunk_index, result, None
+
+
+def weighted_similarity_chunk_symmetric(
+    similarity: Callable,
+    X: Union[ndarray, DataFrame],
+    relative_abundance,
+    backend,
+    chunk_size: int,
+    chunk_index: int,
+    return_Z: bool = True,
+) -> Tuple[int, ndarray, Union[ndarray, None]]:
+    """
+    Calculates some rows of the matrix product of Z @ p for a symmetric
+    Z whose entries are given by a pairwise similarity function. Only
+    strictly-above-diagonal entries are ever computed; each chunk's
+    contribution is assembled from the in-chunk "corner" block and the
+    "rest" block between the chunk and the rows after it.
+    """
+    def enum_helper(A, start_index=0):
+        if isinstance(A, DataFrame):
+            return A.iloc[start_index:].itertuples()
+        return A[start_index:]
+
+    chunk = X[chunk_index : chunk_index + chunk_size]
+    after = X[chunk_index + chunk_size :]
+
+    if _is_batch_similarity(similarity):
+        corner = backend.copy(backend.asarray(similarity(chunk, chunk)))
+        rest = (
+            backend.asarray(similarity(chunk, after))
+            if len(after)
+            else backend.zeros(shape=(len(chunk), 0))
+        )
+    else:
+        similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
+        for i, row_i in enumerate(enum_helper(chunk)):
+            for j, row_j in enumerate(enum_helper(X, chunk_index + i + 1)):
+                similarities_chunk[i, i + j + chunk_index + 1] = similarity(
+                    row_i, row_j
+                )
+        corner = similarities_chunk[:, chunk_index : chunk_index + chunk_size]
+        rest = similarities_chunk[:, chunk_index + chunk_size :]
+
+    # Keep only pairs above the diagonal; assigning (not a 0/1 multiply)
+    # also drops NaN/inf on and below the in-chunk diagonal.
+    corner[tril_indices(len(chunk))] = 0
+
+    relative_abundance_slice = relative_abundance[
+        chunk_index : chunk_index + chunk_size
+    ]
+    result = backend.zeros(shape=relative_abundance.shape)
+    result[chunk_index : chunk_index + chunk_size] = backend.matmul(
+        corner + corner.T, relative_abundance_slice
+    ) + backend.matmul(rest, relative_abundance[chunk_index + chunk_size :])
+    result[chunk_index + chunk_size :] = backend.matmul(
+        rest.T, relative_abundance_slice
+    )
+
+    if return_Z:
+        if _is_batch_similarity(similarity):
+            # Rebuild the full-width chunk row from corner + rest.
+            similarities_chunk = backend.zeros(shape=(len(chunk), X.shape[0]))
+            similarities_chunk[:, chunk_index : chunk_index + chunk_size] = corner
+            similarities_chunk[:, chunk_index + chunk_size :] = rest
+        # (non-batch path: similarities_chunk already holds the full-width,
+        #  strictly-upper-triangular chunk rows)
+        return chunk_index, result, similarities_chunk
+    return chunk_index, result, None
 
 
 class Similarity(ABC):
@@ -201,69 +306,17 @@ class SimilarityFromSymmetricFunction(Similarity):
         chunk_size: int,
         chunk_index: int,
         return_Z: bool = True,
-    ):
-        def enum_helper(X, start_index=0):
-            if type(X) == DataFrame:
-                return X.iloc[start_index:].itertuples()
-            return X[start_index:]
-
-        chunk = X[chunk_index : chunk_index + chunk_size]
-
-
-        if _is_batch_similarity(similarity):
-            tail_start = chunk_index + 1
-            tail = X[tail_start:]
-            # Last chunk might have an empty tail if it's just the last row: nothing above the diagonal.
-            if tail.shape[0] == 0: #pragma: no cover
-                similarities_chunk = self.backend.zeros(shape=(chunk.shape[0], X.shape[0]))
-            else:
-                S_tail = self.backend.asarray(similarity(chunk, tail))
-                # Keep only entries strictly above the diagonal; in tail-local
-                # coordinates the condition j_global > chunk_index + i becomes
-                # j_tail > i_local.
-                i_local = arange(chunk.shape[0])[:, None]
-                j_tail = arange(tail.shape[0])[None, :]
-                keep = (j_tail >= i_local).astype(S_tail.dtype)
-                # Allocate the full-width chunk (cheap) so ALL downstream code —
-                # row padding, cols_result matmul, similarities_out — is unchanged.
-                similarities_chunk = self.backend.zeros(shape=(chunk.shape[0], X.shape[0]))
-                similarities_chunk[:, tail_start:] = self.backend.asarray(S_tail * keep)
-        else:
-            similarities_chunk = self.backend.zeros(shape=(chunk.shape[0], X.shape[0]))
-            for i, row_i in enumerate(enum_helper(chunk)):
-                for j, row_j in enumerate(enum_helper(X, chunk_index + i + 1)):
-                    similarities_chunk[i, i + j + chunk_index + 1] = similarity(
-                        row_i, row_j
-                    )
-
-        rows_result = self.backend.matmul(similarities_chunk, relative_abundance)
-        rows_after_count = max(
-            0, relative_abundance.shape[0] - (chunk_index + chunk_size)
+    ) -> Tuple[int, ndarray, Union[ndarray, None]]:
+        """Delegate to the shared module-level implementation."""
+        return weighted_similarity_chunk_symmetric(
+            similarity=similarity,
+            X=X,
+            relative_abundance=relative_abundance,
+            backend=self.backend,
+            chunk_size=chunk_size,
+            chunk_index=chunk_index,
+            return_Z=return_Z,
         )
-
-        rows_result = self.backend.vstack(
-            (
-                self.backend.zeros(shape=(chunk_index, relative_abundance.shape[1])),
-                rows_result,
-                self.backend.zeros(
-                    shape=(
-                        rows_after_count,
-                        relative_abundance.shape[1],
-                    )
-                ),
-            )
-        )
-        relative_abundance_slice = relative_abundance[
-            chunk_index : chunk_index + chunk_size
-        ]
-        cols_result = self.backend.matmul(
-            similarities_chunk.T, relative_abundance_slice
-        )
-        result = rows_result + cols_result
-        if return_Z:
-            return chunk_index, result, similarities_chunk
-        else:
-            return chunk_index, result, None
 
 
 class SimilarityFromFunction(SimilarityFromSymmetricFunction):
@@ -299,31 +352,14 @@ class SimilarityFromFunction(SimilarityFromSymmetricFunction):
         chunk_index: int,
         return_Z: bool = True,
     ) -> Tuple[int, ndarray, Union[ndarray, None]]:
-        """
-        Calculates some rows of the matrix product of Z @ p,
-        where Z is not given explicitly but rather each entry
-        Z[i,j] is calculated by a function.
-        """
-
-        def enum_helper(X):
-            if type(X) == DataFrame:
-                return X.itertuples()
-            return X
-
-        if Y is None:
-            Y = X
-        chunk = X[chunk_index : chunk_index + chunk_size]
-
-        if _is_batch_similarity(similarity):
-            similarities_chunk = self.backend.asarray(similarity(chunk, Y))
-        else:
-            similarities_chunk = self.backend.empty(shape=(chunk.shape[0], Y.shape[0]))
-            for i, row_i in enumerate(enum_helper(chunk)):
-                for j, row_j in enumerate(enum_helper(Y)):
-                    similarities_chunk[i, j] = similarity(row_i, row_j)
-
-        result = self.backend.matmul(similarities_chunk, relative_abundance)
-        if return_Z:
-            return chunk_index, result, similarities_chunk
-        else:
-            return chunk_index, result, None
+        """Delegate to the shared module-level implementation."""
+        return weighted_similarity_chunk_nonsymmetric(
+            similarity=similarity,
+            X=X,
+            Y=Y,
+            relative_abundance=relative_abundance,
+            backend=self.backend,
+            chunk_size=chunk_size,
+            chunk_index=chunk_index,
+            return_Z=return_Z,
+        )
