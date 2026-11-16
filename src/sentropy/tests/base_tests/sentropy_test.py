@@ -1,10 +1,6 @@
 from sentropy.sentropy import sentropy, interset_ordinariness
 from sentropy.exceptions import InvalidArgumentError
 from sentropy.similarity import (
-    SimilarityFromFunction,
-    SimilarityFromSymmetricFunction,
-    SimilarityFromFile,
-    SimilarityFromDataFrame,
     batch_similarity,
 )
 import numpy as np

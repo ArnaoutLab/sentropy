@@ -1,33 +1,15 @@
-from typing import Union, Optional, Callable, Iterable, Tuple
+from typing import Union
 from numpy import (
-    inf as np_inf,
-    array,
     ndarray,
-    minimum,
-    prod,
-    power,
-    zeros as np_zeros,
-    log as np_log,
-    sum as np_sum,
     atleast_1d,
-    arange,
-    column_stack,
 )
 from pandas import DataFrame
-import os
 import numpy as np
 
 from sentropy.abundance import Abundance, joint_ordinariness, normalize_counts as _normalize_counts
 from sentropy.backend import get_backend
 from sentropy.exceptions import InvalidArgumentError
 
-from sentropy.similarity import (
-    SimilarityIdentity,
-    SimilarityFromArray,
-    SimilarityFromFile,
-    SimilarityFromSymmetricFunction,
-    SimilarityFromFunction,
-)
 
 from sentropy.set import Set, build_similarity
 from sentropy.spectral import vendi_score

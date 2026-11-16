@@ -1,6 +1,5 @@
 from sentropy.backend import *
-from pytest import fixture, raises, mark
-import pandas as pd
+from pytest import raises
 import torch
 import numpy as np
 

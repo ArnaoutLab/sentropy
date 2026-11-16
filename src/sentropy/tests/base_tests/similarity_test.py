@@ -4,7 +4,6 @@ from collections import defaultdict
 
 from numpy import (
     allclose,
-    ndarray,
     array,
     dtype,
     memmap,
@@ -17,13 +16,13 @@ from numpy import (
     random,
     empty,
     empty_like,
+    sqrt,
 )
 from numpy.linalg import norm
 from pandas import DataFrame, read_csv
 import scipy.sparse  # type: ignore[import]
-from pytest import fixture, raises, mark
+from pytest import fixture, mark
 
-from sentropy.log import LOGGER
 from sentropy.similarity import (
     SimilarityIdentity,
     SimilarityFromArray,
@@ -31,15 +30,26 @@ from sentropy.similarity import (
     SimilarityFromFile,
     SimilarityFromFunction,
     SimilarityFromSymmetricFunction,
+    batch_similarity,
 )
 from sentropy import Set
-from sentropy.exceptions import InvalidArgumentError
 from sentropy.abundance import Abundance
 
 
 @fixture
 def similarity_function():
     return lambda a, b: 1 / sum(a * b)
+
+@batch_similarity
+def batch_similarity_function(A, B):
+    # squared Euclidean distances via the Gram matrix, then RMSE = ||a - b|| / sqrt(d)
+    sq = (
+        (A * A).sum(axis=1)[:, None]
+        + (B * B).sum(axis=1)[None, :]
+        - 2.0 * (A @ B.T)
+    )
+    maximum(sq, 0.0, out=sq)          # guard tiny negatives from rounding
+    return exp(-sqrt(sq))
 
 
 rng = random.default_rng()
@@ -327,6 +337,19 @@ def test_weighted_similarity_chunk(similarity_function):
     )
     assert chunk_index == 0
     assert allclose(chunk, weighted_abundances_3by2_3)
+
+def test_weighted_similarity_chunk_2():
+    similarity = SimilarityFromFunction(func=batch_similarity_function, X=X_3by2)
+    chunk_index, chunk, similarities = (
+        similarity.weighted_similarity_chunk_symmetric(
+            similarity=similarity.func,
+            X=similarity.X,
+            relative_abundance=relative_abundance_3by2,
+            chunk_size=3,
+            chunk_index=0,
+        )
+    )
+    assert allclose(similarities, [[0, exp(-sqrt(13)), exp(-sqrt(117))],[0,0,exp(-sqrt(52))],[0,0,0]])
 
 
 def make_array(spec, array_class=zeros):

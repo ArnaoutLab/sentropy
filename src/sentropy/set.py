@@ -1,9 +1,9 @@
 """Module for set and subset diversity measures."""
 
-from typing import Callable, Iterable, Optional, Union, List
+from typing import Iterable, Optional, Union
 
 from pandas import DataFrame, Index, Series, concat
-from numpy import array, atleast_1d, broadcast_to, zeros as np_zeros, ndarray
+from numpy import ndarray
 from scipy.sparse import issparse
 from sentropy.exceptions import InvalidArgumentError
 

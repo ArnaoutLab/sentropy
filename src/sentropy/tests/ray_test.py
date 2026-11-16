@@ -2,13 +2,8 @@ from numpy import (
     sqrt,
     all as np_all,
     allclose,
-    ndarray,
     array,
-    dtype,
-    memmap,
-    inf,
     isfinite,
-    float32,
     zeros,
     empty,
     dot,
@@ -19,12 +14,11 @@ from numpy.linalg import norm
 
 from pandas import DataFrame
 from numpy.linalg import norm
-from pytest import fixture, raises, mark
+from pytest import fixture, mark
 import ray
 
 from sentropy import Set, sentropy
 from sentropy.backend import get_backend
-from sentropy.exceptions import InvalidArgumentError
 from sentropy.ray import (
     _interset_weighted_abundances_ray,
     SimilarityFromRayFunction,
@@ -39,7 +33,6 @@ from sentropy.similarity import (
 )
 
 import sentropy.tests.mockray as mockray
-from sentropy.tests.base_tests.similarity_test import similarity_from_distance
 
 from sentropy.tests.base_tests.similarity_test import (
     relative_abundance_3by2,

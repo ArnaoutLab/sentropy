@@ -1,26 +1,20 @@
 """Tests for diversity.set."""
 
 from dataclasses import dataclass, field
-from numpy import allclose, array, ndarray, identity, zeros, inf, maximum, log, sum as np_sum
+from numpy import allclose, array, ndarray, identity, inf, maximum
 from numpy.linalg import norm
 from pandas import DataFrame, concat
 from pandas.testing import assert_frame_equal
 from pytest import mark, raises
 from sentropy.exceptions import InvalidArgumentError
 
-from sentropy.log import LOGGER
 from sentropy.abundance import Abundance
 from sentropy.similarity import (
-    Similarity,
     SimilarityIdentity,
     SimilarityFromArray,
-    SimilarityFromSymmetricFunction,
-    SimilarityFromFunction,
 )
 from sentropy import Set
 from sentropy.set import build_similarity
-from sentropy.backend import get_backend
-from sentropy.tests.base_tests.similarity_test import similarity_dataframe_3by3
 from sentropy.tests.base_tests.similarity_test import similarity_array_3by3_1
 
 LCR = (
