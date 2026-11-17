@@ -143,162 +143,74 @@ def LCR(
 # ----------------------------------------------------------------------
 
 
-
 def _compute_srd_from_ordinarinesses(P, P_ord, Q_ord, q, atol, backend):
-    """Compute similarity-sensitive relative diversity."""
+    """Compute similarity-sensitive relative diversity from P abundance, P ordinariness and Q ordinariness."""
     ratio = P_ord / Q_ord
-
-    return power_mean(
-        order=q - 1,
-        weights=P,
-        items=ratio,
-        atol=atol,
-        backend=backend,
-    )
+    if q != 1:
+        return power_mean(
+            order=q - 1,
+            weights=P,
+            items=ratio,
+            atol=atol,
+            backend=backend,
+        )
+    return backend.prod(backend.power(ratio, P))
 
 
 def _compute_scd_from_ordinarinesses(P, Q_ord, q, atol, backend):
-    """Compute similarity-sensitive cross-diversity."""
-    inv_Q_ord = 1 / Q_ord
-
-    return power_mean(
-        order=1 - q,
-        weights=P,
-        items=inv_Q_ord,
-        atol=atol,
-        backend=backend,
-    )
-
-
-def _compute_pairwise_power_mean(
-    P,
-    P_ord,
-    Q_ord,
-    order,
-    atol,
-    backend,
-    reciprocal=False,
-    block_size=32,
-):
-    """
-    Compute pairwise weighted power means using block-wise vectorization.
-
+    """Compute similarity-sensitive cross-diversity from P abundance and Q ordinariness.
+    
     Parameters
     ----------
     P : array-like
-        Normalized abundance matrix, shape (K, nP).
-    P_ord : array-like or None
-        Ordinariness matrix for P, shape (K, nP).
-        Not needed when reciprocal=True.
+        Probability distribution (abundance)
     Q_ord : array-like
-        Ordinariness matrix for Q, shape (K, nQ).
-    order : float
-        Order of the power mean.
+        Similarity-weighted Q (Z @ Q)
+    q : float
+        Viewpoint parameter
     atol : float
-        Absolute tolerance for numerical stability.
+        Absolute tolerance for numerical stability
     backend : BaseBackend
-        Computation backend.
-    reciprocal : bool
-        If True, use 1 / Q_ord instead of P_ord / Q_ord.
-    block_size : int
-        Number of subsets processed per block along each dimension.
-
+        Computation backend
+        
     Returns
     -------
-    array-like
-        Pairwise matrix of shape (nP, nQ).
+    float or array-like
+        Cross-entropy value
     """
-
-    K, nP = P.shape
-    nQ = Q_ord.shape[1]
-
-    mat = backend.zeros((nP, nQ))
-
-    for i0 in range(0, nP, block_size):
-        i1 = min(i0 + block_size, nP)
-
-        P_block = P[:, i0:i1]
-
-        if not reciprocal:
-            P_ord_block = P_ord[:, i0:i1]
-
-        for j0 in range(0, nQ, block_size):
-            j1 = min(j0 + block_size, nQ)
-
-            Q_block = Q_ord[:, j0:j1]
-
-            if reciprocal:
-                items = 1 / Q_block[:, None, :]
-            else:
-                items = (
-                    P_ord_block[:, :, None]
-                    / Q_block[:, None, :]
-                )
-
-            # Shape: (K, block_P, block_Q)
-            weights = backend.broadcast_to(
-                P_block[:, :, None],
-                items.shape,
-            )
-
-            # Flatten subset pairs into columns.
-            # Shape: (K, block_P * block_Q)
-            items = items.reshape(K, -1)
-            weights = weights.reshape(K, -1)
-
-            values = power_mean(
-                order=order,
-                weights=weights,
-                items=items,
-                atol=atol,
-                backend=backend,
-            )
-
-            mat[i0:i1, j0:j1] = values.reshape(
-                i1 - i0,
-                j1 - j0,
-            )
-
-    return mat
-
+    inv_Q_ord = 1/Q_ord
+    if q != 1:
+        return power_mean(
+            order=1 - q,
+            weights=P,
+            items=inv_Q_ord,
+            atol=atol,
+            backend=backend,
+        )
+    return backend.prod(backend.power(inv_Q_ord, P))
 
 def _compute_sre(
     P_abundance, Q_abundance,
     P_set_ord, Q_set_ord, P_norm_ord, Q_norm_ord,
     q, level, eff_no, backend,
 ):
-    """Compute similarity-sensitive relative entropy."""
-
     P_set_ab = P_abundance.set_abundance
     P_norm_ab = P_abundance.normalized_subset_abundance
-
     min_count = min(1 / P_set_ab.sum(), 1e-9)
 
     results = {}
-
     if level in ("both", "overall"):
-        val = _compute_srd_from_ordinarinesses(
-            P_set_ab,
-            P_set_ord,
-            Q_set_ord,
-            q,
-            min_count,
-            backend,
-        )
-
+        val = _compute_srd_from_ordinarinesses(P_set_ab, P_set_ord, Q_set_ord, q, min_count, backend)
         results["overall"] = backend.log(val) if not eff_no else val
 
     if level in ("both", "subset"):
-
-        mat = _compute_pairwise_power_mean(
-            P=P_norm_ab,
-            P_ord=P_norm_ord,
-            Q_ord=Q_norm_ord,
-            order=q - 1,
-            atol=min_count,
-            backend=backend,
-        )
-
+        nP, nQ = P_norm_ab.shape[1], Q_norm_ord.shape[1]
+        mat = backend.zeros((nP, nQ))
+        for i in range(nP):
+            for j in range(nQ):
+                mat[i, j] = _compute_srd_from_ordinarinesses(
+                    P_norm_ab[:, i], P_norm_ord[:, i], Q_norm_ord[:, j], q, min_count, backend,
+                )
         results["subset"] = backend.log(mat) if not eff_no else mat
 
     return results
@@ -309,42 +221,27 @@ def _compute_sce(
     P_set_ord, Q_set_ord, P_norm_ord, Q_norm_ord,
     q, level, eff_no, backend,
 ):
-    """Compute similarity-sensitive cross-entropy."""
-
+    """Compute similarity-sensitive cross-entropy between P and Q."""
     P_set_ab = P_abundance.set_abundance
     P_norm_ab = P_abundance.normalized_subset_abundance
-
     min_count = min(1 / P_set_ab.sum(), 1e-9)
 
     results = {}
-
     if level in ("both", "overall"):
-        val = _compute_scd_from_ordinarinesses(
-            P_set_ab,
-            Q_set_ord,
-            q,
-            min_count,
-            backend,
-        )
-
+        val = _compute_scd_from_ordinarinesses(P_set_ab, Q_set_ord, q, min_count, backend)
         results["overall"] = backend.log(val) if not eff_no else val
 
     if level in ("both", "subset"):
-
-        mat = _compute_pairwise_power_mean(
-            P=P_norm_ab,
-            P_ord=None,
-            Q_ord=Q_norm_ord,
-            order=1 - q,
-            atol=min_count,
-            backend=backend,
-            reciprocal=True,
-        )
-
+        nP, nQ = P_norm_ab.shape[1], Q_norm_ord.shape[1]
+        mat = backend.zeros((nP, nQ))
+        for i in range(nP):
+            for j in range(nQ):
+                mat[i, j] = _compute_scd_from_ordinarinesses(
+                    P_norm_ab[:, i], Q_norm_ord[:, j], q, min_count, backend,
+                )
         results["subset"] = backend.log(mat) if not eff_no else mat
 
     return results
-
 
 # ----------------------------------------------------------------------
 # SRE/SCE front-end
