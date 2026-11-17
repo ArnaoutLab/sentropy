@@ -220,19 +220,19 @@ class Set:
             backend=self.backend,
         )
         if m in {"beta", "normalized_beta"}:
-            return 1 / diversity_measure
+            diversity_measure = 1 / diversity_measure
 
-        if m in {"rho_hat"} and self.counts.shape[1] > 1:
+        if m == "rho_hat" and self.counts.shape[1] > 1:
             N = self.counts.shape[1]
-            return (diversity_measure - 1) / (N - 1)
+            diversity_measure = (diversity_measure - 1) / (N - 1)
 
-        if m in {"beta_hat"} and self.counts.shape[1] > 1:
+        if m == "beta_hat" and self.counts.shape[1] > 1:
             N = self.counts.shape[1]
-            return ((N / diversity_measure) - 1) / (N - 1)
+            diversity_measure = ((N / diversity_measure) - 1) / (N - 1)
 
         self.subset_diversity_hash[f"subset_{m}_q={q}"] = diversity_measure
 
-        if eff_no == False:
+        if not eff_no:
             return self.backend.log(diversity_measure)
         else:
             return diversity_measure

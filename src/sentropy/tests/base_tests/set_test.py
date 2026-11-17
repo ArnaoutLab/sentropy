@@ -356,11 +356,27 @@ def test_effno_argument_in_subset_diversity_2():
     superset = Set(counts=array([[1, 1], [0, 1], [0, 1], [0, 1]]))
     superset.set_diversity(m="normalized_alpha", q=1)
 
-    subset_diversity = superset.subset_diversity(
+    subset_normalized_alpha = superset.subset_diversity(
         m="normalized_alpha", q=1, eff_no=False
     )
+    subset_beta = superset.subset_diversity(
+        m="beta", q=1, eff_no=False
+    )
+    subset_normalized_beta = superset.subset_diversity(
+        m="normalized_beta", q=1, eff_no=False
+    )
+    subset_beta_hat = superset.subset_diversity(
+        m="beta_hat", q=1, eff_no=False
+    )
+    subset_rho_hat = superset.subset_diversity(
+        m="rho_hat", q=1, eff_no=False
+    )
 
-    assert allclose(subset_diversity, [0, 1.38629])
+    assert allclose(subset_normalized_alpha, [0, 1.38629])
+    assert allclose(subset_beta, [-0.69314718, -0.1732868])
+    assert allclose(subset_normalized_beta, [0.91629073, 0.04985676])
+    assert allclose(subset_beta_hat, [-inf, -0.38302943])
+    assert allclose(subset_rho_hat, [ 0., -1.66491302])
 
 
 def test_subset_diversity_invalid_measure():
