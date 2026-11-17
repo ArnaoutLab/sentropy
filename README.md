@@ -249,7 +249,7 @@ D1Z = sentropy(
 
 print(f"D1Z = {D1Z:.2f} effective sequences")
 ```
-We get the same answer 1.18 as using the scalar similarity of course. Here's another example with calculating the diversity of MNIST datasets using a similarity based on the pixelwise RMSE between images:
+We get the same answer 1.18 as using the scalar similarity of course. Here's another example with calculating the diversity of MNIST-like digit datasets using a similarity based on the pixelwise RMSE between images:
 
 ```
 import numpy as np
@@ -258,29 +258,33 @@ from sentropy import sentropy
 from sentropy.similarity import batch_similarity
 
 images, labels = load_digits(return_X_y=True)
-X = images / 16.0                      # (1797, 64), pixels rescaled to [0, 1]
+
+X = images / 16.0
 d = X.shape[1]
 
-counts = np.stack([
-    (labels == k).sum() for k in range(10)      # individuals per digit class
-])
+# One row per image, one column per digit class
+counts = (labels[:, None] == np.arange(10)).astype(int)
 
 @batch_similarity
 def rmse_similarity(A, B):
-    # squared Euclidean distances via the Gram matrix, then RMSE = ||a - b|| / sqrt(d)
+    # Pairwise squared Euclidean distances
     sq = (
         (A * A).sum(axis=1)[:, None]
         + (B * B).sum(axis=1)[None, :]
         - 2.0 * (A @ B.T)
     )
-    np.maximum(sq, 0.0, out=sq)          # guard tiny negatives from rounding
-    return np.exp(-np.sqrt(sq / d))      # exp(−RMSE) ∈ (0, 1]
+
+    np.maximum(sq, 0.0, out=sq)
+
+    # Convert RMSE into similarity
+    return np.exp(-np.sqrt(sq / d))
+
 
 result = sentropy(
     counts,
     similarity=rmse_similarity,
     symmetric=True,
-    sfargs=X_species,
+    sfargs=X,
     q=1,
     measure=["alpha", "beta", "gamma"],
     return_dataframe=True
@@ -288,7 +292,7 @@ result = sentropy(
 
 print(result)
 ```
-Even though there are 10 classes in MNIST, in this example we get an alpha diversity of only 1.257, indicating the great visual similarity between images.
+In this example we get an alpha diversity of around 13.21, close to the number of classes (which is 10).
 
 ## Representativeness
 
