@@ -91,7 +91,7 @@ import numpy as np
 P = np.array([0.7, 0.3])          # two unique elements comprising 70% and 30% of this single-class dataset, respectively
 D1 = sentropy(P)                  # sentropy *without* similarity at default q (q=1) = Shannon entropy,
                                   #   returned in default effective-number (D-number) form (preferred)
-                                  # Equivalent to also including the arguments similarity=np.eye(2), measure="alpha", level="both"
+                                  # Equivalent to also including the arguments similarity=np.eye(2), measure="alpha", level="overall"
 H1 = sentropy(P, eff_no=False)    # traditional, non-effective-number form (eff_no=False)
 
 print(f"D1 = {D1:.2f} elements, which corresponds to H1 = {H1:.2f} nats (= {np.log2(D1):.2f} bits)")
@@ -123,7 +123,7 @@ Expected output:
 ```
 D1Z = 1.55 elements, which corresponds to H1Z = 0.44 nats
 ```
-Non-zero similarity between elements 1 and 2 reduces the overall entropy of the system relative to the [first example above](#vanilla-shannon-entropy), in which there was zero similarity between the two elements. This can be thought of as a reduction in diversity (whence the "D" in D-number). The "Z" is a convention that means "non-trivial similarity."
+Non-zero similarity between elements 1 and 2 reduces the overall entropy of the system relative to the [first example above](#shannon-entropy), in which there was zero similarity between the two elements. This can be thought of as a reduction in diversity (whence the "D" in D-number). The "Z" is a convention that means "non-trivial similarity."
 In this example, the similarity matrix is a numpy array. It can also be a pandas data frame or various kinds of spicy sparse matrices, e.g. COO or CSR matrices.
 
 ## Multiple measures and multiple *q*
@@ -141,7 +141,7 @@ S = np.array([                                # same similarity matrix as above
 qs = [0., 1., 2., np.inf]                     # multiple viewpoint parameters
 measures = ["alpha", "beta", "gamma"]         # multiple measures
 DZ = sentropy(P, similarity=S,                # sentropy...
-              q=qs,                           #   ...at multple qs...
+              q=qs,                           #   ...at multiple qs...
               measure=measures)               #   ...for multiple measures
                                               # note when the result of the sentropy() call contains
                                               # multiple values, it returns a function
@@ -172,7 +172,7 @@ Values never rise, and almost always fall, with increasing *q*. *q*=0, 1, 2, and
 
 ## Passing a similarity function
 
-When the similarity matrix would be too large to fit in memory, a function can be passed to `similarity`, allowing similarilty to be calculated on the fly:
+When the similarity matrix would be too large to fit in memory, a function can be passed to `similarity`, allowing similarity to be calculated on the fly:
 ```
 from sentropy import sentropy
 import numpy as np
@@ -186,7 +186,7 @@ from polyleven import levenshtein as edit_distance
 def similarity_function(i, j):                          # i, j members of elements
     return 0.3**edit_distance(i, j)
 
-# calculate datset sentropy (at the defaults meausure="alpha" and q=1.)
+# calculate dataset sentropy (at the defaults measure="alpha" and q=1.)
 D1Z = sentropy(P, similarity=similarity_function,
                sfargs=elements)                         # sfargs contains arguments needed by the similarity_function
 H1Z = np.log(D1Z)                                       # traditional form (which you could also have returned directly from the sentropy() call with eff_no = False)
@@ -249,7 +249,7 @@ D1Z = sentropy(
 
 print(f"D1Z = {D1Z:.2f} effective sequences")
 ```
-We get the same answer 1.18 as using the scalar similarity of course. Here's another example with calculating the diversity of MNIST datasets using a similarity based on the pixelwise RMSE between images:
+We get the same answer 1.18 as using the scalar similarity of course. Here's another example with calculating the diversity of MNIST-like digit datasets using a similarity based on the pixelwise RMSE between images:
 
 ```
 import numpy as np
@@ -258,29 +258,33 @@ from sentropy import sentropy
 from sentropy.similarity import batch_similarity
 
 images, labels = load_digits(return_X_y=True)
-X = images / 16.0                      # (1797, 64), pixels rescaled to [0, 1]
+
+X = images / 16.0
 d = X.shape[1]
 
-counts = np.stack([
-    (labels == k).sum() for k in range(10)      # individuals per digit class
-])
+# One row per image, one column per digit class
+counts = (labels[:, None] == np.arange(10)).astype(int)
 
 @batch_similarity
 def rmse_similarity(A, B):
-    # squared Euclidean distances via the Gram matrix, then RMSE = ||a - b|| / sqrt(d)
+    # Pairwise squared Euclidean distances
     sq = (
         (A * A).sum(axis=1)[:, None]
         + (B * B).sum(axis=1)[None, :]
         - 2.0 * (A @ B.T)
     )
-    np.maximum(sq, 0.0, out=sq)          # guard tiny negatives from rounding
-    return np.exp(-np.sqrt(sq / d))      # exp(−RMSE) ∈ (0, 1]
+
+    np.maximum(sq, 0.0, out=sq)
+
+    # Convert RMSE into similarity
+    return np.exp(-np.sqrt(sq / d))
+
 
 result = sentropy(
     counts,
     similarity=rmse_similarity,
     symmetric=True,
-    sfargs=X_species,
+    sfargs=X,
     q=1,
     measure=["alpha", "beta", "gamma"],
     return_dataframe=True
@@ -288,7 +292,7 @@ result = sentropy(
 
 print(result)
 ```
-Even though there are 10 classes in MNIST, in this example we get an alpha diversity of only 1.257, indicating the great visual similarity between images.
+In this example we get an alpha diversity of around 13.21, close to the number of classes (which is 10).
 
 ## Representativeness
 
@@ -422,7 +426,7 @@ As a numpy array:
 [[1.         7.84258081]
  [8.02896542 1.        ]]
 ```
-We note that the two abundance matrices passed to `sentropy` need not be the same overall set; `sentropy` calculates the the relative sentropy for any two subsets, one from the first overall set and one from the other overall set. We also note that by default, `sentropy` calculates the effective number form of the relative sentropy (i.e. the exponentiated relative sentropy), unless we pass `eff_no=False`.
+We note that the two abundance matrices passed to `sentropy` need not be the same overall set; `sentropy` calculates the relative sentropy for any two subsets, one from the first overall set and one from the other overall set. We also note that by default, `sentropy` calculates the effective number form of the relative sentropy (i.e. the exponentiated relative sentropy), unless we pass `eff_no=False`.
 
 The syntax to compute the similarity-sensitive analog of the cross entropy for any subset pairs is completely analogous, except that we need to pass `measure="sce"`. We summarize in the table below the relationships between calling `sentropy` with 2 abundance matrices and calling it with only one:
 
@@ -440,7 +444,7 @@ import numpy as np
 P = np.array([5000, 2000, 3000])             # frequencies of a dataset of bees, butterflies, and lobsters, respectively
 S_fish    = np.array([0.22, 0.27, 0.28])     # fish's genetic similarities to bee, butterfly, and lobster
 S_ladybug = np.array([0.60, 0.55, 0.45])     # ladybug's genetic similarities to each of these
-S = np.stack([S_fish, S_ladybug])            # note, a non-square similarity matrix: (ladybug, fish) x (bee, butterfly, lobset)
+S = np.stack([S_fish, S_ladybug])            # note, a non-square similarity matrix: (ladybug, fish) x (bee, butterfly, lobster)
 O_fish, O_ladybug = S @ (P/P.sum())          # ordinariness of fish and ladybugs in the bees/butterflies/lobsters dataset
 
 print("In this bee-butterfly-lobster dataset, with genetics-based similarity, how ordinary would we consider:")
@@ -458,6 +462,8 @@ but `sentropy` provides speedup with Ray parallelization:
 
 ```
 from sentropy import interset_ordinariness
+import numpy as np
+
 # Three objects in X whose ordinariness we want to calculate.
 X = np.array([
     [1.0, 0.0],
@@ -580,7 +586,7 @@ The output is a table with the requested measures for each viewpoint `q`. If no 
 ```
 sentropy -i counts.csv -similarity similarity.csv -measure vendi -q 1
 ```
-To sace the result table to a file, pass `-o` (note that the output is always tab-delimited):
+To save the result table to a file, pass `-o` (note that the output is always tab-delimited):
 ```
 sentropy -i counts.csv -similarity similarity.csv -q 0 1 inf -o results.tsv
 ```
@@ -606,7 +612,7 @@ In [this preprint](https://arxiv.org/abs/2401.00102) of ours, we appled `sentrop
 # Alternatives
 
 To date, we know of no other python package that implements all the measures defined by [Reeve at al.](https://arxiv.org/abs/1404.6520)
- - packeages in other languages that enable some of the capabilities of `sentropy`: [R](https://github.com/boydorr/rdiversity) and [Julia](https://github.com/EcoJulia/Diversity.jl)
+ - packages in other languages that enable some of the capabilities of `sentropy`: [R](https://github.com/boydorr/rdiversity) and [Julia](https://github.com/EcoJulia/Diversity.jl)
  - [`cdiversity`](https://github.com/AI-SysBio/cdiversity) package calculates Hill-number diversity but without similarity for immune repertoires
  - [`vendi-score`](https://pypi.org/project/vendi-score/#description): alternative for `measure='vendi'` to the `sentropy` function
 
