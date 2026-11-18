@@ -1,2 +1,5 @@
 sphinx
 myst-parser
+sphinx-copybutton
+sphinx-design
+sphinx-argparse
