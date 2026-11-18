@@ -9,7 +9,7 @@
 
 # About
 
-`sentropy` calculates similarity-sensitive entropies—sentropy—plus Shannon entropy and the other traditional Rényi entropies (of which Shannon entropy is the best known). 
+`sentropy` calculates similarity-sensitive entropies—sentropy—plus Shannon entropy and the other traditional Rényi entropies (of which Shannon entropy is the best known). This README explains how to use sentropy by way of examples; for a more complete description of the API, please see the [documentation website](https://arnaoutlab.github.io/sentropy/).
 
 **Sentropy reveals differences that traditional entropy cannot.** Consider two datasets:
 
@@ -615,13 +615,3 @@ To date, we know of no other python package that implements all the measures def
  - packages in other languages that enable some of the capabilities of `sentropy`: [R](https://github.com/boydorr/rdiversity) and [Julia](https://github.com/EcoJulia/Diversity.jl)
  - [`cdiversity`](https://github.com/AI-SysBio/cdiversity) package calculates Hill-number diversity but without similarity for immune repertoires
  - [`vendi-score`](https://pypi.org/project/vendi-score/#description): alternative for `measure='vendi'` to the `sentropy` function
-
-
-# Release history
-- Version 1.7.0: implemented batch similarity function
-- Version 1.6.0: revamped CLI usage
-- Version 1.5.0: optimized interset ordinariness to include deduplication, redefined Vendi score of overall set not to be the power mean of subsets' Vendi score
-- Version 1.4.0: implemented interset ordinariness, auto-tuning Ray hyperparameters, slight improvement to sparse matrix API.
-- Version 1.3.0: sped up the SKL computation.
-- Version 1.2.0: implemented the Vendi score.
-- Version 1.1.0: implemented the similarity-sensitive crossentropy.
