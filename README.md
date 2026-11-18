@@ -9,7 +9,7 @@
 
 # About
 
-`sentropy` calculates similarity-sensitive entropies—sentropy—plus Shannon entropy and the other traditional Rényi entropies (of which Shannon entropy is the best known). This README explains how to use sentropy by way of examples; for a more complete description of the API, please see the [documentation website](https://arnaoutlab.github.io/sentropy/).
+`sentropy` calculates similarity-sensitive entropies—sentropy—plus Shannon entropy and the other traditional Rényi entropies (of which Shannon entropy is the best known). This README explains how to use sentropy by way of examples; for a more complete description of the API, please see the [documentation website](https://sentropy.readthedocs.io/en/latest/).
 
 **Sentropy reveals differences that traditional entropy cannot.** Consider two datasets:
 
