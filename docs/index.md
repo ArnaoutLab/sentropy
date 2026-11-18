@@ -63,8 +63,8 @@ Every public function and class, with parameters and return types.
 ::::
 
 ```{toctree}
-:hidden:
 :caption: Getting started
+:maxdepth: 2
 
 installation
 tutorial
@@ -73,16 +73,16 @@ concepts
 ```
 
 ```{toctree}
-:hidden:
 :caption: Reference
+:maxdepth: 2
 
 api/index
 cli
 ```
 
 ```{toctree}
-:hidden:
 :caption: Project
+:maxdepth: 2
 
 community
 changelog
