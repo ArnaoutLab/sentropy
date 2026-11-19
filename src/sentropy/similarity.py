@@ -139,7 +139,39 @@ def weighted_similarity_chunk_symmetric(
 
 
 class Similarity(ABC):
-    """Root superclass for classes computing weighted similarities."""
+    """Root superclass for all similarity classes.
+
+    A Similarity object represents the pairwise species-similarity
+    matrix Z implicitly or explicitly, and knows how to compute
+    ordinariness vectors from abundance distributions: the products
+    Z @ abundance. Concrete subclasses implement `weighted_abundances`
+    for their source of similarities (identity, in-memory array, file,
+    or a callable).
+
+    Parameters
+    ----------
+    similarities_out : ndarray, optional
+        Preallocated array into which the full similarity matrix is
+        written whenever `weighted_abundances` is called. Pass None
+        (default) to skip materializing the matrix.
+    backend : BaseBackend, optional
+        Backend instance (NumpyBackend or TorchBackend) used for all
+        array operations. Defaults to the numpy backend.
+
+    Notes
+    -----
+    Supporting `similarity @ abundance` via __matmul__, which calls
+    `abundance.premultiply_by(self)`, lets callers compute all needed
+    ordinariness vectors at once. Expensive subclasses (callable- or
+    file-based; see `is_expensive`) batch the set-, subset-, and
+    normalized-subset abundance vectors into a single matmul, so the
+    similarity is evaluated only once.
+
+    See Also
+    --------
+    Abundance.premultiply_by : consumes these objects.
+    batch_similarity : decorator marking vectorizable callables.
+    """
 
     def __init__(self, similarities_out: Union[ndarray, None] = None, backend=None):
         """
@@ -169,6 +201,17 @@ class Similarity(ABC):
 
 
 class SimilarityIdentity(Similarity):
+    """Similarity matrix given by the identity: each species is similar
+    only to itself.
+
+    Selecting this class reduces similarity-sensitive diversity to
+    ordinary, frequency-only diversity. `weighted_abundances` returns
+    the abundance distribution unchanged, and if `similarities_out`
+    was provided it is filled with the identity matrix.
+
+    This is the default when `similarity=None` is passed to LCR(),
+    vendi_score(), or build_similarity().
+    """
     def __init__(self, similarities_out=None, backend=None):
         super().__init__(similarities_out=similarities_out, backend=backend)
 
@@ -181,8 +224,26 @@ class SimilarityIdentity(Similarity):
 
 
 class SimilarityFromArray(Similarity):
-    """Implements Similarity using similarities stored in a numpy
-    ndarray or backend-supported array."""
+    """Similarity defined by an in-memory matrix of pairwise similarities.
+
+    Parameters
+    ----------
+    similarity : ndarray or scipy sparse matrix
+        Square matrix whose entry [i, j] is the similarity between
+        species i and species j. Row and column order must match the
+        order of species (rows) in the counts.
+    similarities_out : ndarray, optional
+        As in Similarity. On weighted_abundances, receives the
+        similarity converted to a numpy array.
+    backend : BaseBackend, optional
+        As in Similarity.
+
+    Notes
+    -----
+    Sparse matrices are accepted and kept sparse: the numpy backend's
+    `asarray` passes scipy sparse objects through unchanged, so the
+    matmul in `weighted_abundances` exploits sparsity.
+    """
 
     def __init__(
         self,
@@ -206,6 +267,13 @@ class SimilarityFromArray(Similarity):
 
 
 class SimilarityFromDataFrame(SimilarityFromArray):
+    """Similarity given by a pandas DataFrame of pairwise similarities.
+
+    Simply converts the DataFrame's values to a numpy array and
+    delegates to SimilarityFromArray; the row/column order must match
+    the species order in the counts. Handy when a similarity matrix
+    was loaded with species names as labels.
+    """
     def __init__(self, similarity: DataFrame, similarities_out=None, backend=None):
         super().__init__(
             similarity=similarity.to_numpy(),
@@ -215,7 +283,29 @@ class SimilarityFromDataFrame(SimilarityFromArray):
 
 
 class SimilarityFromFile(Similarity):
-    """Implements Similarity by using similarities stored in file."""
+    """Similarity streamed row-chunk-wise from a csv/tsv file.
+
+    For large similarity matrices that should not be held in memory,
+    the file is read with pandas in chunks of `chunk_size` rows; each
+    chunk is multiplied with the abundance vector immediately, so only
+    one chunk plus the result is resident at a time. The file must be
+    square, with a header listing the species names, in the same
+    column and row order as the counts.
+
+    Parameters
+    ----------
+    similarity_file_path : str or Path
+        Path to the csv/tsv similarity matrix.
+    chunk_size : int, default=100
+        Number of rows to read per chunk.
+    similarities_out, backend :
+        As in Similarity.
+
+    Notes
+    -----
+    `is_expensive()` returns True: abundance.premultiply_by batches
+    all abundance vectors into one pass over the file.
+    """
 
     def __init__(
         self,
@@ -255,6 +345,36 @@ class SimilarityFromFile(Similarity):
 
 
 class SimilarityFromSymmetricFunction(Similarity):
+    """Similarity computed on the fly from a symmetric pairwise function.
+
+    Wraps a callable similarity(a, b) satisfying
+    similarity(a, b) == similarity(b, a). Because of the symmetry,
+    only strictly-above-diagonal pairs are evaluated (roughly half the
+    work); each chunk's result is assembled from its in-chunk "corner"
+    block plus the block against all later rows. If
+    `similarities_out` was provided, the full symmetric matrix is
+    materialized at the end (transposed copy added, diagonal set to
+    1.0).
+
+    Parameters
+    ----------
+    func : callable
+        Function taking two feature rows and returning their
+        similarity. Decorate with `batch_similarity` to accept whole
+        chunks (two 2-D arrays, returning their pairwise matrix) in
+        one vectorized call.
+    X : ndarray or DataFrame
+        Feature array with one row per species; func is applied to
+        rows of X.
+    chunk_size : int, default=100
+        Number of rows of the similarity matrix to generate at once.
+    similarities_out, backend :
+        As in Similarity.
+
+    See Also
+    --------
+    SimilarityFromFunction : for non-symmetric callables.
+    """
     def __init__(
         self,
         func: Callable,
@@ -319,6 +439,18 @@ class SimilarityFromSymmetricFunction(Similarity):
 
 
 class SimilarityFromFunction(SimilarityFromSymmetricFunction):
+    """Similarity computed on the fly from a (not necessarily symmetric)
+    pairwise function.
+
+    Like its parent, but evaluates func(a, b) for all ordered pairs,
+    computing every chunk row against the full row set. Use this when
+    the callable is asymmetric; if it is symmetric, prefer
+    SimilarityFromSymmetricFunction to halve the evaluations.
+
+    Ray-parallelized variant: SimilarityFromRayFunction in
+    sentropy.ray (selected automatically when parallelize=True is
+    passed to build_similarity/LCR).
+    """
     def weighted_abundances(self, relative_abundance):
         weighted_similarity_chunks = []
         for chunk_index in range(0, self.X.shape[0], self.chunk_size):
