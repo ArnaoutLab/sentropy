@@ -68,6 +68,51 @@ class SentropyResult:
         self.level = level
 
     def __call__(self, which=None, q=None, measure=None):
+        """Retrieve a single diversity value from the stored results.
+
+        Convenience accessor allowing a SentropyResult to be called
+        directly, e.g. ``result("overall", q=2, measure="alpha")`` or,
+        when subset-level results were computed, ``result("gut")`` to
+        get the value for the subset named ``"gut"``.
+
+        Parameters
+        ----------
+        which : str, optional
+            Either ``"overall"`` or the name of a subset. Defaults to
+            ``"overall"`` when ``self.level == "overall"``; for level
+            ``"subset"`` or ``"both"`` a subset name must be supplied
+            (an omitted ``which`` is otherwise interpreted as a subset
+            name and raises ValueError).
+        q : float, optional
+            Viewpoint parameter. Defaults to the single computed
+            viewpoint when exactly one was requested (``self.qs``);
+            must be given otherwise.
+        measure : str, optional
+            Measure name (see `MEASURES`). Defaults to the single
+            computed measure when exactly one was requested
+            (``self.ms``); must be given otherwise.
+
+        Returns
+        -------
+        float or array-like
+            For ``which="overall"``, the set-level value stored under
+            the key ``"overall_{measure}_q={q}"``. For a subset name,
+            the per-subset value (entry at the position of `which` in
+            `subsets_names`) from the array stored under
+            ``"subset_{measure}_q={q}"``. If the key built with `q` as
+            passed is absent, the lookup is retried with the viewpoint
+            formatted as a float (e.g. ``"q=1.0"``).
+
+        Raises
+        ------
+        KeyError
+            If the requested (which, measure, q) combination was not
+            computed — e.g. several viewpoints or measures were
+            requested and `q` or `measure` is not given explicitly.
+        ValueError
+            If `which` is not a name in `subsets_names` (raised by
+            ``list.index``).
+        """
         if which is None and self.level == "overall":
             which = "overall"
         if q is None and len(self.qs) == 1:
