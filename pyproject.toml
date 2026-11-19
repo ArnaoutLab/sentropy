@@ -36,7 +36,7 @@ sentropy="sentropy.__main__:cli"
 [project.urls]
 "Homepage" = "https://github.com/ArnaoutLab/sentropy"
 "Bug Tracker" = "https://github.com/ArnaoutLab/sentropy/issues"
-"Version History" = "https://github.com/ArnaoutLab/sentropy/blob/main/version_history.md"
+"Version History" = "https://github.com/ArnaoutLab/sentropy/blob/main/docs/changelog.md"
 
 [tool.pytest.ini_options]
 addopts = "--cov --cov-report html --cov-report term-missing --cov-fail-under 99"
