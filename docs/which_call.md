@@ -1,6 +1,7 @@
 # How do I ... ?
 
-Look up what you want to compute; the table shows the Python call and the
+This page is meant to be a handy reference for how to compute any of the 
+various quantities in the sentropy package. The table shows the Python call and the
 equivalent command-line invocation. Everything goes through one function,
 {func}`~sentropy.sentropy.sentropy`, apart from interset ordinariness
 ({func}`~sentropy.sentropy.interset_ordinariness`).
