@@ -23,4 +23,9 @@ You rarely need to construct them yourself.
 .. autoclass:: sentropy.similarity.SimilarityFromFunction
 
 .. autoclass:: sentropy.similarity.SimilarityFromSymmetricFunction
+
+.. autoclass:: 
+sentropy.ray.SimilarityFromRayFunction
+
+.. autoclass:: sentropy.ray.SimilarityFromSymmetricRayFunction
 ```
