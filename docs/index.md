@@ -38,7 +38,7 @@ print(f"{sentropy(P, similarity=S):.2f}")   # lower once similarity is accounted
 `pip install sentropy`, optional extras, and a development setup.
 :::
 
-:::{grid-item-card} Which call gives me X?
+:::{grid-item-card} How do I ... ?
 :link: which_call
 :link-type: doc
 

@@ -1,4 +1,4 @@
-# Which call gives me X?
+# How do I ... ?
 
 Look up what you want to compute; the table shows the Python call and the
 equivalent command-line invocation. Everything goes through one function,

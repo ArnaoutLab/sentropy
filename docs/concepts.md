@@ -1,4 +1,4 @@
-# Concepts and measures
+# Understanding sentropy
 
 This page is a short glossary. For the full theory see
 [Leinster & Cobbold (2012)](https://doi.org/10.1890/10-2402.1),
