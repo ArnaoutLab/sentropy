@@ -40,6 +40,26 @@ MEASURES = (
 
 
 class SentropyResult:
+    """Container for diversity results, keyed by level, measure, and viewpoint.
+
+    Returned by LCR() when more than one viewpoint, measure, or subset
+    is requested and `return_dataframe` is False. Retrieve individual
+    results by calling the object (see `__call__`).
+
+    Attributes
+    ----------
+    raw_dict : dict
+        Maps result keys such as ``"overall_{m}_q={q}"`` and
+        ``"subset_{m}_q={q}"`` to their diversity values.
+    subsets_names : list
+        Names of the subsets (columns of the original counts).
+    qs : list
+        Viewpoint parameters that were computed.
+    ms : list
+        Measures that were computed.
+    level : {'overall', 'subset', 'both'}
+        Level(s) at which the results were computed.
+    """
     def __init__(self, raw_dict, subsets_names, qs, ms, level):
         self.raw_dict = raw_dict
         self.subsets_names = subsets_names
@@ -76,6 +96,32 @@ class SentropyResult:
 
 
 def _compute_lcr_measures(superset, qs, ms, level, eff_no):
+    """Compute one-community (LCR) diversity measures for every (q, m) pair.
+
+    Loops over viewpoints × measures and delegates to
+    `Set.set_diversity` / `Set.subset_diversity`, which compute and
+    cache the underlying components once per Set.
+
+    Parameters
+    ----------
+    superset : Set
+        The community whose diversities are computed.
+    qs : iterable of float
+        Viewpoint parameters.
+    ms : iterable of str
+        Measure names (subset of `Set.MEASURES`).
+    level : {'both', 'overall', 'subset'}
+        Which level(s) to compute.
+    eff_no : bool
+        If True, return effective numbers; if False, entropies.
+
+    Returns
+    -------
+    dict
+        Maps ``"overall_{m}_q={q}"`` and/or ``"subset_{m}_q={q}"`` to
+        the corresponding diversity value (scalar for overall entries,
+        per-subset array for subset entries).
+    """
     results = {}
 
     for q in qs:
@@ -111,6 +157,70 @@ def LCR(
     backend="numpy",
     device="cpu",
 ):
+    """Calculate one-set Leinster-Cobbold-Reeve diversity measures.
+
+    Parameters
+    ----------
+    counts : pandas.DataFrame, numpy.ndarray, dict, or torch.Tensor
+        Counts with one row per species and one column per subset
+        (a 1-D input is treated as a single subset). For a DataFrame
+        the column names become the subset names; for a dict its keys
+        do.
+    similarity : None, ndarray, DataFrame, scipy sparse matrix, str, or callable, optional
+        Pairwise species similarity. None uses the identity
+        (frequency-only diversity). A str is a path to a csv/tsv file
+        (square similarity matrix, streamed `chunk_size` rows at a
+        time). A callable takes two rows of `sfargs` and returns their
+        similarity; decorate a vectorizable callable with
+        `batch_similarity` to compute whole chunks in one call.
+    qs : float or iterable of float, default=1
+        Viewpoint parameter(s), controlling the contribution of rare
+        species (q=0: all species weigh equally; q→inf: only the most
+        similar/frequent dominate). Viewpoints > 100 are treated as
+        infinity.
+    ms : str or iterable of str, default=MEASURES
+        Measure(s) to compute: "alpha", "rho", "beta", "gamma",
+        "normalized_alpha", "normalized_rho", "normalized_beta",
+        "rho_hat", "beta_hat".
+    symmetric : bool, default=False
+        Whether the callable similarity satisfies
+        similarity(i, j) == similarity(j, i). Only relevant when
+        `similarity` is a callable; symmetric functions are evaluated
+        roughly half as many times.
+    sfargs : array-like, optional
+        Feature array X (one row per species) on which a callable
+        similarity operates.
+    chunk_size : int, default=10
+        Number of rows of the similarity matrix to produce at once.
+        Only relevant when `similarity` is a file or a callable.
+    parallelize : bool, default=True
+        Whether to parallelize a callable similarity with Ray. Only
+        relevant when `similarity` is a callable.
+    return_dataframe : bool, default=False
+        If True, return a tidy pandas.DataFrame with columns level,
+        viewpoint, and one column per measure, instead of the
+        container below.
+    level : {'overall', 'subset', 'both'}, default="overall"
+        Which level(s) to compute.
+    eff_no : bool, default=True
+        If True, return effective numbers; if False, their natural
+        logarithms (entropies).
+    backend : {'numpy', 'torch'}, default="numpy"
+        Computational backend.
+    device : {'cpu', 'cuda', 'mps'}, default="cpu"
+        Device for the torch backend.
+
+    Returns
+    -------
+    pandas.DataFrame
+        If `return_dataframe` is True.
+    float
+        If exactly one viewpoint, one measure, and one subset were
+        requested (the bare set-level diversity).
+    SentropyResult
+        Otherwise; index results with the ``(which, q, measure)``
+        call syntax of `SentropyResult`.
+    """
 
     counts, subsets_names = _normalize_counts(counts)
     qs = atleast_1d(qs)
@@ -194,6 +304,42 @@ def _compute_sre(
     P_set_ord, Q_set_ord, P_norm_ord, Q_norm_ord,
     q, level, eff_no, backend,
 ):
+    """Compute similarity-sensitive relative diversities/sentropies between P and Q.
+
+    From P's abundances and the precomputed ordinarinesses of P and Q,
+    evaluates the similarity-sensitive analogue of relative
+    diversity/entropy, following https://arxiv.org/abs/1404.6520. The
+    per-element ratio P_ordinariness / Q_ordinariness is aggregated as
+    a weighted power mean of order q − 1 (or, for q = 1, as
+    prod(ratio ** P)).
+
+    Parameters
+    ----------
+    P_abundance, Q_abundance : Abundance
+        Abundance objects of the two communities (P supplies the
+        weighting distributions).
+    P_set_ord, Q_set_ord : array-like
+        Set-level ordinarinesses (Z @ set_abundance) of P and Q.
+    P_norm_ord, Q_norm_ord : array-like
+        Ordinarinesses of P's and Q's normalized subsets
+        (Z @ normalized_subset_abundance), one column per subset.
+    q : float
+        Viewpoint parameter.
+    level : {'both', 'overall', 'subset'}
+        Which level(s) to compute.
+    eff_no : bool
+        If True, return effective numbers; if False, their natural
+        logarithms.
+    backend : BaseBackend
+        Computation backend.
+
+    Returns
+    -------
+    dict
+        Keys "overall" (scalar) and/or "subset" (matrix of shape
+        (n_subsets_P, n_subsets_Q), one relative diversity per pair of
+        P-subset and Q-subset).
+    """
     P_set_ab = P_abundance.set_abundance
     P_norm_ab = P_abundance.normalized_subset_abundance
     min_count = min(1 / P_set_ab.sum(), 1e-9)
@@ -263,6 +409,59 @@ def sentropy_two_abundances(
     backend="numpy",
     device="cpu",
 ):
+    """Calculate a similarity-sensitive relative or cross entropy between two communities.
+
+    Front-end for the two-input measures: "sre" (similarity-sensitive
+    relative entropy, P relative to Q) and "sce" (similarity-sensitive
+    cross-entropy). Both communities must describe the same species
+    (rows) so that one shared similarity applies; the ordinarinesses
+    of both are computed jointly in a single pass over the similarity
+    matrix, so an expensive similarity is evaluated only once.
+
+    Parameters
+    ----------
+    P_abundance, Q_abundance : pandas.DataFrame, numpy.ndarray, dict, or torch.Tensor
+        Counts for the two communities, one row per species and one
+        column per subset (a 1-D input is treated as a single
+        subset). Accepted types are the same as `counts` in LCR().
+    similarity : optional
+        As in LCR(); applies to the species shared by both inputs.
+    q : float, default=1
+        Viewpoint parameter.
+    m : {'sre', 'sce'}, default='sre'
+        Measure: similarity-sensitive relative entropy or
+        similarity-sensitive cross-entropy.
+    symmetric : bool, default=False
+        As in LCR(); only relevant for a callable similarity.
+    sfargs : array-like, optional
+        As in LCR(); feature array on which a callable similarity
+        operates.
+    chunk_size : int, default=10
+        As in LCR().
+    parallelize : bool, default=True
+        As in LCR().
+    return_dataframe : bool, default=False
+        If True (and subset-level results were requested), the subset
+        result is returned as a pandas.DataFrame with rows indexed by
+        P's subset names and columns labelled by Q's.
+    level : {'overall', 'subset', 'both'}, default="overall"
+        Which level(s) to compute.
+    eff_no : bool, default=True
+        If True, return effective numbers; if False, their natural
+        logarithms.
+    backend : {'numpy', 'torch'}, default="numpy"
+        Computational backend.
+    device : {'cpu', 'cuda', 'mps'}, default="cpu"
+        Device for the torch backend.
+
+    Returns
+    -------
+    tuple
+        (overall, subset) when level == "both"; the subset result is
+        a DataFrame if return_dataframe is True.
+    scalar, ndarray, or DataFrame
+        The result for the single requested level otherwise.
+    """
     P, P_names = _normalize_counts(P_abundance)
     Q, Q_names = _normalize_counts(Q_abundance)
 
@@ -329,6 +528,83 @@ def sentropy(
     backend="numpy",
     device="cpu",
 ):
+    """Calculate similarity-sensitive diversity measures.
+
+    Main public entry point of the package; dispatches on the number
+    of inputs.
+
+    - One input (counts_a only): calculates one-community measures
+      (default "alpha") via LCR(). The measure "vendi" (Vendi score)
+      is routed to vendi_score instead and cannot be combined with
+      other measures in the same call, as it has different result
+      semantics.
+    - Two inputs (counts_a and counts_b): calculates an inter-community
+      measure — "sre" (similarity-sensitive relative entropy, the
+      default) or "sce" (similarity-sensitive cross-entropy) — via
+      sentropy_two_abundances(). Exactly one measure, and a single
+      viewpoint q, is accepted.
+
+    Parameters
+    ----------
+    counts_a : pandas.DataFrame, numpy.ndarray, dict, or torch.Tensor
+        Counts with one row per species and one column per subset. See
+        LCR() for the accepted shapes.
+    counts_b : same types as counts_a, optional
+        Counts of the second community, over the same species as
+        counts_a. Providing it selects the two-input path (sre/sce).
+    similarity : None, ndarray, DataFrame, scipy sparse matrix, str, or callable, optional
+        Pairwise species similarity. None uses the identity
+        (frequency-only diversity). A str is a path to a csv/tsv
+        similarity matrix; a callable must be paired with `sfargs`.
+        See LCR() for details. (Vendi scores require a materialized
+        matrix: array, DataFrame, or sparse.)
+    q : float or iterable of float, default=1
+        Viewpoint parameter(s). Viewpoints > 100 (and inf) are
+        treated as infinity. Reduced to its first element in the
+        two-input path.
+    measure : str or iterable of str, optional
+        Measure(s) to compute. Defaults to "alpha" (one input) or
+        "sre" (two inputs). One input: any of the LCR measures, or
+        "vendi" alone. Two inputs: exactly one of "sre", "sce".
+    symmetric : bool, default=False
+        Whether a callable similarity is symmetric. Only relevant when
+        `similarity` is a callable.
+    sfargs : array-like, optional
+        Feature array X (one row per species) on which a callable
+        similarity operates.
+    chunk_size : int, default=10
+        Rows of the similarity matrix to read/generate at once. Only
+        relevant when `similarity` is a file or a callable.
+    parallelize : bool, default=True
+        Whether to parallelize a callable similarity with Ray.
+    return_dataframe : bool, default=False
+        Whether to return a tidy pandas.DataFrame (one-input path) or
+        DataFrames for subset-level results (two-input path) instead of
+        the raw containers.
+    level : {'overall', 'subset', 'both'}, default="overall"
+        Which level(s) to compute. The value "class" is accepted as
+        an alias of "subset" and remapped accordingly.
+    eff_no : bool, default=True
+        If True, return effective numbers; if False, entropies
+        (natural logarithms).
+    backend : {'numpy', 'torch'}, default="numpy"
+        Computational backend.
+    device : {'cpu', 'cuda', 'mps'}, default="cpu"
+        Device for the torch backend.
+
+    Returns
+    -------
+    Depends on the path taken:
+
+    - One input, vendi: vendi_score()'s return (scalar, array, dict,
+      or DataFrame depending on level/return_dataframe).
+    - One input, LCR: pandas.DataFrame if return_dataframe; a bare
+      scalar if a single viewpoint, measure, and subset were
+      requested; otherwise a SentropyResult.
+    - Two inputs: (overall, subset) tuple if level == "both",
+      otherwise the single-level result; subset results become
+      DataFrames when return_dataframe is True.
+    """
     if level == "class":
         level = "subset"
 
