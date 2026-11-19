@@ -436,10 +436,32 @@ def test_interset_ordinariness_uniqueness():
         backend="numpy",
         device="cpu",
     )
-
     expected = np.array([5/12, 3/12, 5/12, 4/12])
-
     assert np.allclose(result, expected)
+
+    result2 = interset_ordinariness(
+        X=torch.Tensor(X),
+        Y=torch.Tensor(Y),
+        Y_abundance=torch.Tensor(Y_abundance),
+        similarity=lambda x, y: 1 if x == y else 0,
+        backend="torch",
+        device="cpu",
+    )
+    expected2 = torch.Tensor(expected)
+    assert torch.allclose(result2, expected2)
+
+def test_y_abundance_length_mismatch_raises():
+    """Y_abundance with 5 counts against Y with 4 rows must raise
+    InvalidArgumentError, naming both sizes."""
+    X = np.ones((3, 2))
+    Y = np.ones((4, 2))          # 4 reference rows ...
+    w = np.ones(5)                # ... but 5 abundances
+    sim = lambda a, b: 0.5
+
+    with pytest.raises(
+        InvalidArgumentError, match=r"5 .*4 rows|4 rows.*5"
+    ):
+        interset_ordinariness(X, Y, w, sim)
 
 def test_batch_cosine_similarity_agrees_with_scalar_cosine_similarity():
     rng = np.random.default_rng(0)

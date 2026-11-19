@@ -142,6 +142,15 @@ class BaseBackend:  # pragma: no cover
     def outer(self, a, b):
         raise NotImplementedError
 
+    def unique_rows(self, x, return_inverse=False):
+        raise NotImplementedError
+
+    def index_add(self, index, source, out_shape):
+        raise NotImplementedError
+
+    def take(self, x, index):
+        raise NotImplementedError
+
 
 class NumpyBackend(BaseBackend):
     name = "numpy"
@@ -275,6 +284,22 @@ class NumpyBackend(BaseBackend):
 
     def outer(self, a, b):
         return _np.outer(a, b)
+
+    def unique_rows(self, x, return_inverse=False):
+        x = _np.asarray(x)
+        if return_inverse:
+            unique, inverse = _np.unique(x, axis=0, return_inverse=True)
+            return unique, _np.asarray(inverse).reshape(-1)
+        return _np.unique(x, axis=0)
+
+    def index_add(self, index, source, out_shape):
+        index = _np.asarray(index).reshape(-1)
+        out = _np.zeros(out_shape, dtype=_np.asarray(source).dtype)
+        _np.add.at(out, index, source)
+        return out
+
+    def take(self, x, index):
+        return x[_np.asarray(index).reshape(-1)]
 
 
 class TorchBackend(BaseBackend):
@@ -542,6 +567,37 @@ class TorchBackend(BaseBackend):
         
         # torch.outer handles the device placement automatically
         return self.torch.outer(a, b)
+
+    def unique_rows(self, x, return_inverse=False):
+        if not isinstance(x, self.torch.Tensor):
+            x = self.torch.as_tensor(x, dtype=self.dtype, device=self.device)
+        else:
+            x = x.to(device=self.device)
+        unique, inverse = self.torch.unique(x, dim=0, return_inverse=True)
+        inverse = inverse.reshape(-1)
+        if return_inverse:
+            return unique, inverse
+        return unique
+
+    def index_add(self, index, source, out_shape):
+        source = self.asarray_if_needed(source)
+        index = (
+            self.torch.as_tensor(index, device=self.device)
+            .reshape(-1)
+            .to(dtype=self.torch.long)
+        )
+        out = self.torch.zeros(
+            tuple(out_shape), dtype=source.dtype, device=self.device
+        )
+        return out.index_add_(0, index, source)
+
+    def take(self, x, index):
+        index = (
+            self.torch.as_tensor(index, device=x.device)
+            .reshape(-1)
+            .to(dtype=self.torch.long)
+        )
+        return x[index]
 
 def get_backend(name: str = "numpy", device: Optional[str] = None) -> BaseBackend:
     name = (name or "numpy").lower()

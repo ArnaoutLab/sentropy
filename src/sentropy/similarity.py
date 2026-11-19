@@ -62,7 +62,7 @@ def weighted_similarity_chunk_nonsymmetric(
         similarities_chunk = backend.empty(shape=(chunk.shape[0], Y.shape[0]))
         for i, row_i in enumerate(enum_helper(chunk)):
             for j, row_j in enumerate(enum_helper(Y)):
-                similarities_chunk[i, j] = similarity(row_i, row_j)
+                similarities_chunk[i, j] = float(similarity(row_i, row_j)) #conversion to python float to prevent backend incompatibility
 
     result = backend.matmul(similarities_chunk, relative_abundance)
     if return_Z:
@@ -105,9 +105,9 @@ def weighted_similarity_chunk_symmetric(
         similarities_chunk = backend.zeros(shape=(chunk.shape[0], X.shape[0]))
         for i, row_i in enumerate(enum_helper(chunk)):
             for j, row_j in enumerate(enum_helper(X, chunk_index + i + 1)):
-                similarities_chunk[i, i + j + chunk_index + 1] = similarity(
+                similarities_chunk[i, i + j + chunk_index + 1] = float(similarity(
                     row_i, row_j
-                )
+                )) #conversion to Python float to prevent backend incompatibility
         corner = similarities_chunk[:, chunk_index : chunk_index + chunk_size]
         rest = similarities_chunk[:, chunk_index + chunk_size :]
 

@@ -315,6 +315,46 @@ def test_torch_backend_round():
 
     torch.testing.assert_close(result, expected)
 
+def test_backend_equivalence_of_unique_rows():
+    backend = NumpyBackend()
+    arr = np.array([[1,2,3],[4,5,6],[1,2,3],[7,8,9]])
+    assert np.allclose(backend.unique_rows(arr), arr[[0,1,3],:])
+    assert np.allclose(backend.unique_rows(arr, return_inverse=True)[1], np.array([0,1,0,2]))
+    backend2 = TorchBackend()
+    tensor = torch.tensor(arr)
+    assert torch.allclose(backend2.unique_rows(tensor), tensor[[0,1,3],:])
+    assert torch.allclose(backend2.unique_rows(arr), tensor[[0,1,3],:].to(backend2.dtype))
+    assert torch.allclose(backend2.unique_rows(tensor, return_inverse=True)[1], torch.tensor([0,1,0,2]))
+
+def test_backend_equivalence_of_index_add():
+    backend = NumpyBackend()
+    index = np.array([0,1,0])
+    source = np.array([[1,2,3],[4,5,6],[7,8,9]])
+    result = backend.index_add(index, source, out_shape=(3,3))
+    expected = np.array([[8,10,12],[4,5,6],[0,0,0]])
+    assert np.allclose(result, expected)
+    
+    backend2 = TorchBackend()
+    index = torch.tensor(index)
+    source = torch.tensor(source)
+    result2 = backend2.index_add(index, source, out_shape=(3,3))
+    expected2 = torch.tensor(expected)
+    assert torch.allclose(result2, expected2)
+
+def test_backend_equivalence_of_take():
+    backend = NumpyBackend()
+    index = np.array([1,0,1])
+    x = np.array([[1.1,2.1,3.1,5.5],[-0.6,0.8,6.1,2.6],[5.5,1.2,4.5,9.1],[1.2,1.2,1.2,2.3]])
+    result = backend.take(x, index)
+    expected = x[[1,0,1],:]
+    np.allclose(result, expected)
+
+    backend2 = TorchBackend()
+    index = torch.tensor(index)
+    x = torch.tensor(x)
+    result2 = backend2.take(x, index)
+    expected2 = x[[1,0,1],:]
+    torch.allclose(result2, expected2)
 
 def test_get_backend_invalid_name():
     with raises(ValueError, match="Unsupported backend"):

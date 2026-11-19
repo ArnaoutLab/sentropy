@@ -4,7 +4,6 @@ from numpy import (
     atleast_1d,
 )
 from pandas import DataFrame
-import numpy as np
 
 from sentropy.abundance import Abundance, joint_ordinariness, normalize_counts as _normalize_counts
 from sentropy.backend import get_backend
@@ -191,7 +190,7 @@ def LCR(
     counts: Union[DataFrame, ndarray],
     similarity=None,
     qs=1,
-    ms=MEASURES,
+    ms='alpha',
     symmetric=False,
     sfargs=None,
     chunk_size=10,
@@ -223,7 +222,7 @@ def LCR(
         species (q=0: all species weigh equally; q→inf: only the most
         similar/frequent dominate). Viewpoints > 100 are treated as
         infinity.
-    ms : str or iterable of str, default=MEASURES
+    ms : str or iterable of str, default='alpha'
         Measure(s) to compute: "alpha", "rho", "beta", "gamma",
         "normalized_alpha", "normalized_rho", "normalized_beta",
         "rho_hat", "beta_hat".
@@ -730,13 +729,20 @@ def interset_ordinariness(
 
     where p_j is the normalized abundance of y_j in Y.
 
+    All array operations — including conversion of X, Y, and
+    Y_abundance to the backend's framework — go through the backend
+    object. Consequence: with backend="torch", non-tensor inputs are
+    deduplicated as tensors, and the rows passed to `similarity`
+    are tensor rows; with backend="numpy" (default) everything is
+    numpy, as before.
+
     Parameters
     ----------
-    X : numpy.ndarray or pandas.DataFrame
+    X : numpy.ndarray, pandas.DataFrame, or torch.Tensor
         Feature vectors for the elements whose ordinariness is being
         calculated. One row per element.
 
-    Y : numpy.ndarray or pandas.DataFrame
+    Y : numpy.ndarray, pandas.DataFrame, or torch.Tensor
         Feature vectors for the reference set. One row per element.
 
     Y_abundance : array-like
@@ -749,7 +755,8 @@ def interset_ordinariness(
 
     similarity : callable
         Function taking one row from X and one row from Y and
-        returning their similarity.
+        returning their similarity. Rows are passed in the backend's
+        array type.
 
     backend : str, default="numpy"
         Computational backend.
@@ -759,39 +766,66 @@ def interset_ordinariness(
 
     Returns
     -------
-    ndarray
+    ndarray or torch.Tensor
         If Y_abundance is one-dimensional, returns an array with
-        shape (n_X,).
-
-        If Y_abundance is two-dimensional, returns an array with
-        shape (n_X, n_distributions).
+        shape (n_X,). If Y_abundance is two-dimensional, returns an
+        array with shape (n_X, n_distributions). The result type
+        matches the backend.
     """
     backend = get_backend(backend, device=device)
 
     # Convert abundance counts to the backend's array type.
     Y_abundance = backend.asarray(Y_abundance)
 
+    # Fail loudly on misaligned inputs instead of scattering counts
+    # against the wrong rows.
+    n_Y = Y.shape[0]
+    if Y_abundance.shape[0] != n_Y:
+        raise InvalidArgumentError(
+            f"Y_abundance has {Y_abundance.shape[0]} entries but Y has "
+            f"{n_Y} rows; they must correspond one-to-one."
+        )
+
     # Keep track of whether the user supplied a single distribution.
     one_dimensional = Y_abundance.ndim == 1
 
     if one_dimensional:
         Y_abundance = Y_abundance.reshape(-1, 1)
-    #Get unique elements
-    X_unique, X_inverse = np.unique(X, axis = 0, return_inverse=True)
-    Y_unique, Y_inverse = np.unique(Y, axis = 0, return_inverse=True)
-    
-    #Sum counts for duplicate elements
-    Y_abundance_unique = np.zeros((len(Y_unique), Y_abundance.shape[1]))
-    np.add.at(Y_abundance_unique, Y_inverse, Y_abundance)
-    
-    Y_abundance_unique = backend.asarray(Y_abundance_unique)
+
+    # Deduplicate rows via the backend (previously np.unique on both,
+    # which copied CPU tensors to host memory and raised for cuda/mps
+    # tensors).
+    X_unique, X_inverse = backend.unique_rows(X, return_inverse=True)
+    Y_unique, Y_inverse = backend.unique_rows(Y, return_inverse=True)
+
+    # Sum counts for duplicate elements. Stays on the backend's dtype
+    # and device (previously numpy float64 regardless of backend).
+    Y_abundance_unique = backend.index_add(
+        index=Y_inverse,
+        source=Y_abundance,
+        out_shape=(Y_unique.shape[0], Y_abundance.shape[1]),
+    )
+
     # Normalize counts independently for each abundance distribution.
     abundance_totals = backend.sum(Y_abundance_unique, axis=0)
-
     Y_abundance_unique = Y_abundance_unique / abundance_totals
-    
-    from sentropy.ray import _interset_weighted_abundances_ray, _recommend_chunk_params
-    chunk_size, max_inflight_tasks = _recommend_chunk_params(X.shape[0], Y.shape[0])
+
+    try:
+        from sentropy.ray import (
+            _interset_weighted_abundances_ray,
+            _recommend_chunk_params,
+        )
+    except ImportError as exc:  # pragma: no cover
+        raise ImportError(
+            "interset_ordinariness() parallelizes with Ray, but ray "
+            "could not be imported. Install it with `pip install ray` "
+            "(or `pip install sentropy[ray]` if you declare it as an "
+            "optional extra)."
+        ) from exc
+
+    chunk_size, max_inflight_tasks = _recommend_chunk_params(
+        X.shape[0], Y.shape[0]
+    )
 
     result_unique = _interset_weighted_abundances_ray(
         similarity=similarity,
@@ -802,7 +836,11 @@ def interset_ordinariness(
         max_inflight_tasks=max_inflight_tasks,
         backend=backend,
     )
-    result = result_unique[X_inverse]
+
+    # Gather back per-element results (previously result_unique[
+    # X_inverse], which relied on implicit numpy-index-on-tensor
+    # coercion).
+    result = backend.take(result_unique, X_inverse)
     if one_dimensional:
         result = result[:, 0]
 
