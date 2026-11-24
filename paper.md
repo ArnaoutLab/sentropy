@@ -28,6 +28,9 @@ authors:
   - name: Alexandra Morgan
     orcid: 0000-0001-7787-0547
     affiliation: 1
+  - name: Miao Li
+    orcid: 0009-0004-4951-2899
+    affiliation: 1
   - name: Liza M. Quintana MD
     orcid: 0000-0002-5043-7425
     affiliation: 1
@@ -63,7 +66,7 @@ bibliography: paper.bib
 
 # Summary
 
-Entropy, the main measure of information content, uncertainty, diversity, surprise, and disorder across many fields, derives exclusively from elements' frequencies, ignoring the rich information encoded by elements' similarities. Similarity-sensitive entropy or "sentropy" captures this missing information [@leinsterEntropyDiversityAxiomatic2020]. The `sentropy` Python package calculates traditional entropy's sentropic counterparts, including variants by Rényi order $\alpha$/Hill viewpoint parameter $q$ (the Rényi sentropies, with Shannon sentropy for $\alpha=q=1$), sentropic versions of Hill's diversity indicies [@hill1973diversity] (the similarity-sensitive effective/D-number forms of Shannon entropy, Simpson's index, the Berger-Parker index, etc.), and both the Leinster-Cobbold-Reeve (LCR) family of measures and the Vendi scores (quantum sentropies) [@nguyenComparingFrameworksSimilarityaware]. `sentropy` also calculates sentropic $\alpha$, $\beta$, and $\gamma$ diversities, relative sentropy (the sentropic generalization of Kullback-Leibler divergence), and cross sentropy. The package has 100% code coverage and is optimized for speed and large datasets.
+Entropy, the main measure of information content, uncertainty, diversity, surprise, and disorder across many fields, derives exclusively from elements' frequencies, ignoring the rich information encoded by elements' similarities. Similarity-sensitive entropy or "sentropy" captures this missing information [@LeinsterCobbold2012, @reeve2016partitiondiversity, @leinsterEntropyDiversityAxiomatic2020]. The `sentropy` Python package calculates traditional entropy's sentropic counterparts, including variants by Rényi order $\alpha$/Hill viewpoint parameter $q$ (the Rényi sentropies, with Shannon sentropy for $\alpha=q=1$), sentropic versions of Hill's diversity indicies [@hill1973diversity] (the similarity-sensitive effective/D-number forms of Shannon entropy, Simpson's index, the Berger-Parker index, etc.), and both the Leinster-Cobbold-Reeve (LCR) family of measures and the Vendi scores (quantum sentropies) [@nguyenComparingFrameworksSimilarityaware]. `sentropy` also calculates sentropic $\alpha$, $\beta$, and $\gamma$ diversities, relative sentropy (the sentropic generalization of Kullback-Leibler divergence), and cross sentropy. The package has 100% code coverage and is optimized for speed and large datasets.
 
 # Statement of need
 Shannon entropy and related "traditional" entropies measure the information encoded by the frequency distribution of a system's unique elements. Similarities among elements encode additional information. Some applications:
@@ -77,7 +80,7 @@ Shannon entropy and related "traditional" entropies measure the information enco
 The `sentropy` package is designed to calculate the full range of sentropic quantities in these and other contexts.
 
 # State of the field
-Because entropy and diversity are closely related, packages that calculate diversity can be used to facilitate some sentropic measurements. Specifically, packages for calculating frequency- and similarity-sensitive $\alpha$ and $\beta$ diversities in effective-number form exist for the R ([`rdiversity`](https://github.com/boydorr/rdiversity)) and Julia ([`Diversity`](https://github.com/EcoJulia/Diversity.jl)) programming languages, but not to our knowledge for Python, which is more widely used, especially in machine learning. The Python package [`cdiversity`](https://github.com/AI-SysBio/cdiversity) calculates Hill-number diversity but without similarity. The [ `vendi-score`](https://pypi.org/project/vendi-score/#description) Python package calculates Vendi scores but not $\alpha/\beta/\gamma$ diversities, relative sentropies, or the LCR framework's quantities.
+Because entropy and diversity are closely related, packages that calculate diversity can be used to facilitate some sentropic measurements. Specifically, packages for calculating frequency- and similarity-sensitive $\alpha$ and $\beta$ diversities in effective-number form exist for the R ([`rdiversity`](https://github.com/boydorr/rdiversity))[@reeve2016partitiondiversity] and Julia ([`Diversity`](https://github.com/EcoJulia/Diversity.jl))[@reeve2016partitiondiversity]  programming languages, but not to our knowledge for Python, which is more widely used, especially in machine learning. The Python package [`cdiversity`](https://github.com/AI-SysBio/cdiversity) calculates Hill-number diversity but without similarity. The [ `vendi-score`](https://pypi.org/project/vendi-score/#description) Python package calculates Vendi scores but not $\alpha/\beta/\gamma$ diversities, relative sentropies, or the LCR framework's quantities.
 
 
 # Software design
@@ -85,7 +88,7 @@ Because entropy and diversity are closely related, packages that calculate diver
 
 # Research impact statement
 
-Since its initial release, `sentropy` (originally called *greylock*) has been adopted in peer-reviewed scientific literature spanning computational biology and information theory. The package was employed and cited in *Nature Communications* [@ferreiraSelfsupervisedLearningLabelfree2025a] for self-supervised cardiac ultrasound segmentation, where it supported analysis of over 18,000 clinical echocardiograms. Additionally, it formed the computational backbone of a theoretical investigation into similarity-sensitive entropy metrics published in Physical Review E [@nguyenComparingFrameworksSimilarityaware], involving comparative analysis across 53 benchmark ML datasets. `sentropy` also has applications in data efficiency and data pruning, important in machine learning [@chinnENRICHingMedicalImaging2023].
+Since its initial release, `sentropy` (originally called *[greylock](https://github.com/ArnaoutLab/diversity)*) has been adopted in peer-reviewed scientific literature spanning computational biology and information theory. The package was employed and cited in *Nature Communications* [@ferreiraSelfsupervisedLearningLabelfree2025a] for self-supervised cardiac ultrasound segmentation, where it supported analysis of over 18,000 clinical echocardiograms. Additionally, it formed the computational backbone of a theoretical investigation into similarity-sensitive entropy metrics published in Physical Review E [@nguyenComparingFrameworksSimilarityaware], involving comparative analysis across 53 benchmark ML datasets. `sentropy` also has applications in data efficiency and data pruning, important in machine learning [@chinnENRICHingMedicalImaging2023].
 
 # AI usage disclosure
 The authors used GitHub Copilot for inline code suggestions. The authors reviewed and validated all AI-suggested edits and bear full responsibility for the final work.
@@ -97,7 +100,7 @@ The authors used GitHub Copilot for inline code suggestions. The authors reviewe
 - Elliot D. Hill: Software (original greylock implementation), Writing
 - Jasper Braun: Software (original greylock implementation), Investigation (immunomics section), Writing
 - Alexandra Morgan: Software (original greylock implementation), Investigation (metagenomics section), Writing
-- Miao Li: Software
+- Miao Li: Software (testing the relative-sentropy functionality)
 - Liza M. Quintana: Writing
 - Gabrielle Mazzon: Writing
 - Ghee Rye Lee: Writing
