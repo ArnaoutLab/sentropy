@@ -615,3 +615,7 @@ To date, we know of no other python package that implements all the measures def
  - packages in other languages that enable some of the capabilities of `sentropy`: [R](https://github.com/boydorr/rdiversity) and [Julia](https://github.com/EcoJulia/Diversity.jl)
  - [`cdiversity`](https://github.com/AI-SysBio/cdiversity) package calculates Hill-number diversity but without similarity for immune repertoires
  - [`vendi-score`](https://pypi.org/project/vendi-score/#description): alternative for `measure='vendi'` to the `sentropy` function
+
+# Release History
+
+See [release history](https://github.com/ArnaoutLab/sentropy/blob/main/docs/changelog.md)
