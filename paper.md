@@ -95,7 +95,7 @@ This software article complements our previous preprint [@greylockpaper], which 
 Since its initial release, `sentropy` (originally called *[greylock](https://github.com/ArnaoutLab/diversity)*) has been adopted in peer-reviewed scientific literature spanning computational biology and information theory. The package was employed and cited in *Nature Communications* [@ferreiraSelfsupervisedLearningLabelfree2025a] for self-supervised cardiac ultrasound segmentation, where it supported analysis of over 18,000 clinical echocardiograms. Additionally, it formed the computational backbone of a theoretical investigation into similarity-sensitive entropy metrics published in Physical Review E [@nguyenComparingFrameworksSimilarityaware], involving comparative analysis across 53 benchmark ML datasets. `sentropy` also has applications in data efficiency and data pruning, important in machine learning [@chinnENRICHingMedicalImaging2023].
 
 # AI usage disclosure
-The authors used GitHub Copilot for inline code suggestions. The authors reviewed and validated all AI-suggested edits and bear full responsibility for the final work.
+The authors used GitHub Copilot for inline code suggestions, and also used the Lumo, Perplexity, ChatGPT and Claude LLMs to help with code optimization. The authors reviewed and validated all AI-suggested edits and bear full responsibility for the final work.
 
 # Author contribution statement
 
