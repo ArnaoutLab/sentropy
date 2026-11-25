@@ -1,6 +1,8 @@
 
 from sentropy.abundance import Abundance
+from sentropy.exceptions import ArgumentWarning
 from sentropy.similarity import Similarity
+from warnings import warn
 
 
 class Components:
@@ -22,6 +24,25 @@ class Components:
             self.subset_ordinariness,
             self.normalized_subset_ordinariness,
         ) = self.abundance.premultiply_by(similarity)
+
+        # Negative ordinariness values can make LCR diversity
+        # calculations invalid over the real numbers.
+        if any(
+            self.abundance.backend.any(ordinariness < 0)
+            for ordinariness in (
+                self.set_ordinariness,
+                self.subset_ordinariness,
+                self.normalized_subset_ordinariness,
+            )
+        ):
+            warn(
+                "Negative ordinariness values detected. This can cause "
+                "Leinster-Cobbold-Reeve diversity calculations to produce "
+                "invalid values (e.g. NaN or complex numbers) for some "
+                "viewpoint parameters. Check your similarity matrix.",
+                category=ArgumentWarning,
+                stacklevel=2,
+            )
 
         self.numerators = {
             **dict.fromkeys(["alpha", "gamma", "normalized_alpha"], 1),
