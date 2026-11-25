@@ -550,53 +550,73 @@ sentropy -h
 ```
 
 ## Input and similarity files
-The input file (`-i`) is a csv file or tsv file of the same format as the counts matrices expected by the `sentropy` function, saved with `index=False`, for example:
+The input file (`-i`) is a csv file or tsv file of the same format as the counts matrices expected by the `sentropy` function, saved with `index=False`. For example, use the `count1.csv` in `docs/example_data/`
 ```
-import pandas as pd
-
-pd.DataFrame(
-    {
-        "apples": [2, 4, 0],
-        "oranges": [4, 0, 6],
-    },
-    index=["ladybug", "bee", "fish"],
-).to_csv("counts.csv", index=False)
+   platter1  platter2
+0      12        2
+1       3        2
+2       1        4
+3       1        4
 ```
-If a similarity matrix is used, the `-similarity` flag points to a csv or tsv file containing the pairwise similarities for the species in the input file. The file must have a header listing the species names corresponding to each column, and the column and row ordering must match the row order of the counts file, for example:
+If a similarity matrix is used, the `-similarity` flag points to a csv or tsv file containing the pairwise similarities for the species in the input file. The order of species in the file must match the order in the abundance matrix (`count1.csv` here). For example, use the `similarity.csv` in `docs/example_data/`
 ```
-pd.DataFrame(
-    [
-        [1.0, 0.60, 0.22],
-        [0.60, 1.0, 0.27],
-        [0.22, 0.27, 1.0],
-    ],
-    index=["ladybug", "bee", "fish"],
-    columns=["ladybug", "bee", "fish"],
-).to_csv("similarity.csv", index=False)
+     0    1    2    3
+0  1.0  0.7  0.0  0.0
+1  0.7  1.0  0.1  0.3
+2  0.0  0.1  1.0  0.9
+3  0.0  0.3  0.9  1.0
 ```
 If `-similarity` is omitted, the identity similarity is used. Note: the CLI currently accepts precomputed similarity matrices only; the more flexible similarity-function interface (see Passing a similarity function) is available through the Python API.
 
 ## One input file: LCR measures and the Vendi score
 
-From the command line:
+From the command line from the `sentropy` directory (change `DATA_DIR` is needed):
 ```
-sentropy -i counts.csv -similarity similarity.csv -q 0 1 2 inf -measure alpha beta normalized_rho
+DATA_DIR="docs/example_data/"
+
+sentropy -i "${DATA_DIR}count1.csv" \
+         -similarity "${DATA_DIR}similarity.csv" \
+         -q 0 1 2 inf \
+         -measure alpha beta normalized_rho
 ```
-The output is a table with the requested measures for each viewpoint `q`. If no `-measure` flag is passed, then the measure `alpha` will be computed. If no `-q` flag is passed, the viewpoint parameter 1 is computed. The Vendi score can also be computed, but it cannot be combined with the other measures in a single call, for example:
+The output is a table with the requested measures for each viewpoint `q`. If no `-measure` flag is passed, then the measure `alpha` will be computed. If no `-q` flag is passed, the viewpoint parameter 1 is computed. You should see the following results
 ```
-sentropy -i counts.csv -similarity similarity.csv -measure vendi -q 1
+       level  viewpoint     alpha      beta  normalized_rho
+0    overall        0.0  3.905850  0.541073        0.951199
+1   platter1        0.0  3.270158  0.615077        0.953063
+2   platter2        0.0  4.806413  0.436234        0.948558
+3    overall        1.0  3.271888  0.608538        0.834007
+4   platter1        1.0  2.603652  0.680869        0.860969
+5   platter2        1.0  4.522241  0.519026        0.797250
+6    overall        2.0  2.896006  0.660379        0.762734
+7   platter1        2.0  2.352099  0.720604        0.813494
+8   platter2        2.0  4.306931  0.590469        0.700787
+9    overall        inf  2.056738  0.780000        0.530504
+10  platter1        inf  2.056738  0.805714        0.727562
+11  platter2        inf  3.536585  0.780000        0.530504
+```
+
+The Vendi score can also be computed, but it cannot be combined with the other measures in a single call, for example:
+```
+sentropy -i ${DATA_DIR}counts.csv -similarity ${DATA_DIR}similarity.csv -measure vendi -q 1
 ```
 To save the result table to a file, pass `-o` (note that the output is always tab-delimited):
 ```
-sentropy -i counts.csv -similarity similarity.csv -q 0 1 inf -o results.tsv
+sentropy -i ${DATA_DIR}counts.csv -similarity ${DATA_DIR}similarity.csv -q 0 1 inf -o results.tsv
 ```
 
 ## Two input files: relative sentropy and cross-sentropy
 With two input files, the CLI computes similarity-sensitive relative sentropy (`-measure sre`, the default in this mode) or similarity-sensitive cross-sentropy (`-measure sce`) between the two subsets, for example:
 ```
-sentropy -i counts_a.csv counts_b.csv -similarity similarity.csv -q 1 -measure sre
+DATA_DIR="docs/example_data/"
+sentropy -i ${DATA_DIR}count1.csv ${DATA_DIR}count1.csv -similarity ${DATA_DIR}similarity.csv -q 1 -measure sre
 ```
-Both files must follow the same format (one column per subset, one row per species), and both must list their species in the same order as the similarity matrix. Exactly one or two input files must be given. 
+Both files must follow the same format (one column per subset, one row per species), and both must list their species in the same order as the similarity matrix. Exactly one or two input files must be given. You should see the following output
+```
+result: (1.0,           platter1  platter2
+platter1  1.000000  1.953477
+platter2  2.113172  1.000000)
+```
 
 
 # More applications
