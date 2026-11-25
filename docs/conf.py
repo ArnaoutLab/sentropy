@@ -19,6 +19,7 @@ version = ".".join(release.split(".")[:2])
 # -- General configuration ---------------------------------------------------
 extensions = [
     "myst_parser",             # write pages in Markdown
+    "myst_nb",                # Markdown + Jupyter notebooks (replaces myst_parser)
     "sphinx.ext.autodoc",      # API docs from docstrings
     "sphinx.ext.napoleon",     # NumPy-style docstrings
     "sphinx.ext.viewcode",     # [source] links
@@ -29,6 +30,10 @@ extensions = [
     "sphinx_design",           # cards, tabs, grids
     "sphinxarg.ext",           # CLI reference from argparse
 ]
+
+# Don't run the notebook during the docs build;
+# render its committed outputs as-is.
+nb_execution_mode = "off"
 
 source_suffix = {".md": "markdown", ".rst": "restructuredtext"}
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]

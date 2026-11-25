@@ -78,6 +78,7 @@ concepts
 
 api/index
 cli
+performance
 ```
 
 ```{toctree}
