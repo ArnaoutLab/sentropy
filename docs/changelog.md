@@ -3,6 +3,10 @@
 Newest first. Version numbers follow the project's release tags.
 
 * Version 1.7.0: implemented batch similarity function
+  * 1.7.2
+  	* Documentation updates
+  	* warning for negative similarity matrix entries
+  	* fixed backend mixing in interset_ordinariness
   * 1.7.1: 
     * Remove some code duplication,
     * Incorporate code optimization to handle edge cases

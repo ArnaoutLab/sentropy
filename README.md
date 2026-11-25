@@ -32,7 +32,7 @@ For the most complete background currently available, see [Leinster 2020](https:
 ```
 @misc{nguyen2023textitgreylockpythonpackagemeasuring,
       title={sentropy: A Python Package for Revealing Hidden Differences in Complex Datasets}, 
-      author={Phuc Nguyen and Rohit Arora and Elliot D. Hill and Jasper Braun and Alexandra Morgan and Liza M. Quintana and Gabrielle Mazzoni and Ghee Rye Lee and Rima Arnaout and Ramy Arnaout},
+      author={Phuc Nguyen and Rohit Arora and Elliot D. Hill and Jasper Braun and Alexandra Morgan and Miao Li and Liza M. Quintana and Gabrielle Mazzoni and Ghee Rye Lee and Rima Arnaout and Ramy Arnaout},
       year={2023},
       eprint={2401.00102},
       archivePrefix={arXiv},
